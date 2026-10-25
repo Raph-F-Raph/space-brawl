@@ -3,6 +3,7 @@
     { id: 'c1', name: 'Cosmo', rarity: 'common', hp: 100, strength: 10, resistance: 5, attack_type: 'Tir laser', attack_kind: 'laser', color: '#4cc9f0', accent: '#ffd23f', price: 0, sort_order: 1 },
     { id: 'c2', name: 'Nova', rarity: 'rare', hp: 80, strength: 14, resistance: 3, attack_type: 'Rafale', attack_kind: 'burst', color: '#ff6b9d', accent: '#fff3b0', price: 500, sort_order: 2 },
     { id: 'c3', name: 'Volt', rarity: 'epic', hp: 90, strength: 12, resistance: 6, attack_type: 'Éclair perçant', attack_kind: 'pierce', color: '#b5f23d', accent: '#3a0ca3', price: 1500, sort_order: 3 },
+    { id: 'c5', name: 'Frelon', rarity: 'epic', hp: 110, strength: 13, resistance: 7, attack_type: 'Dard fulgurant', attack_kind: 'pierce', color: '#1b1b1f', accent: '#ffd400', price: 2500, sort_order: 5 },
     { id: 'c4', name: 'Titan', rarity: 'legendary', hp: 160, strength: 9, resistance: 12, attack_type: 'Onde de choc', attack_kind: 'shockwave', color: '#ff9f1c', accent: '#2b2d42', price: 4000, sort_order: 4 },
   ];
   const ships = [

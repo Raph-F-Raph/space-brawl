@@ -1101,24 +1101,24 @@ button.mode-card:active {
   color: #ff7a8e;
 }
 
-/* Petits écrans (téléphone en portrait) : l'en-tête passe sur deux lignes au lieu de déborder */
+/* Petits écrans (téléphone en portrait) : l'en-tête des écrans secondaires passe sur deux lignes au lieu de déborder */
 @media (max-width: 480px) {
-  .topbar {
+  .screen:not(.home) .topbar {
     flex-wrap: wrap;
     row-gap: 6px;
     gap: 6px 8px;
     padding: 8px 10px;
   }
-  .topbar .title {
+  .screen:not(.home) .topbar .title {
     font-size: 22px;
     white-space: nowrap;
   }
-  .topbar .spacer {
+  .screen:not(.home) .topbar .spacer {
     flex-basis: 100%;
     height: 0;
     order: 3;
   }
-  .topbar .currency {
+  .screen:not(.home) .topbar .currency {
     order: 4;
   }
 }

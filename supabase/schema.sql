@@ -405,7 +405,8 @@ insert into public.characters (name, rarity, hp, strength, resistance, attack_ty
   ('Cosmo', 'common',    100, 10,  5, 'Tir laser',       'laser',     '#4cc9f0', '#ffd23f', 0,    1),
   ('Nova',  'rare',       80, 14,  3, 'Rafale',          'burst',     '#ff6b9d', '#fff3b0', 500,  2),
   ('Volt',  'epic',       90, 12,  6, 'Éclair perçant',  'pierce',    '#b5f23d', '#3a0ca3', 1500, 3),
-  ('Titan', 'legendary', 160,  9, 12, 'Onde de choc',    'shockwave', '#ff9f1c', '#2b2d42', 4000, 4)
+  ('Titan', 'legendary', 160,  9, 12, 'Onde de choc',    'shockwave', '#ff9f1c', '#2b2d42', 4000, 4),
+  ('Frelon', 'epic',     110, 13,  7, 'Dard fulgurant',  'pierce',    '#1b1b1f', '#ffd400', 2500, 5)
 on conflict (name) do nothing;
 
 insert into public.ships (name, rarity, hp, strength, resistance, speed, color, accent, price, sort_order) values
