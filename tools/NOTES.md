@@ -14,3 +14,6 @@ Principe de la commande (voir assemble.mjs) :
 
 `tools/test/` contient une fausse base Supabase et des tests Playwright.
 La clé « anon » est publique par conception ; ne jamais mettre la clé « service_role ».
+
+Note : `index.vite.html` est la page de départ de l'ancienne méthode (Vite). Elle porte ce nom pour ne pas
+écraser `index.html` (le jeu en un seul fichier, servi par GitHub Pages).
