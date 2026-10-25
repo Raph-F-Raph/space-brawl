@@ -1,0 +1,43 @@
+import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
+import fs from 'node:fs';
+const SP = process.argv[2];
+const fake = fs.readFileSync(`${SP}/test/fake-supabase.js`, 'utf8');
+const browser = await chromium.launch();
+const errors = [];
+const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+const page = await ctx.newPage();
+page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+page.on('pageerror', (e) => errors.push(e.message));
+await page.route('**/*', (route) => {
+  const u = route.request().url();
+  if (u.includes('cdn.jsdelivr.net')) return route.fulfill({ contentType: 'application/javascript', body: fake });
+  if (u.startsWith('file:')) return route.continue();
+  return route.fulfill({ status: 200, contentType: 'text/css', body: '' });
+});
+await page.goto(`file://${SP}/index.html`);
+await page.waitForSelector('form');
+await page.click('button.link');
+await page.fill('input[type=text]', 'Raphael'); await page.fill('input[type=email]', 'test@example.com'); await page.fill('input[type=password]', 'secret123');
+await page.click('button[type=submit]');
+await page.waitForSelector('.btn-play');
+await page.locator('.btn-play').click({ force: true }); await page.waitForTimeout(300);
+await page.locator('button', { hasText: 'Chapitres' }).first().click({ force: true }); await page.waitForTimeout(300);
+await page.locator('.node:not(.node-locked)').first().click({ force: true });
+await page.waitForSelector('canvas');
+await page.keyboard.down('Space');
+const dirs = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'];
+let ended = false, t = 0;
+while (!ended && t < 150) {
+  const k = dirs[Math.floor(t / 1.5) % 4];
+  await page.keyboard.down(k); await page.waitForTimeout(750); await page.keyboard.up(k); t += 0.75;
+  ended = await page.evaluate(() => /VICTOIRE|DÉFAITE/.test(document.body.innerText));
+}
+await page.keyboard.up('Space');
+console.log('Ended after ~', t.toFixed(0), 's:', ended);
+await page.waitForTimeout(600);
+console.log('Result text:', (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, 200));
+console.log('Fake calls:', JSON.stringify(await page.evaluate(() => window.__fake.calls)));
+console.log('Fake profile coins:', await page.evaluate(() => window.__fake.profile.coins), 'cleared:', await page.evaluate(() => window.__fake.progress[0].cleared_level));
+await page.screenshot({ path: `${SP}/test/11-result.png` });
+console.log('ERRORS:', errors.length ? errors : 'none');
+await browser.close();
