@@ -46,11 +46,13 @@ export function StatBar({
   value,
   max,
   color,
+  next,
 }: {
   label: string;
   value: number;
   max: number;
   color: string;
+  next?: number; // valeur au niveau suivant (affichée en vert)
 }) {
   const pct = Math.max(4, Math.min(100, (value / max) * 100));
   return (
@@ -59,7 +61,10 @@ export function StatBar({
       <div className="stat-track">
         <div className="stat-fill" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="stat-value">{value}</span>
+      <span className="stat-value">
+        {value}
+        {next !== undefined && next > value && <b className="stat-next"> +{next - value}</b>}
+      </span>
     </div>
   );
 }

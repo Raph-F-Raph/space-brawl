@@ -25,14 +25,14 @@ export function CharacterArt({
   const clipId = useId().replace(/:/g, '');
   const big = variant === 4; // Titan : plus large
   const handColor = variant === 4 ? color : accent;
-  const torso = big ? { x: 24, y: 74, w: 52, h: 40, rx: 16 } : { x: 31, y: 74, w: 38, h: 36, rx: 15 };
-  const legW = big ? 14 : 10;
-  const legX: [number, number] = big ? [33, 53] : [38, 52];
-  const bootRx = big ? 12 : 10;
-  const armW = big ? 17 : 12;
-  const handR = big ? 10 : 7;
-  const hands: [[number, number], [number, number]] = big ? [[14, 112], [86, 112]] : [[19, 109], [81, 109]];
-  const shoulders: [[number, number], [number, number]] = big ? [[28, 84], [72, 84]] : [[32, 84], [68, 84]];
+  const torso = big ? { x: 15, y: 74, w: 70, h: 38, rx: 20 } : { x: 24, y: 74, w: 52, h: 38, rx: 19 };
+  const legW = big ? 18 : 16;
+  const legX: [number, number] = big ? [29, 53] : [32, 52];
+  const bootRx = big ? 15 : 13;
+  const armW = big ? 25 : 20;
+  const handR = big ? 12 : 10;
+  const hands: [[number, number], [number, number]] = big ? [[9, 110], [91, 110]] : [[14, 108], [86, 108]];
+  const shoulders: [[number, number], [number, number]] = big ? [[24, 86], [76, 86]] : [[30, 86], [70, 86]];
 
   return (
     <svg
@@ -41,7 +41,7 @@ export function CharacterArt({
       aria-hidden="true"
     >
       {/* Ombre au sol */}
-      {!headOnly && <ellipse cx="50" cy="139" rx={big ? 34 : 28} ry="5" fill="#000" opacity="0.28" />}
+      {!headOnly && <ellipse cx="50" cy="139" rx={big ? 38 : 32} ry="5" fill="#000" opacity="0.28" />}
 
       {/* Éléments derrière le corps et la tête */}
       {variant === 2 && (
@@ -81,13 +81,13 @@ export function CharacterArt({
           {/* jambes */}
           {legX.map((x) => (
             <g key={x}>
-              <rect x={x} y="104" width={legW} height="28" rx="5" fill={color} stroke={INK} strokeWidth="4.5" />
-              <rect x={x + 1.5} y="112" width={legW - 3} height="16" rx="3" fill="#000" opacity="0.2" />
+              <rect x={x} y="104" width={legW} height="24" rx="7" fill={color} stroke={INK} strokeWidth="4.5" />
+              <rect x={x + 2} y="114" width={legW - 4} height="12" rx="4" fill="#000" opacity="0.2" />
             </g>
           ))}
           {/* bottes */}
-          <ellipse cx={legX[0] + legW / 2} cy="132" rx={bootRx} ry="6.5" fill={accent} stroke={INK} strokeWidth="4.5" />
-          <ellipse cx={legX[1] + legW / 2} cy="132" rx={bootRx} ry="6.5" fill={accent} stroke={INK} strokeWidth="4.5" />
+          <ellipse cx={legX[0] + legW / 2} cy="130" rx={bootRx} ry="8" fill={accent} stroke={INK} strokeWidth="4.5" />
+          <ellipse cx={legX[1] + legW / 2} cy="130" rx={bootRx} ry="8" fill={accent} stroke={INK} strokeWidth="4.5" />
 
           {/* torse */}
           <defs>
@@ -161,10 +161,11 @@ export function CharacterArt({
                 x2={hands[i][0]}
                 y2={hands[i][1] - 3}
                 stroke={color}
-                strokeWidth={armW - 6.5}
+                strokeWidth={armW - 8}
                 strokeLinecap="round"
               />
-              <circle cx={hands[i][0]} cy={hands[i][1]} r={handR} fill={handColor} stroke={INK} strokeWidth="4" />
+              <circle cx={hands[i][0]} cy={hands[i][1]} r={handR} fill={handColor} stroke={INK} strokeWidth="4.5" />
+              <circle cx={hands[i][0] - handR / 3} cy={hands[i][1] - handR / 3} r={handR / 4} fill="#fff" opacity="0.5" />
             </g>
           ))}
         </>

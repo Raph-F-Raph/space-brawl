@@ -60,3 +60,38 @@ export function ItemCard({
     </article>
   );
 }
+
+/** Petite vignette pour la grille : on touche pour ouvrir la fiche détaillée. */
+export function ItemTile({
+  kind,
+  item,
+  owned,
+  selected,
+  level,
+  onOpen,
+}: {
+  kind: Kind;
+  item: Character | Ship;
+  owned: boolean;
+  selected: boolean;
+  level: number;
+  onOpen: () => void;
+}) {
+  const isChars = kind === 'characters';
+  const style = { '--rarity': RARITY_COLOR[item.rarity] } as CSSProperties;
+  return (
+    <button className={`tile ${selected ? 'selected' : ''} ${owned ? '' : 'locked'}`} style={style} onClick={onOpen}>
+      <div className="tile-art">
+        {isChars ? (
+          <CharacterArt color={item.color} accent={item.accent} variant={item.sort_order} size={62} />
+        ) : (
+          <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={92} />
+        )}
+        {!owned && <span className="tile-lock">🔒</span>}
+        {selected && <span className="tile-check">✓</span>}
+      </div>
+      <span className="tile-name">{item.name}</span>
+      <span className="tile-sub">{owned ? `Niv. ${level}` : `💎 ${item.price}`}</span>
+    </button>
+  );
+}
