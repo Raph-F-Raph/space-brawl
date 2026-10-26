@@ -1,0 +1,41 @@
+import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
+import fs from 'node:fs';
+const SP = process.argv[2];
+const fake = fs.readFileSync(`${SP}/test/fake-supabase.js`, 'utf8');
+const b = await chromium.launch();
+const errs = [];
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+const p = await ctx.newPage();
+p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+p.on('pageerror', (e) => errs.push(e.message));
+await p.addInitScript('window.__startCoins = 700; window.__startGems = 25;');
+await p.route('**/*', (r) => { const u = r.request().url(); if (u.includes('jsdelivr')) return r.fulfill({ contentType: 'application/javascript', body: fake }); if (u.startsWith('file:')) return r.continue(); return r.fulfill({ status: 200, contentType: 'text/css', body: '' }); });
+const click = (t) => p.locator('button', { hasText: t }).first().click({ force: true });
+const F = (k) => p.evaluate((kk) => window.__fake.profile[kk], k);
+await p.goto(`file://${SP}/index.html`); await p.waitForSelector('form'); await p.click('button.link');
+await p.fill('input[type=text]', 'Raphael'); await p.fill('input[type=email]', 'a@b.co'); await p.fill('input[type=password]', 'secret123'); await p.click('button[type=submit]');
+await p.waitForSelector('.btn-play');
+// --- Boutique : prix en gemmes
+await click('Boutique'); await p.waitForTimeout(500);
+await p.screenshot({ path: `${SP}/test/30-shop.png` });
+console.log('Prix affichés:', (await p.$$eval('.card', (cs) => cs.map((c) => c.querySelector('.card-name').textContent + ' ' + c.querySelector('.btn').textContent.trim()))).join(' | '));
+await p.locator('.card', { hasText: 'Nova' }).locator('.btn').click({ force: true }); await p.waitForTimeout(300);
+await p.locator('.modal-actions .btn-yellow').click({ force: true }); await p.waitForTimeout(600);
+console.log('Après achat Nova (20 gemmes): gemmes =', await F('gems'), '| pièces =', await F('coins'), '(inchangées)');
+await p.locator('.card', { hasText: 'Frelon' }).first().locator('.btn').click({ force: true }); await p.waitForTimeout(300);
+console.log('Frelon avec 5 gemmes: confirmer désactivé =', await p.locator('.modal-actions .btn-yellow').isDisabled());
+await p.screenshot({ path: `${SP}/test/31-missing.png` });
+await p.locator('.modal-actions .btn-grey').click({ force: true }); await p.waitForTimeout(200);
+// cadeau du jour
+await click('Récupérer'); await p.waitForTimeout(500);
+console.log('Cadeau: gemmes =', await F('gems'), 'pièces =', await F('coins'), '| bouton ensuite =', (await p.locator('.exchange .btn').textContent()).trim());
+await p.screenshot({ path: `${SP}/test/32-after-gift.png` });
+// --- Améliorations en pièces
+await click('Retour'); await p.waitForTimeout(300); await click('Personnages'); await p.waitForTimeout(400);
+await p.locator('.card', { hasText: 'Cosmo' }).locator('button', { hasText: 'Améliorer' }).click({ force: true }); await p.waitForTimeout(500);
+await p.locator('.card', { hasText: 'Cosmo' }).locator('button', { hasText: 'Améliorer' }).click({ force: true }); await p.waitForTimeout(500);
+console.log('Cosmo améliorée 2 fois (60 + 120): pièces =', await F('coins'), '| niveau serveur =', await p.evaluate(() => window.__fake.ownC.c1));
+console.log('Carte Cosmo:', (await p.locator('.card', { hasText: 'Cosmo' }).innerText()).replace(/\s+/g, ' '));
+await p.screenshot({ path: `${SP}/test/33-cosmo-niv3.png` });
+console.log('ERREURS:', errs.length ? errs : 'aucune');
+await b.close();

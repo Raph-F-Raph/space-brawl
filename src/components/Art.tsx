@@ -6,7 +6,7 @@ const INK = '#0b1030';
 interface ArtProps {
   color: string;
   accent: string;
-  variant: number; // 1 à 5 : forme différente pour chaque personnage / soucoupe
+  variant: number; // 1 à 5 : forme différente pour chaque personnage / soucoupe (5 = noir et jaune, thème frelon)
   size?: number | string; // largeur (nombre = px, ou "100%")
 }
 
@@ -222,6 +222,7 @@ export function CharacterArt({
 
 /** Soucoupe volante en SVG. */
 export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
+  const clipId = useId().replace(/:/g, '');
   const lights: [number, number][] = [
     [30, 66],
     [55, 72],
@@ -245,10 +246,23 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
           <polygon points="12,60 -8,54 -2,64 -10,72 12,70" fill="#ffd23f" />
         </>
       )}
+      {variant === 5 && (
+        <polygon points="14,56 -24,64 14,74" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      )}
       {variant === 2 && (
         <>
           <polygon points="12,62 -16,36 22,52" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
           <polygon points="148,62 176,36 138,52" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        </>
+      )}
+
+      {variant === 5 && (
+        <>
+          {/* petites ailes de chaque côté */}
+          <ellipse cx="-2" cy="46" rx="24" ry="9" transform="rotate(-24 -2 46)" fill="#fff" opacity="0.55" stroke={INK} strokeWidth="4" />
+          <ellipse cx="162" cy="46" rx="24" ry="9" transform="rotate(24 162 46)" fill="#fff" opacity="0.55" stroke={INK} strokeWidth="4" />
+          {/* dard sous la soucoupe */}
+          <polygon points="70,80 80,99 90,80" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         </>
       )}
 
@@ -258,9 +272,39 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
 
       {/* Disque */}
       <ellipse cx="80" cy="64" rx="74" ry="24" fill={color} stroke={INK} strokeWidth="5" />
+      {variant === 5 && (
+        <>
+          <defs>
+            <clipPath id={clipId}>
+              <ellipse cx="80" cy="64" rx="74" ry="24" />
+            </clipPath>
+          </defs>
+          <g clipPath={`url(#${clipId})`}>
+            {[14, 46, 78, 110, 142].map((x) => (
+              <polygon key={x} points={`${x},38 ${x + 12},38 ${x + 2},92 ${x - 10},92`} fill={accent} />
+            ))}
+          </g>
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke={INK} strokeWidth="5" />
+        </>
+      )}
+      {variant === 5 && (
+        <>
+          <defs>
+            <clipPath id={clipId}>
+              <ellipse cx="80" cy="64" rx="74" ry="24" />
+            </clipPath>
+          </defs>
+          <g clipPath={`url(#${clipId})`}>
+            {[34, 68, 102].map((x) => (
+              <rect key={x} x={x} y="36" width="14" height="60" fill={accent} />
+            ))}
+          </g>
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke={INK} strokeWidth="5" />
+        </>
+      )}
       <ellipse cx="80" cy="70" rx="60" ry="10" fill="#000" opacity="0.18" />
       {lights.map(([x, y]) => (
-        <circle key={x} cx={x} cy={y} r="5" fill={accent} stroke={INK} strokeWidth="2.5" />
+        <circle key={x} cx={x} cy={y} r="5" fill={variant === 5 ? '#fff' : accent} stroke={INK} strokeWidth="2.5" />
       ))}
 
       {variant === 3 && (

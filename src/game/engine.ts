@@ -1,6 +1,7 @@
 import type { AttackKind, Character, Ship } from '../types';
 import type { EnemyKind, LevelDef } from './levels';
 import { vibrate } from '../lib/settings';
+import { levelMult } from './progress';
 
 // Taille du terrain (le jeu s'adapte ensuite à l'écran, avec des bandes noires si besoin)
 export const W = 960;
@@ -21,11 +22,14 @@ export interface PlayerStats {
 }
 
 /** Les stats du personnage ET de la soucoupe s'additionnent. */
-export function makeStats(c: Character, s: Ship): PlayerStats {
+export function makeStats(c: Character, s: Ship, charLevel = 1, shipLevel = 1): PlayerStats {
+  // Chaque niveau ajoute 8 % aux statistiques de base du personnage et de la soucoupe
+  const mc = levelMult(charLevel);
+  const ms = levelMult(shipLevel);
   return {
-    maxHp: c.hp + s.hp,
-    damage: 6 + c.strength + s.strength * 0.5,
-    reduction: (c.resistance + s.resistance) * 0.5,
+    maxHp: Math.round(c.hp * mc + s.hp * ms),
+    damage: 6 + c.strength * mc + s.strength * 0.5 * ms,
+    reduction: (c.resistance * mc + s.resistance * ms) * 0.5,
     speed: 150 + s.speed * 16,
     attackKind: c.attack_kind,
     charColor: c.color,
@@ -54,11 +58,11 @@ const ENEMY: Record<
   EnemyKind,
   { hp: number; speed: number; r: number; dmg: number; coins: number; color: string }
 > = {
-  grunt: { hp: 40, speed: 70, r: 16, dmg: 14, coins: 5, color: '#5bd75b' },
-  fast: { hp: 24, speed: 125, r: 12, dmg: 10, coins: 6, color: '#ff9f1c' },
-  tank: { hp: 130, speed: 45, r: 24, dmg: 22, coins: 15, color: '#9b5de5' },
-  minion: { hp: 30, speed: 90, r: 12, dmg: 10, coins: 3, color: '#ff6b9d' },
-  boss: { hp: 1400, speed: 38, r: 52, dmg: 28, coins: 100, color: '#e63946' },
+  grunt: { hp: 40, speed: 70, r: 16, dmg: 14, coins: 1, color: '#5bd75b' },
+  fast: { hp: 24, speed: 125, r: 12, dmg: 10, coins: 2, color: '#ff9f1c' },
+  tank: { hp: 130, speed: 45, r: 24, dmg: 22, coins: 4, color: '#9b5de5' },
+  minion: { hp: 30, speed: 90, r: 12, dmg: 10, coins: 1, color: '#ff6b9d' },
+  boss: { hp: 1400, speed: 38, r: 52, dmg: 28, coins: 20, color: '#e63946' },
 };
 
 interface Enemy {

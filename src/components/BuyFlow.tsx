@@ -38,15 +38,15 @@ export function useBuyFlow() {
     setTarget(null);
   }
 
-  const coins = g.profile?.coins ?? 0;
-  const missing = target ? target.item.price - coins : 0;
+  const gems = g.profile?.gems ?? 0;
+  const missing = target ? target.item.price - gems : 0;
 
   const ui = (
     <>
       {target && (
         <ConfirmModal
           title="Débloquer ?"
-          confirmLabel={`🪙 ${target.item.price.toLocaleString('fr-FR')}`}
+          confirmLabel={`💎 ${target.item.price.toLocaleString('fr-FR')}`}
           confirmDisabled={missing > 0}
           busy={busy}
           error={error}
@@ -54,12 +54,15 @@ export function useBuyFlow() {
           onClose={() => setTarget(null)}
         >
           <p>
-            <strong>{target.item.name}</strong> pour 🪙 {target.item.price.toLocaleString('fr-FR')} pièces.
+            <strong>{target.item.name}</strong> pour 💎 {target.item.price.toLocaleString('fr-FR')} gemmes.
           </p>
           {missing > 0 ? (
-            <p>Il te manque 🪙 {missing.toLocaleString('fr-FR')} pièces. Gagne-en en jouant, ou échange des gemmes.</p>
+            <p>
+              Il te manque 💎 {missing.toLocaleString('fr-FR')} gemmes. Gagne-en en réussissant un niveau pour la
+              première fois, en battant un méga boss, ou avec le cadeau du jour dans la boutique.
+            </p>
           ) : (
-            <p>Il te restera 🪙 {(coins - target.item.price).toLocaleString('fr-FR')} pièces.</p>
+            <p>Il te restera 💎 {(gems - target.item.price).toLocaleString('fr-FR')} gemmes.</p>
           )}
         </ConfirmModal>
       )}

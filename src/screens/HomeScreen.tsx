@@ -11,7 +11,7 @@ export function HomeScreen({
   onNavigate: (s: Screen) => void;
   onSoon: (what: string) => void;
 }) {
-  const { profile, character, ship, clearedLevel } = useGame();
+  const { profile, character, ship, charLevel, shipLevel, clearedLevel } = useGame();
   const chapter = CHAPTERS[0];
   const cleared = clearedLevel(chapter.id);
   const done = cleared >= chapter.levels.length;
@@ -38,7 +38,8 @@ export function HomeScreen({
           <ShipWithPilot ship={ship} character={character} size="min(70vw, 62vh, 460px)" />
         </div>
         <div className="stage-names">
-          {character?.name ?? '—'} <span>·</span> {ship?.name ?? '—'}
+          {character?.name ?? '—'} <em className="lvl">niv. {charLevel}</em> <span>·</span> {ship?.name ?? '—'}{' '}
+          <em className="lvl">niv. {shipLevel}</em>
         </div>
       </main>
 

@@ -413,8 +413,115 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
   ('UFO-Alpha',   'common',    100,  5,  5, 5, '#9aa7c7', '#ffd23f', 0,    1),
   ('Star Cruiser','rare',      140,  6,  9, 4, '#4895ef', '#f72585', 600,  2),
   ('Nebula Disc', 'epic',       90,  9,  4, 7, '#9d4edd', '#7bf1a8', 1800, 3),
-  ('Comet X',     'legendary', 110, 11,  6, 9, '#ff5d8f', '#ffd23f', 4500, 4)
+  ('Comet X',     'legendary', 110, 11,  6, 9, '#ff5d8f', '#ffd23f', 4500, 4),
+  ('Aiguillon',   'epic',      100, 10,  5, 8, '#1b1b1f', '#ffd400', 2000, 5)
 on conflict (name) do nothing;
 
 -- ---------- Dernière étape : profils des comptes déjà existants ----------
 select public.backfill_profiles();
+
+
+-- =====================================================================
+-- ÉCONOMIE v2 : pièces = améliorations, gemmes = achats (appliqué sur la vraie base)
+-- =====================================================================
+alter table public.player_characters add column if not exists level int not null default 1 check (level between 1 and 10);
+alter table public.player_ships      add column if not exists level int not null default 1 check (level between 1 and 10);
+alter table public.profiles          add column if not exists last_daily date;
+
+-- Prix en GEMMES
+update public.characters set price = case name when 'Cosmo' then 0 when 'Nova' then 20 when 'Volt' then 60 when 'Titan' then 120 when 'Frelon' then 100 else price end;
+update public.ships      set price = case name when 'UFO-Alpha' then 0 when 'Star Cruiser' then 20 when 'Nebula Disc' then 60 when 'Comet X' then 120 when 'Aiguillon' then 100 else price end;
+
+drop function if exists public.exchange_gems(int);
+
+create or replace function public.buy_character(p_character uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_price int; v_gems int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select price into v_price from public.characters where id = p_character;
+  if v_price is null then raise exception 'Personnage inconnu'; end if;
+  if exists (select 1 from public.player_characters where user_id = auth.uid() and character_id = p_character) then
+    raise exception 'Tu possèdes déjà ce personnage'; end if;
+  update public.profiles set gems = gems - v_price where id = auth.uid() and gems >= v_price returning gems into v_gems;
+  if v_gems is null then raise exception 'Pas assez de gemmes'; end if;
+  insert into public.player_characters (user_id, character_id) values (auth.uid(), p_character);
+  return v_gems;
+end; $$;
+
+create or replace function public.buy_ship(p_ship uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_price int; v_gems int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select price into v_price from public.ships where id = p_ship;
+  if v_price is null then raise exception 'Soucoupe inconnue'; end if;
+  if exists (select 1 from public.player_ships where user_id = auth.uid() and ship_id = p_ship) then
+    raise exception 'Tu possèdes déjà cette soucoupe'; end if;
+  update public.profiles set gems = gems - v_price where id = auth.uid() and gems >= v_price returning gems into v_gems;
+  if v_gems is null then raise exception 'Pas assez de gemmes'; end if;
+  insert into public.player_ships (user_id, ship_id) values (auth.uid(), p_ship);
+  return v_gems;
+end; $$;
+
+create or replace function public.upgrade_character(p_character uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_level int; v_cost int; v_coins int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select level into v_level from public.player_characters where user_id = auth.uid() and character_id = p_character for update;
+  if v_level is null then raise exception 'Tu ne possèdes pas ce personnage'; end if;
+  if v_level >= 10 then raise exception 'Niveau maximum atteint'; end if;
+  v_cost := 60 * v_level;
+  update public.profiles set coins = coins - v_cost where id = auth.uid() and coins >= v_cost returning coins into v_coins;
+  if v_coins is null then raise exception 'Pas assez de pièces'; end if;
+  update public.player_characters set level = level + 1 where user_id = auth.uid() and character_id = p_character;
+  return v_coins;
+end; $$;
+
+create or replace function public.upgrade_ship(p_ship uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_level int; v_cost int; v_coins int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select level into v_level from public.player_ships where user_id = auth.uid() and ship_id = p_ship for update;
+  if v_level is null then raise exception 'Tu ne possèdes pas cette soucoupe'; end if;
+  if v_level >= 10 then raise exception 'Niveau maximum atteint'; end if;
+  v_cost := 60 * v_level;
+  update public.profiles set coins = coins - v_cost where id = auth.uid() and coins >= v_cost returning coins into v_coins;
+  if v_coins is null then raise exception 'Pas assez de pièces'; end if;
+  update public.player_ships set level = level + 1 where user_id = auth.uid() and ship_id = p_ship;
+  return v_coins;
+end; $$;
+
+create or replace function public.claim_daily_gift() returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_gems int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  update public.profiles set gems = gems + 1, coins = coins + 30, last_daily = current_date
+    where id = auth.uid() and (last_daily is null or last_daily < current_date) returning gems into v_gems;
+  if v_gems is null then raise exception 'Cadeau déjà récupéré aujourd''hui'; end if;
+  return v_gems;
+end; $$;
+
+create or replace function public.complete_level(p_chapter int, p_level int, p_coins int, p_won boolean) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_cleared int; v_coins int; v_gems int := 0; v_total int;
+begin
+  if p_level < 1 or p_level > 5 then raise exception 'Niveau invalide'; end if;
+  insert into public.player_progress (user_id, chapter, cleared_level) values (auth.uid(), p_chapter, 0)
+    on conflict (user_id, chapter) do nothing;
+  select cleared_level into v_cleared from public.player_progress where user_id = auth.uid() and chapter = p_chapter;
+  if p_level > v_cleared + 1 then raise exception 'Niveau pas encore débloqué'; end if;
+  v_coins := greatest(0, least(p_coins, 150));
+  if p_won and p_level > v_cleared then
+    update public.player_progress set cleared_level = p_level where user_id = auth.uid() and chapter = p_chapter;
+    v_gems := case when p_level = 5 then 10 else 2 end;
+  end if;
+  update public.profiles set coins = coins + v_coins, gems = gems + v_gems where id = auth.uid() returning coins into v_total;
+  return v_total;
+end; $$;
+
+revoke all on function public.buy_character(uuid), public.buy_ship(uuid), public.upgrade_character(uuid), public.upgrade_ship(uuid), public.claim_daily_gift(), public.complete_level(int,int,int,boolean) from public, anon;
+grant execute on function public.buy_character(uuid), public.buy_ship(uuid), public.upgrade_character(uuid), public.upgrade_ship(uuid), public.claim_daily_gift(), public.complete_level(int,int,int,boolean) to authenticated;

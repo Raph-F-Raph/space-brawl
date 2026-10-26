@@ -12,7 +12,7 @@ export interface Character {
   attack_kind: AttackKind;
   color: string;
   accent: string;
-  price: number;
+  price: number; // en GEMMES (0 = personnage de départ)
   sort_order: number;
 }
 
@@ -37,6 +37,7 @@ export interface Profile {
   gems: number;
   selected_character: string | null;
   selected_ship: string | null;
+  last_daily: string | null; // date (AAAA-MM-JJ) du dernier cadeau du jour
 }
 
 export interface Progress {

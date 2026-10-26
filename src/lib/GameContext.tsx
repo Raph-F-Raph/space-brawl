@@ -19,6 +19,10 @@ interface GameState {
   ships: Ship[];
   ownedCharacters: Set<string>;
   ownedShips: Set<string>;
+  characterLevels: Record<string, number>; // niveau de chaque personnage possédé
+  shipLevels: Record<string, number>;
+  charLevel: number; // niveau du personnage sélectionné
+  shipLevel: number; // niveau de la soucoupe sélectionnée
   progress: Progress[];
   character: Character | null; // personnage sélectionné
   ship: Ship | null; // soucoupe sélectionnée
@@ -32,7 +36,9 @@ interface GameState {
   // Boutique : renvoient null si tout va bien, sinon un message d'erreur à afficher
   buyCharacter: (id: string) => Promise<string | null>;
   buyShip: (id: string) => Promise<string | null>;
-  exchangeGems: (gems: number) => Promise<string | null>;
+  upgradeCharacter: (id: string) => Promise<string | null>;
+  upgradeShip: (id: string) => Promise<string | null>;
+  claimDailyGift: () => Promise<string | null>;
 }
 
 const Ctx = createContext<GameState | null>(null);
@@ -62,6 +68,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [ships, setShips] = useState<Ship[]>([]);
   const [ownedCharacters, setOwnedCharacters] = useState<Set<string>>(new Set());
   const [ownedShips, setOwnedShips] = useState<Set<string>>(new Set());
+  const [characterLevels, setCharacterLevels] = useState<Record<string, number>>({});
+  const [shipLevels, setShipLevels] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState<Progress[]>([]);
 
   const loadData = useCallback(async (userId: string) => {
@@ -69,15 +77,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('characters').select('*').order('sort_order'),
       supabase.from('ships').select('*').order('sort_order'),
-      supabase.from('player_characters').select('character_id').eq('user_id', userId),
-      supabase.from('player_ships').select('ship_id').eq('user_id', userId),
+      supabase.from('player_characters').select('character_id, level').eq('user_id', userId),
+      supabase.from('player_ships').select('ship_id, level').eq('user_id', userId),
       supabase.from('player_progress').select('chapter, cleared_level').eq('user_id', userId),
     ]);
     setProfile((p.data as Profile | null) ?? null);
     setCharacters((ch.data as Character[] | null) ?? []);
     setShips((sh.data as Ship[] | null) ?? []);
-    setOwnedCharacters(new Set((pc.data ?? []).map((r: { character_id: string }) => r.character_id)));
-    setOwnedShips(new Set((ps.data ?? []).map((r: { ship_id: string }) => r.ship_id)));
+    const pcRows = (pc.data ?? []) as { character_id: string; level: number | null }[];
+    const psRows = (ps.data ?? []) as { ship_id: string; level: number | null }[];
+    setOwnedCharacters(new Set(pcRows.map((r) => r.character_id)));
+    setOwnedShips(new Set(psRows.map((r) => r.ship_id)));
+    setCharacterLevels(Object.fromEntries(pcRows.map((r) => [r.character_id, r.level ?? 1])));
+    setShipLevels(Object.fromEntries(psRows.map((r) => [r.ship_id, r.level ?? 1])));
     setProgress((pr.data as Progress[] | null) ?? []);
   }, []);
 
@@ -99,6 +111,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setOwnedCharacters(new Set());
         setOwnedShips(new Set());
+        setCharacterLevels({});
+        setShipLevels({});
         setProgress([]);
       }
     });
@@ -186,15 +200,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [session, loadData]
   );
 
-  const exchangeGems = useCallback(
-    async (gems: number) => {
+  const upgradeCharacter = useCallback(
+    async (id: string) => {
       if (!session) return 'Connexion requise';
-      const { error } = await supabase.rpc('exchange_gems', { p_gems: gems });
+      const { error } = await supabase.rpc('upgrade_character', { p_character: id });
       await loadData(session.user.id);
       return error ? frenchError(error.message) : null;
     },
     [session, loadData]
   );
+
+  const upgradeShip = useCallback(
+    async (id: string) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('upgrade_ship', { p_ship: id });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
+  const claimDailyGift = useCallback(async () => {
+    if (!session) return 'Connexion requise';
+    const { error } = await supabase.rpc('claim_daily_gift');
+    await loadData(session.user.id);
+    return error ? frenchError(error.message) : null;
+  }, [session, loadData]);
 
   const clearedLevel = useCallback(
     (chapter: number) => progress.find((p) => p.chapter === chapter)?.cleared_level ?? 0,
@@ -218,6 +249,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     ships,
     ownedCharacters,
     ownedShips,
+    characterLevels,
+    shipLevels,
+    charLevel: character ? characterLevels[character.id] ?? 1 : 1,
+    shipLevel: ship ? shipLevels[ship.id] ?? 1 : 1,
     progress,
     character,
     ship,
@@ -230,7 +265,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     finishLevel,
     buyCharacter,
     buyShip,
-    exchangeGems,
+    upgradeCharacter,
+    upgradeShip,
+    claimDailyGift,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

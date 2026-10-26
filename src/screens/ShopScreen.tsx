@@ -3,26 +3,26 @@ import { useGame } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
 import { ItemCard } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
-
-// 1 gemme = 20 pièces (même valeur que dans la fonction SQL exchange_gems)
-const COINS_PER_GEM = 20;
-const EXCHANGES = [1, 5, 10];
+import { COINS_DAILY, GEMS_BOSS_FIRST_CLEAR, GEMS_DAILY, GEMS_FIRST_CLEAR } from '../game/progress';
 
 export function ShopScreen({ onBack }: { onBack: () => void }) {
   const g = useGame();
   const buy = useBuyFlow();
   const [busy, setBusy] = useState(false);
 
-  const coins = g.profile?.coins ?? 0;
   const gems = g.profile?.gems ?? 0;
   const lockedChars = g.characters.filter((c) => !g.ownedCharacters.has(c.id));
   const lockedShips = g.ships.filter((s) => !g.ownedShips.has(s.id));
 
-  async function exchange(n: number) {
+  // Le cadeau se renouvelle chaque jour à minuit (heure UTC, comme dans la base de données)
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  const giftTaken = g.profile?.last_daily === todayUtc;
+
+  async function claim() {
     setBusy(true);
-    const err = await g.exchangeGems(n);
+    const err = await g.claimDailyGift();
     setBusy(false);
-    buy.showToast(err ?? `+ 🪙 ${(n * COINS_PER_GEM).toLocaleString('fr-FR')} pièces`);
+    buy.showToast(err ?? `Cadeau reçu : +${GEMS_DAILY} 💎 et +${COINS_DAILY} 🪙`);
   }
 
   return (
@@ -30,6 +30,20 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
       <TopBar title="Boutique" onBack={onBack} />
 
       <div className="scroll">
+        <section className="chapter">
+          <h2 className="chapter-title">
+            Cadeau <span>du jour</span>
+          </h2>
+          <p className="legend shop-note">
+            Chaque jour : {GEMS_DAILY} 💎 et {COINS_DAILY} 🪙 offerts.
+          </p>
+          <div className="exchange">
+            <button className="btn btn-yellow" disabled={busy || giftTaken} onClick={() => void claim()}>
+              {giftTaken ? 'Reviens demain !' : `🎁 Récupérer`}
+            </button>
+          </div>
+        </section>
+
         <section className="chapter">
           <h2 className="chapter-title">
             Personnages <span>à débloquer</span>
@@ -46,10 +60,10 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
                   owned={false}
                   footer={
                     <button
-                      className={`btn btn-small ${coins >= c.price ? 'btn-yellow' : 'btn-grey'}`}
+                      className={`btn btn-small ${gems >= c.price ? 'btn-yellow' : 'btn-grey'}`}
                       onClick={() => buy.askBuy('characters', c)}
                     >
-                      🪙 {c.price.toLocaleString('fr-FR')}
+                      💎 {c.price.toLocaleString('fr-FR')}
                     </button>
                   }
                 />
@@ -74,10 +88,10 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
                   owned={false}
                   footer={
                     <button
-                      className={`btn btn-small ${coins >= s.price ? 'btn-yellow' : 'btn-grey'}`}
+                      className={`btn btn-small ${gems >= s.price ? 'btn-yellow' : 'btn-grey'}`}
                       onClick={() => buy.askBuy('ships', s)}
                     >
-                      🪙 {s.price.toLocaleString('fr-FR')}
+                      💎 {s.price.toLocaleString('fr-FR')}
                     </button>
                   }
                 />
@@ -88,21 +102,20 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
 
         <section className="chapter">
           <h2 className="chapter-title">
-            Échange <span>gemmes → pièces</span>
+            Gagner <span>des gemmes</span>
           </h2>
-          <p className="legend shop-note">1 💎 = {COINS_PER_GEM} 🪙. Tu gagnes 5 💎 en battant un méga boss pour la première fois.</p>
-          <div className="exchange">
-            {EXCHANGES.map((n) => (
-              <button
-                key={n}
-                className="btn btn-small btn-blue"
-                disabled={busy || gems < n}
-                onClick={() => void exchange(n)}
-              >
-                {n} 💎 → {(n * COINS_PER_GEM).toLocaleString('fr-FR')} 🪙
-              </button>
-            ))}
-          </div>
+          <ul className="earn">
+            <li>
+              <strong>+{GEMS_FIRST_CLEAR} 💎</strong> la première fois que tu réussis un niveau
+            </li>
+            <li>
+              <strong>+{GEMS_BOSS_FIRST_CLEAR} 💎</strong> la première fois que tu bats un méga boss
+            </li>
+            <li>
+              <strong>+{GEMS_DAILY} 💎</strong> chaque jour avec le cadeau du jour
+            </li>
+          </ul>
+          <p className="legend">Les pièces 🪙 servent à améliorer tes personnages et soucoupes (écrans Personnages et Soucoupes).</p>
         </section>
 
         <section className="chapter chapter-locked">

@@ -29,7 +29,7 @@ export const CHAPTERS: ChapterDef[] = [
         level: 1,
         name: 'Premier contact',
         isBoss: false,
-        bonus: 20,
+        bonus: 10,
         waves: [
           [{ kind: 'grunt', count: 5 }],
           [
@@ -46,7 +46,7 @@ export const CHAPTERS: ChapterDef[] = [
         level: 2,
         name: 'Champ de débris',
         isBoss: false,
-        bonus: 30,
+        bonus: 15,
         waves: [
           [{ kind: 'grunt', count: 8 }],
           [
@@ -67,7 +67,7 @@ export const CHAPTERS: ChapterDef[] = [
         level: 3,
         name: 'Pluie de météores',
         isBoss: false,
-        bonus: 40,
+        bonus: 20,
         waves: [
           [{ kind: 'fast', count: 10 }],
           [
@@ -88,7 +88,7 @@ export const CHAPTERS: ChapterDef[] = [
         level: 4,
         name: 'Base ennemie',
         isBoss: false,
-        bonus: 50,
+        bonus: 25,
         waves: [
           [
             { kind: 'tank', count: 2 },
@@ -113,7 +113,7 @@ export const CHAPTERS: ChapterDef[] = [
         level: 5,
         name: 'MÉGA BOSS : Gorgonax',
         isBoss: true,
-        bonus: 100,
+        bonus: 50,
         waves: [[{ kind: 'minion', count: 6 }], [{ kind: 'boss', count: 1 }]],
       },
     ],

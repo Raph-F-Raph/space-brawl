@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function LevelScreen({ chapter, level, onExit, onRetry, onNext }: Props) {
-  const { character, ship, finishLevel } = useGame();
+  const { character, ship, charLevel, shipLevel, finishLevel } = useGame();
   const def = getLevel(chapter, level);
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -60,7 +60,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext }: Props) 
     const wrap = wrapRef.current;
     if (!canvas || !wrap || !character || !ship) return;
 
-    const engine = new Engine(canvas, def, makeStats(character, ship), {
+    const engine = new Engine(canvas, def, makeStats(character, ship, charLevel, shipLevel), {
       onHud: (h) => {
         if (hpFill.current) hpFill.current.style.width = `${(h.hp / h.maxHp) * 100}%`;
         if (hpText.current) hpText.current.textContent = `${h.hp}`;
