@@ -14,6 +14,18 @@ export interface Character {
   accent: string;
   price: number; // en GEMMES (0 = personnage de départ)
   sort_order: number;
+  style?: string | null; // accessoire du skin équipé (couronne, bandana…)
+}
+
+export interface Skin {
+  id: string;
+  character_id: string;
+  name: string;
+  price: number; // en GEMMES
+  color: string;
+  accent: string;
+  style: string | null;
+  sort_order: number;
 }
 
 export interface Ship {

@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { ConfirmModal } from './Ui';
 import { useGame } from '../lib/GameContext';
 import { CharacterArt, ShipArt } from './Art';
 import { StatBar } from './Ui';
@@ -22,6 +23,9 @@ export function ItemSheet({
 }) {
   const g = useGame();
   const [busy, setBusy] = useState(false);
+  const [previewSkin, setPreviewSkin] = useState<string | null>(null); // skin regardé (null = de base)
+  const [skinBuy, setSkinBuy] = useState(false);
+  const [skinError, setSkinError] = useState<string | null>(null);
   const isChars = kind === 'characters';
   const item: Character | Ship | undefined = (isChars ? g.characters : g.ships).find((x) => x.id === id);
   if (!item) return null;
@@ -34,6 +38,36 @@ export function ItemSheet({
   const gems = g.profile?.gems ?? 0;
   const style = { '--rarity': RARITY_COLOR[item.rarity] } as CSSProperties;
   const next = level < MAX_LEVEL;
+
+  // Skins du personnage
+  const charSkins = isChars ? g.skins.filter((s) => s.character_id === id) : [];
+  const equippedId = isChars ? g.equippedSkin[id] ?? null : null;
+  const shownSkin = charSkins.find((s) => s.id === previewSkin) ?? null;
+  const art = shownSkin ?? item; // couleurs affichées (skin regardé ou de base)
+  const artLook = shownSkin ? shownSkin.style : null;
+  const skinOwned = !!shownSkin && g.ownedSkins.has(shownSkin.id);
+
+  async function equip(skinId: string | null) {
+    setBusy(true);
+    const err = await g.equipSkin(id, skinId);
+    setBusy(false);
+    onToast(err ?? (skinId ? 'Skin équipé !' : 'Skin de base équipé'));
+  }
+  async function buySkin() {
+    if (!shownSkin) return;
+    setBusy(true);
+    setSkinError(null);
+    const err = await g.buySkin(shownSkin.id);
+    if (err) {
+      setBusy(false);
+      setSkinError(err);
+      return;
+    }
+    const err2 = await g.equipSkin(id, shownSkin.id);
+    setBusy(false);
+    setSkinBuy(false);
+    onToast(err2 ?? `${shownSkin.name} débloqué et équipé !`);
+  }
 
   async function upgrade() {
     setBusy(true);
@@ -58,7 +92,7 @@ export function ItemSheet({
         </button>
         <div className={`sheet-art ${owned ? '' : 'locked'}`}>
           {isChars ? (
-            <CharacterArt color={item.color} accent={item.accent} variant={item.sort_order} size={150} />
+            <CharacterArt color={art.color} accent={art.accent} variant={item.sort_order} look={artLook} size={150} />
           ) : (
             <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={230} />
           )}
@@ -115,7 +149,74 @@ export function ItemSheet({
             </button>
           )}
         </div>
-        <p className="legend skins-soon">🎨 Skins : bientôt</p>
+        {isChars && owned && charSkins.length > 0 && (
+          <div className="skins">
+            <h3 className="skins-title">🎨 Skins</h3>
+            <div className="skin-row">
+              <button
+                className={`skin-chip ${previewSkin === null ? 'on' : ''}`}
+                onClick={() => setPreviewSkin(null)}
+              >
+                <span className="swatch" style={{ background: item.color, borderColor: item.accent }} />
+                <span>Base</span>
+                {equippedId === null && <em>✓</em>}
+              </button>
+              {charSkins.map((s) => (
+                <button
+                  key={s.id}
+                  className={`skin-chip ${previewSkin === s.id ? 'on' : ''}`}
+                  onClick={() => setPreviewSkin(s.id)}
+                >
+                  <span className="swatch" style={{ background: s.color, borderColor: s.accent }} />
+                  <span>{s.name}</span>
+                  {equippedId === s.id ? <em>✓</em> : !g.ownedSkins.has(s.id) && <em>💎{s.price}</em>}
+                </button>
+              ))}
+            </div>
+            {previewSkin === null ? (
+              <button className="btn btn-small btn-green" disabled={busy || equippedId === null} onClick={() => void equip(null)}>
+                {equippedId === null ? '✓ Équipé' : 'Équiper le skin de base'}
+              </button>
+            ) : skinOwned ? (
+              <button className="btn btn-small btn-green" disabled={busy || equippedId === previewSkin} onClick={() => void equip(previewSkin)}>
+                {equippedId === previewSkin ? '✓ Équipé' : 'Équiper'}
+              </button>
+            ) : (
+              <button
+                className={`btn btn-small ${gems >= (shownSkin?.price ?? 0) ? 'btn-yellow' : 'btn-grey'}`}
+                onClick={() => {
+                  setSkinError(null);
+                  setSkinBuy(true);
+                }}
+              >
+                Débloquer 💎 {shownSkin?.price}
+              </button>
+            )}
+          </div>
+        )}
+        {skinBuy && shownSkin && (
+          <ConfirmModal
+            title="Débloquer le skin ?"
+            confirmLabel={`💎 ${shownSkin.price}`}
+            confirmDisabled={gems < shownSkin.price}
+            busy={busy}
+            error={skinError}
+            onConfirm={() => void buySkin()}
+            onClose={() => setSkinBuy(false)}
+          >
+            <p>
+              <strong>
+                {item.name} {shownSkin.name}
+              </strong>{' '}
+              pour 💎 {shownSkin.price} gemmes.
+            </p>
+            {gems < shownSkin.price ? (
+              <p>Il te manque 💎 {shownSkin.price - gems} gemmes.</p>
+            ) : (
+              <p>Il te restera 💎 {gems - shownSkin.price} gemmes.</p>
+            )}
+          </ConfirmModal>
+        )}
       </div>
     </div>
   );

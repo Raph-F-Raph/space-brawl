@@ -14,7 +14,15 @@
     { id: 's4', name: 'Comet X', rarity: 'legendary', hp: 110, strength: 11, resistance: 6, speed: 9, color: '#ff5d8f', accent: '#ffd23f', price: 120, sort_order: 4 },
     { id: 's5', name: 'Aiguillon', rarity: 'epic', hp: 100, strength: 10, resistance: 5, speed: 8, color: '#1b1b1f', accent: '#ffd400', price: 100, sort_order: 5 },
   ];
-  const st = { session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: window.__startCleared ?? 0 }], calls: [], today: '2026-10-26' };
+  const skins = [
+    { id: 'k1', character_id: 'c1', name: 'Doré', price: 60, color: '#ffd23f', accent: '#fff3b0', style: 'crown', sort_order: 1 },
+    { id: 'k2', character_id: 'c1', name: 'Pirate', price: 80, color: '#3a3a5c', accent: '#e63946', style: 'bandana', sort_order: 2 },
+    { id: 'k3', character_id: 'c2', name: 'Glace', price: 60, color: '#bfefff', accent: '#4cc9f0', style: 'frost', sort_order: 1 },
+    { id: 'k4', character_id: 'c2', name: 'Ninja', price: 80, color: '#1f1f2b', accent: '#ff6b9d', style: 'headband', sort_order: 2 },
+    { id: 'k5', character_id: 'c3', name: 'Fantôme', price: 60, color: '#e9e4ff', accent: '#9d4edd', style: 'halo', sort_order: 1 },
+    { id: 'k6', character_id: 'c3', name: 'Flamme', price: 80, color: '#ff5d2e', accent: '#ffd23f', style: 'flame', sort_order: 2 },
+  ];
+  const st = { skinsOwned: {}, equipped: {}, session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: window.__startCleared ?? 0 }], calls: [], today: '2026-10-26' };
   const L = [];
   const mk = () => ({ access_token: 't', user: { id: 'u1', email: 'a@b.c' } });
   const fire = (ev) => L.forEach((f) => f(ev, st.session));
@@ -35,8 +43,10 @@
         if (t === 'profiles') return st.profile ? [st.profile] : [];
         if (t === 'characters') return chars;
         if (t === 'ships') return ships;
-        if (t === 'player_characters') return Object.entries(st.ownC).map(([id, level]) => ({ character_id: id, level }));
+        if (t === 'player_characters') return Object.entries(st.ownC).map(([id, level]) => ({ character_id: id, level, skin_id: st.equipped[id] ?? null }));
         if (t === 'player_ships') return Object.entries(st.ownS).map(([id, level]) => ({ ship_id: id, level }));
+        if (t === 'skins') return skins;
+        if (t === 'player_skins') return Object.keys(st.skinsOwned).map((id) => ({ skin_id: id }));
         if (t === 'player_progress') return st.progress;
         return [];
       },
@@ -69,6 +79,18 @@
       const cost = 60 * own[id];
       if (P.coins < cost) return fail('Pas assez de pièces');
       P.coins -= cost; own[id] += 1;
+    }
+    if (name === 'buy_skin') {
+      const k = skins.find((x) => x.id === a.p_skin);
+      if (!k) return fail('Skin inconnu');
+      if (!st.ownC[k.character_id]) return fail("Débloque d'abord ce personnage");
+      if (st.skinsOwned[k.id]) return fail('Tu possèdes déjà ce skin');
+      if (P.gems < k.price) return fail('Pas assez de gemmes');
+      P.gems -= k.price; st.skinsOwned[k.id] = 1;
+    }
+    if (name === 'equip_skin') {
+      if (a.p_skin && !st.skinsOwned[a.p_skin]) return fail('Tu ne possèdes pas ce skin');
+      st.equipped[a.p_character] = a.p_skin;
     }
     if (name === 'claim_daily_gift') {
       if (P.last_daily === st.today) return fail("Cadeau déjà récupéré aujourd'hui");

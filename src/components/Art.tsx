@@ -21,7 +21,8 @@ export function CharacterArt({
   variant,
   size = 110,
   headOnly = false,
-}: ArtProps & { headOnly?: boolean }) {
+  look = null,
+}: ArtProps & { headOnly?: boolean; look?: string | null }) {
   const clipId = useId().replace(/:/g, '');
   const big = variant === 4; // Titan : plus large
   const handColor = variant === 4 ? color : accent;
@@ -217,6 +218,50 @@ export function CharacterArt({
           ))}
         </>
       )}
+      {/* Accessoires des skins (dessinés par-dessus le casque) */}
+      {look === 'crown' && (
+        <g>
+          <polygon points="30,25 33,10 42,19 50,8 58,19 67,10 70,25" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <circle cx="50" cy="19" r="2.6" fill="#fff" stroke={INK} strokeWidth="1.5" />
+        </g>
+      )}
+      {look === 'bandana' && (
+        <g>
+          <path d="M16 40 Q50 12 84 40" fill="none" stroke={INK} strokeWidth="14" strokeLinecap="round" />
+          <path d="M16 40 Q50 12 84 40" fill="none" stroke={accent} strokeWidth="8" strokeLinecap="round" />
+          <polygon points="80,36 96,30 94,46" fill={accent} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <circle cx="50" cy="22" r="2.2" fill="#fff" />
+          <circle cx="38" cy="26" r="1.8" fill="#fff" />
+          <circle cx="62" cy="26" r="1.8" fill="#fff" />
+        </g>
+      )}
+      {look === 'headband' && (
+        <g>
+          <line x1="17" y1="34" x2="83" y2="34" stroke={INK} strokeWidth="12" strokeLinecap="round" />
+          <line x1="17" y1="34" x2="83" y2="34" stroke={accent} strokeWidth="6.5" strokeLinecap="round" />
+          <path d="M82 34 Q96 32 98 46" fill="none" stroke={INK} strokeWidth="9" strokeLinecap="round" />
+          <path d="M82 34 Q96 32 98 46" fill="none" stroke={accent} strokeWidth="4.5" strokeLinecap="round" />
+          <path d="M82 36 Q95 42 92 55" fill="none" stroke={INK} strokeWidth="9" strokeLinecap="round" />
+          <path d="M82 36 Q95 42 92 55" fill="none" stroke={accent} strokeWidth="4.5" strokeLinecap="round" />
+        </g>
+      )}
+      {look === 'halo' && (
+        <g>
+          <ellipse cx="50" cy="13" rx="22" ry="6" fill="none" stroke={INK} strokeWidth="9" />
+          <ellipse cx="50" cy="13" rx="22" ry="6" fill="none" stroke={accent} strokeWidth="4.5" />
+        </g>
+      )}
+      {look === 'flame' && (
+        <path d="M33 26 Q28 13 38 6 Q38 15 45 17 Q45 9 51 3 Q55 13 60 17 Q67 11 65 5 Q76 14 67 28 Z" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+      )}
+      {look === 'frost' && (
+        <g fill="#e8fbff" stroke={INK} strokeWidth="3" strokeLinejoin="round">
+          <polygon points="31,27 36,9 45,23" />
+          <polygon points="42,22 50,3 58,22" />
+          <polygon points="55,23 64,9 69,27" />
+          <polygon points="46,20 50,10 54,20" fill={accent} stroke="none" />
+        </g>
+      )}
     </svg>
   );
 }
@@ -339,6 +384,7 @@ export function ShipWithPilot({
             color={character.color}
             accent={character.accent}
             variant={character.sort_order}
+            look={character.style}
             size="100%"
             headOnly
           />

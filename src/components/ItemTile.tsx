@@ -26,7 +26,7 @@ export function ItemTile({
     <button className={`tile ${selected ? 'selected' : ''} ${owned ? '' : 'locked'}`} style={style} onClick={onOpen}>
       <div className="tile-art">
         {isChars ? (
-          <CharacterArt color={item.color} accent={item.accent} variant={item.sort_order} size={64} />
+          <CharacterArt color={item.color} accent={item.accent} variant={item.sort_order} look={(item as Character).style} size={64} />
         ) : (
           <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={92} />
         )}

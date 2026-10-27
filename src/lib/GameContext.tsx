@@ -9,7 +9,7 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { Character, Profile, Progress, Ship } from '../types';
+import type { Character, Profile, Progress, Ship, Skin } from '../types';
 
 interface GameState {
   loading: boolean;
@@ -39,6 +39,13 @@ interface GameState {
   upgradeCharacter: (id: string) => Promise<string | null>;
   upgradeShip: (id: string) => Promise<string | null>;
   claimDailyGift: () => Promise<string | null>;
+  // Skins
+  skins: Skin[];
+  ownedSkins: Set<string>;
+  equippedSkin: Record<string, string | null>; // personnage -> skin équipé
+  withSkin: (c: Character) => Character; // le personnage avec les couleurs de son skin équipé
+  buySkin: (id: string) => Promise<string | null>;
+  equipSkin: (characterId: string, skinId: string | null) => Promise<string | null>;
 }
 
 const Ctx = createContext<GameState | null>(null);
@@ -71,26 +78,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [characterLevels, setCharacterLevels] = useState<Record<string, number>>({});
   const [shipLevels, setShipLevels] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState<Progress[]>([]);
+  const [skins, setSkins] = useState<Skin[]>([]);
+  const [ownedSkins, setOwnedSkins] = useState<Set<string>>(new Set());
+  const [equippedSkin, setEquippedSkin] = useState<Record<string, string | null>>({});
 
   const loadData = useCallback(async (userId: string) => {
-    const [p, ch, sh, pc, ps, pr] = await Promise.all([
+    const [p, ch, sh, pc, ps, pr, sk, psk] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('characters').select('*').order('sort_order'),
       supabase.from('ships').select('*').order('sort_order'),
-      supabase.from('player_characters').select('character_id, level').eq('user_id', userId),
+      supabase.from('player_characters').select('character_id, level, skin_id').eq('user_id', userId),
       supabase.from('player_ships').select('ship_id, level').eq('user_id', userId),
       supabase.from('player_progress').select('chapter, cleared_level').eq('user_id', userId),
+      supabase.from('skins').select('*').order('sort_order'),
+      supabase.from('player_skins').select('skin_id').eq('user_id', userId),
     ]);
     setProfile((p.data as Profile | null) ?? null);
     setCharacters((ch.data as Character[] | null) ?? []);
     setShips((sh.data as Ship[] | null) ?? []);
-    const pcRows = (pc.data ?? []) as { character_id: string; level: number | null }[];
+    const pcRows = (pc.data ?? []) as { character_id: string; level: number | null; skin_id: string | null }[];
     const psRows = (ps.data ?? []) as { ship_id: string; level: number | null }[];
     setOwnedCharacters(new Set(pcRows.map((r) => r.character_id)));
     setOwnedShips(new Set(psRows.map((r) => r.ship_id)));
     setCharacterLevels(Object.fromEntries(pcRows.map((r) => [r.character_id, r.level ?? 1])));
     setShipLevels(Object.fromEntries(psRows.map((r) => [r.ship_id, r.level ?? 1])));
     setProgress((pr.data as Progress[] | null) ?? []);
+    setSkins((sk.data as Skin[] | null) ?? []);
+    setOwnedSkins(new Set(((psk.data ?? []) as { skin_id: string }[]).map((r) => r.skin_id)));
+    setEquippedSkin(Object.fromEntries(pcRows.map((r) => [r.character_id, r.skin_id ?? null])));
   }, []);
 
   // Session au démarrage + à chaque connexion / déconnexion
@@ -114,6 +129,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setCharacterLevels({});
         setShipLevels({});
         setProgress([]);
+        setOwnedSkins(new Set());
+        setEquippedSkin({});
       }
     });
     return () => {
@@ -232,10 +249,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [progress]
   );
 
-  const character = useMemo(
-    () => characters.find((c) => c.id === profile?.selected_character) ?? null,
-    [characters, profile]
+  const withSkin = useCallback(
+    (c: Character): Character => {
+      const sk = skins.find((x) => x.id === equippedSkin[c.id]);
+      return sk ? { ...c, color: sk.color, accent: sk.accent, style: sk.style } : c;
+    },
+    [skins, equippedSkin]
   );
+
+  const buySkin = useCallback(
+    async (id: string) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('buy_skin', { p_skin: id });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
+  const equipSkin = useCallback(
+    async (characterId: string, skinId: string | null) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('equip_skin', { p_character: characterId, p_skin: skinId });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
+  const character = useMemo(() => {
+    const c = characters.find((x) => x.id === profile?.selected_character);
+    return c ? withSkin(c) : null;
+  }, [characters, profile, withSkin]);
   const ship = useMemo(
     () => ships.find((s) => s.id === profile?.selected_ship) ?? null,
     [ships, profile]
@@ -268,6 +313,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     upgradeCharacter,
     upgradeShip,
     claimDailyGift,
+    skins,
+    ownedSkins,
+    equippedSkin,
+    withSkin,
+    buySkin,
+    equipSkin,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

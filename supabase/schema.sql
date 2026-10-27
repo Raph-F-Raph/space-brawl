@@ -555,3 +555,74 @@ begin
 end; $$;
 revoke all on function public.complete_level(int,int,int,boolean) from public, anon;
 grant execute on function public.complete_level(int,int,int,boolean) to authenticated;
+
+
+-- =====================================================================
+-- SKINS DE PERSONNAGES (appliqué sur la vraie base)
+-- =====================================================================
+create table if not exists public.skins (
+  id uuid primary key default gen_random_uuid(),
+  character_id uuid not null references public.characters(id) on delete cascade,
+  name text not null,
+  price int not null check (price >= 0),
+  color text not null,
+  accent text not null,
+  style text,
+  sort_order int not null default 1
+);
+alter table public.skins enable row level security;
+create policy "skins visibles pour les joueurs connectés" on public.skins for select to authenticated using (true);
+create table if not exists public.player_skins (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  skin_id uuid not null references public.skins(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, skin_id)
+);
+alter table public.player_skins enable row level security;
+create policy "chacun voit ses skins" on public.player_skins for select to authenticated using (user_id = auth.uid());
+create index on public.player_skins (skin_id);
+create index on public.skins (character_id);
+alter table public.player_characters add column if not exists skin_id uuid references public.skins(id) on delete set null;
+create index on public.player_characters (skin_id);
+
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select c.id, v.name, v.price, v.color, v.accent, v.style, v.ord
+from (values
+  ('Cosmo','Doré',60,'#ffd23f','#fff3b0','crown',1), ('Cosmo','Pirate',80,'#3a3a5c','#e63946','bandana',2),
+  ('Nova','Glace',60,'#bfefff','#4cc9f0','frost',1), ('Nova','Ninja',80,'#1f1f2b','#ff6b9d','headband',2),
+  ('Volt','Fantôme',60,'#e9e4ff','#9d4edd','halo',1), ('Volt','Flamme',80,'#ff5d2e','#ffd23f','flame',2),
+  ('Titan','Royal',60,'#7b2cbf','#ffd23f','crown',1), ('Titan','Acier',80,'#adb5bd','#e63946','flame',2),
+  ('Frelon','Néon',60,'#1b1b1f','#39ff14',null,1), ('Frelon','Glacial',80,'#1b2338','#4cc9f0','frost',2)
+) as v(cname, name, price, color, accent, style, ord)
+join public.characters c on c.name = v.cname;
+
+create or replace function public.buy_skin(p_skin uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_price int; v_char uuid; v_gems int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select price, character_id into v_price, v_char from public.skins where id = p_skin;
+  if v_price is null then raise exception 'Skin inconnu'; end if;
+  if not exists (select 1 from public.player_characters where user_id = auth.uid() and character_id = v_char) then
+    raise exception 'Débloque d''abord ce personnage'; end if;
+  if exists (select 1 from public.player_skins where user_id = auth.uid() and skin_id = p_skin) then
+    raise exception 'Tu possèdes déjà ce skin'; end if;
+  update public.profiles set gems = gems - v_price where id = auth.uid() and gems >= v_price returning gems into v_gems;
+  if v_gems is null then raise exception 'Pas assez de gemmes'; end if;
+  insert into public.player_skins (user_id, skin_id) values (auth.uid(), p_skin);
+  return v_gems;
+end; $$;
+
+create or replace function public.equip_skin(p_character uuid, p_skin uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if p_skin is not null and not exists (
+    select 1 from public.player_skins ps join public.skins s on s.id = ps.skin_id
+    where ps.user_id = auth.uid() and ps.skin_id = p_skin and s.character_id = p_character) then
+    raise exception 'Tu ne possèdes pas ce skin'; end if;
+  update public.player_characters set skin_id = p_skin where user_id = auth.uid() and character_id = p_character;
+  if not found then raise exception 'Tu ne possèdes pas ce personnage'; end if;
+end; $$;
+revoke all on function public.buy_skin(uuid), public.equip_skin(uuid, uuid) from public, anon;
+grant execute on function public.buy_skin(uuid), public.equip_skin(uuid, uuid) to authenticated;

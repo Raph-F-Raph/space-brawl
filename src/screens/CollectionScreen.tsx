@@ -24,7 +24,7 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
             <ItemTile
               key={it.id}
               kind={kind}
-              item={it}
+              item={isChars ? g.withSkin(it as Character) : it}
               owned={isChars ? g.ownedCharacters.has(it.id) : g.ownedShips.has(it.id)}
               selected={isChars ? g.character?.id === it.id : g.ship?.id === it.id}
               level={(isChars ? g.characterLevels[it.id] : g.shipLevels[it.id]) ?? 1}
