@@ -23,7 +23,7 @@ await page.waitForSelector('.btn-play');
 await page.locator('.btn-play').click({ force: true }); await page.waitForTimeout(300);
 await page.locator('button', { hasText: 'Chapitres' }).first().click({ force: true }); await page.waitForTimeout(300);
 await page.locator('.node:not(.node-locked)').first().click({ force: true });
-await page.waitForSelector('canvas');
+await page.waitForSelector("canvas",{timeout:8000}).catch(async()=>{console.log("PAS DE CANVAS; erreurs:",errors, (await page.evaluate(()=>document.body.innerText.slice(0,200)+" || "+document.body.innerHTML.slice(0,300))));process.exit(1)});
 await page.keyboard.down('Space');
 const dirs = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'];
 let ended = false, t = 0;

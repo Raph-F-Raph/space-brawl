@@ -1,5 +1,5 @@
 import type { AttackKind, Character, Ship } from '../types';
-import type { EnemyKind, LevelDef } from './levels';
+import { getChapter, type EnemyKind, type LevelDef } from './levels';
 import { vibrate } from '../lib/settings';
 import { levelMult } from './progress';
 

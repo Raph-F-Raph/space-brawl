@@ -25,23 +25,23 @@ export function CharacterArt({
   const clipId = useId().replace(/:/g, '');
   const big = variant === 4; // Titan : plus large
   const handColor = variant === 4 ? color : accent;
-  const torso = big ? { x: 10, y: 78, w: 80, h: 36, rx: 18 } : { x: 19, y: 78, w: 62, h: 36, rx: 17 };
-  const legW = big ? 24 : 21;
-  const legX: [number, number] = big ? [24, 52] : [28, 51];
-  const bootRx = big ? 17 : 15;
-  const armW = big ? 30 : 26;
-  const handR = big ? 15 : 13;
-  const hands: [[number, number], [number, number]] = big ? [[7, 108], [93, 108]] : [[10, 106], [90, 106]];
-  const shoulders: [[number, number], [number, number]] = big ? [[22, 92], [78, 92]] : [[28, 92], [72, 92]];
+  const torso = big ? { x: 11, y: 78, w: 78, h: 31, rx: 15 } : { x: 21, y: 78, w: 58, h: 31, rx: 15 };
+  const legW = big ? 26 : 22;
+  const legX: [number, number] = big ? [22, 52] : [27, 51];
+  const bootRx = big ? 18 : 15.5;
+  const armW = big ? 30 : 25;
+  const handR = big ? 14 : 12.5;
+  const hands: [[number, number], [number, number]] = big ? [[4, 114], [96, 114]] : [[10, 113], [90, 113]];
+  const shoulders: [[number, number], [number, number]] = big ? [[19, 90], [81, 90]] : [[27, 90], [73, 90]];
 
   return (
     <svg
-      viewBox={headOnly ? '12 10 76 76' : '0 0 100 144'}
+      viewBox={headOnly ? '12 10 76 76' : '-15 0 130 148'}
       style={{ width: size, height: 'auto', display: 'block' }}
       aria-hidden="true"
     >
       {/* Ombre au sol */}
-      {!headOnly && <ellipse cx="50" cy="139" rx={big ? 42 : 36} ry="5" fill="#000" opacity="0.28" />}
+      {!headOnly && <ellipse cx="50" cy="141" rx={big ? 44 : 38} ry="5" fill="#000" opacity="0.28" />}
 
       {/* Éléments derrière le corps et la tête */}
       {variant === 2 && (
@@ -81,13 +81,13 @@ export function CharacterArt({
           {/* jambes */}
           {legX.map((x) => (
             <g key={x}>
-              <rect x={x} y="106" width={legW} height="20" rx="9" fill={color} stroke={INK} strokeWidth="4.5" />
-              <rect x={x + 3} y="114" width={legW - 6} height="10" rx="4" fill="#000" opacity="0.2" />
+              <rect x={x} y="102" width={legW} height="27" rx="10" fill={color} stroke={INK} strokeWidth="4.5" />
+              <rect x={x + 3} y="114" width={legW - 6} height="12" rx="4" fill="#000" opacity="0.2" />
             </g>
           ))}
           {/* bottes */}
-          <ellipse cx={legX[0] + legW / 2} cy="128" rx={bootRx} ry="9" fill={accent} stroke={INK} strokeWidth="4.5" />
-          <ellipse cx={legX[1] + legW / 2} cy="128" rx={bootRx} ry="9" fill={accent} stroke={INK} strokeWidth="4.5" />
+          <ellipse cx={legX[0] + legW / 2} cy="130" rx={bootRx} ry="9" fill={accent} stroke={INK} strokeWidth="4.5" />
+          <ellipse cx={legX[1] + legW / 2} cy="130" rx={bootRx} ry="9" fill={accent} stroke={INK} strokeWidth="4.5" />
 
           {/* torse */}
           <defs>
@@ -138,8 +138,8 @@ export function CharacterArt({
           {/* ceinture */}
           {variant !== 5 && (
             <>
-              <rect x={torso.x + 2} y="101" width={torso.w - 4} height="6" rx="3" fill="#000" opacity="0.3" />
-              <rect x="45" y="100" width="10" height="8" rx="2" fill={accent} stroke={INK} strokeWidth="2.5" />
+              <rect x={torso.x + 2} y="100" width={torso.w - 4} height="6" rx="3" fill="#000" opacity="0.3" />
+              <rect x="45" y="99" width="10" height="8" rx="2" fill={accent} stroke={INK} strokeWidth="2.5" />
             </>
           )}
 
