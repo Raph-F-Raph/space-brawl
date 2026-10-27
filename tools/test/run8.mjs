@@ -7,7 +7,7 @@ const p = await ctx.newPage(); p.on('pageerror', (e) => errs.push(e.message)); p
 await p.addInitScript('window.__startCleared = 5;');
 await p.route('**/*', (r) => { const u = r.request().url(); if (u.includes('jsdelivr')) return r.fulfill({ contentType: 'application/javascript', body: fake }); if (u.startsWith('file:')) return r.continue(); return r.fulfill({ status: 200, contentType: 'text/css', body: '' }); });
 await p.goto(`file://${SP}/index.html`); await p.waitForSelector('form'); await p.click('button.link');
-await p.fill('input[type=text]', 'R'); await p.fill('input[type=email]', 'a@b.co'); await p.fill('input[type=password]', 'secret123'); await p.click('button[type=submit]');
+await p.fill('input[type=text]', 'Raphael'); await p.fill('input[type=email]', 'a@b.co'); await p.fill('input[type=password]', 'secret123'); await p.click('button[type=submit]');
 await p.waitForSelector('.btn-play'); await p.locator('.btn-play').click({ force: true }); await p.waitForTimeout(300);
 await p.locator('button', { hasText: 'Chapitres' }).first().click({ force: true }); await p.waitForTimeout(300);
 await p.locator('.node-current').click({ force: true });
