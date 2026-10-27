@@ -1,9 +1,9 @@
 // Service worker minimal : permet l'installation et un démarrage rapide.
 // Les appels à Supabase (autre domaine) ne sont jamais mis en cache.
-const CACHE = 'space-brawl-v1';
+const CACHE = 'space-brawl-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/icon.svg'])));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'icon.svg'])));
   self.skipWaiting();
 });
 
@@ -24,7 +24,15 @@ self.addEventListener('fetch', (event) => {
 
   // Pages : réseau d'abord, cache en secours (hors ligne)
   if (req.mode === 'navigate') {
-    event.respondWith(fetch(req).catch(() => caches.match('/')));
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put('./', copy));
+          return res;
+        })
+        .catch(() => caches.match('./'))
+    );
     return;
   }
 

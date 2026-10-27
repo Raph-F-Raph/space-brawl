@@ -12,7 +12,10 @@ const html = `<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,${icon}" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<script>window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__installEvent=e;});if("serviceWorker"in navigator&&location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet" />
