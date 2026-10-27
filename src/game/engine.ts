@@ -143,6 +143,7 @@ export class Engine {
   private spawnT = 0;
   private waveGap = 1.2;
   private coins = 0;
+  private theme: ChapterTheme;
   private fireCd = 0;
 
   constructor(
@@ -154,6 +155,7 @@ export class Engine {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas non supporté');
     this.ctx = ctx;
+    this.theme = getChapter(level.chapter).theme;
     this.player.hp = stats.maxHp;
     for (let i = 0; i < 70; i++) {
       this.stars.push({ x: Math.random() * W, y: Math.random() * H, r: 0.6 + Math.random() * 1.6, p: Math.random() * TAU });
@@ -248,11 +250,11 @@ export class Engine {
       kind,
       x,
       y,
-      hp: d.hp,
-      maxHp: d.hp,
+      hp: Math.round(d.hp * this.theme.hpMult),
+      maxHp: Math.round(d.hp * this.theme.hpMult),
       r: d.r,
       speed: d.speed,
-      dmg: d.dmg,
+      dmg: Math.round(d.dmg * this.theme.dmgMult),
       flash: 0,
       shootT: 2,
       chargeT: 5,
@@ -595,8 +597,8 @@ export class Engine {
 
     // Fond
     const g = c.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W * 0.65);
-    g.addColorStop(0, '#1b2a6b');
-    g.addColorStop(1, '#0a0f33');
+    g.addColorStop(0, this.theme.bg2);
+    g.addColorStop(1, this.theme.bg1);
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
 
@@ -676,7 +678,7 @@ export class Engine {
 
     c.save();
     c.translate(e.x, e.y);
-    c.fillStyle = e.flash > 0 ? '#ffffff' : ENEMY[e.kind].color;
+    c.fillStyle = e.flash > 0 ? '#ffffff' : this.theme.enemy[e.kind];
     c.strokeStyle = '#0b1030';
     c.lineWidth = 4;
     c.lineJoin = 'round';
@@ -706,7 +708,7 @@ export class Engine {
           c.fill();
           c.stroke();
         }
-        c.fillStyle = e.flash > 0 ? '#ffffff' : ENEMY.boss.color;
+        c.fillStyle = e.flash > 0 ? '#ffffff' : this.theme.enemy.boss;
       }
       c.beginPath();
       c.arc(0, 0, r, 0, TAU);

@@ -525,3 +525,33 @@ end; $$;
 
 revoke all on function public.buy_character(uuid), public.buy_ship(uuid), public.upgrade_character(uuid), public.upgrade_ship(uuid), public.claim_daily_gift(), public.complete_level(int,int,int,boolean) from public, anon;
 grant execute on function public.buy_character(uuid), public.buy_ship(uuid), public.upgrade_character(uuid), public.upgrade_ship(uuid), public.claim_daily_gift(), public.complete_level(int,int,int,boolean) to authenticated;
+
+
+-- =====================================================================
+-- CHAPITRES 2 à 6 : un chapitre s'ouvre quand le précédent est terminé (appliqué sur la vraie base)
+-- =====================================================================
+create or replace function public.complete_level(p_chapter int, p_level int, p_coins int, p_won boolean) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_cleared int; v_prev int; v_coins int; v_gems int := 0; v_total int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if p_chapter < 1 or p_chapter > 6 then raise exception 'Chapitre invalide'; end if;
+  if p_level < 1 or p_level > 5 then raise exception 'Niveau invalide'; end if;
+  if p_chapter > 1 then
+    select cleared_level into v_prev from public.player_progress where user_id = auth.uid() and chapter = p_chapter - 1;
+    if coalesce(v_prev, 0) < 5 then raise exception 'Chapitre pas encore débloqué'; end if;
+  end if;
+  insert into public.player_progress (user_id, chapter, cleared_level) values (auth.uid(), p_chapter, 0)
+    on conflict (user_id, chapter) do nothing;
+  select cleared_level into v_cleared from public.player_progress where user_id = auth.uid() and chapter = p_chapter;
+  if p_level > v_cleared + 1 then raise exception 'Niveau pas encore débloqué'; end if;
+  v_coins := greatest(0, least(p_coins, 250));
+  if p_won and p_level > v_cleared then
+    update public.player_progress set cleared_level = p_level where user_id = auth.uid() and chapter = p_chapter;
+    v_gems := case when p_level = 5 then 10 else 2 end;
+  end if;
+  update public.profiles set coins = coins + v_coins, gems = gems + v_gems where id = auth.uid() returning coins into v_total;
+  return v_total;
+end; $$;
+revoke all on function public.complete_level(int,int,int,boolean) from public, anon;
+grant execute on function public.complete_level(int,int,int,boolean) to authenticated;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { useGame } from '../lib/GameContext';
 import { Engine, makeStats } from '../game/engine';
-import { getLevel } from '../game/levels';
+import { CHAPTERS, getLevel } from '../game/levels';
 
 const JOY_RADIUS = 60;
 
@@ -11,9 +11,10 @@ interface Props {
   onExit: () => void; // retour à la carte des niveaux
   onRetry: () => void;
   onNext: (level: number) => void;
+  onNextChapter: () => void;
 }
 
-export function LevelScreen({ chapter, level, onExit, onRetry, onNext }: Props) {
+export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextChapter }: Props) {
   const { character, ship, charLevel, shipLevel, finishLevel } = useGame();
   const def = getLevel(chapter, level);
 
@@ -288,6 +289,11 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext }: Props) 
               {result.won && !isLast && (
                 <button className="btn btn-yellow" onClick={() => onNext(level + 1)}>
                   Niveau suivant
+                </button>
+              )}
+              {result.won && isLast && chapter < CHAPTERS.length && (
+                <button className="btn btn-yellow" onClick={onNextChapter}>
+                  Chapitre suivant
                 </button>
               )}
               <button className={`btn ${result.won ? 'btn-blue' : 'btn-yellow'}`} onClick={onRetry}>

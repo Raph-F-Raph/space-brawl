@@ -35,8 +35,8 @@ function Shell() {
   }, [g.session]);
 
   // Le look de l'écran d'accueil change quand un chapitre est terminé
-  const chapterDone = g.clearedLevel(1) >= CHAPTERS[0].levels.length;
-  const theme = chapterDone ? 1 : 0;
+  let theme = 0;
+  while (theme < CHAPTERS.length && g.clearedLevel(CHAPTERS[theme].id) >= CHAPTERS[theme].levels.length) theme++;
 
   function startLevel(c: number, l: number) {
     setChapter(c);
@@ -94,6 +94,7 @@ function Shell() {
         onExit={() => setScreen('chapters')}
         onRetry={() => startLevel(chapter, level)}
         onNext={(l) => startLevel(chapter, l)}
+        onNextChapter={() => startLevel(chapter + 1, 1)}
       />
     );
   } else if (screen === 'characters') {

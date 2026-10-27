@@ -25,23 +25,23 @@ export function CharacterArt({
   const clipId = useId().replace(/:/g, '');
   const big = variant === 4; // Titan : plus large
   const handColor = variant === 4 ? color : accent;
-  const torso = big ? { x: 15, y: 74, w: 70, h: 38, rx: 20 } : { x: 24, y: 74, w: 52, h: 38, rx: 19 };
-  const legW = big ? 18 : 16;
-  const legX: [number, number] = big ? [29, 53] : [32, 52];
-  const bootRx = big ? 15 : 13;
-  const armW = big ? 25 : 20;
-  const handR = big ? 12 : 10;
-  const hands: [[number, number], [number, number]] = big ? [[9, 110], [91, 110]] : [[14, 108], [86, 108]];
-  const shoulders: [[number, number], [number, number]] = big ? [[24, 86], [76, 86]] : [[30, 86], [70, 86]];
+  const torso = big ? { x: 10, y: 78, w: 80, h: 36, rx: 18 } : { x: 19, y: 78, w: 62, h: 36, rx: 17 };
+  const legW = big ? 24 : 21;
+  const legX: [number, number] = big ? [24, 52] : [28, 51];
+  const bootRx = big ? 17 : 15;
+  const armW = big ? 30 : 26;
+  const handR = big ? 15 : 13;
+  const hands: [[number, number], [number, number]] = big ? [[7, 108], [93, 108]] : [[10, 106], [90, 106]];
+  const shoulders: [[number, number], [number, number]] = big ? [[22, 92], [78, 92]] : [[28, 92], [72, 92]];
 
   return (
     <svg
-      viewBox={headOnly ? '14 12 72 72' : '0 0 100 144'}
+      viewBox={headOnly ? '12 10 76 76' : '0 0 100 144'}
       style={{ width: size, height: 'auto', display: 'block' }}
       aria-hidden="true"
     >
       {/* Ombre au sol */}
-      {!headOnly && <ellipse cx="50" cy="139" rx={big ? 38 : 32} ry="5" fill="#000" opacity="0.28" />}
+      {!headOnly && <ellipse cx="50" cy="139" rx={big ? 42 : 36} ry="5" fill="#000" opacity="0.28" />}
 
       {/* Éléments derrière le corps et la tête */}
       {variant === 2 && (
@@ -81,13 +81,13 @@ export function CharacterArt({
           {/* jambes */}
           {legX.map((x) => (
             <g key={x}>
-              <rect x={x} y="104" width={legW} height="24" rx="7" fill={color} stroke={INK} strokeWidth="4.5" />
-              <rect x={x + 2} y="114" width={legW - 4} height="12" rx="4" fill="#000" opacity="0.2" />
+              <rect x={x} y="106" width={legW} height="20" rx="9" fill={color} stroke={INK} strokeWidth="4.5" />
+              <rect x={x + 3} y="114" width={legW - 6} height="10" rx="4" fill="#000" opacity="0.2" />
             </g>
           ))}
           {/* bottes */}
-          <ellipse cx={legX[0] + legW / 2} cy="130" rx={bootRx} ry="8" fill={accent} stroke={INK} strokeWidth="4.5" />
-          <ellipse cx={legX[1] + legW / 2} cy="130" rx={bootRx} ry="8" fill={accent} stroke={INK} strokeWidth="4.5" />
+          <ellipse cx={legX[0] + legW / 2} cy="128" rx={bootRx} ry="9" fill={accent} stroke={INK} strokeWidth="4.5" />
+          <ellipse cx={legX[1] + legW / 2} cy="128" rx={bootRx} ry="9" fill={accent} stroke={INK} strokeWidth="4.5" />
 
           {/* torse */}
           <defs>
@@ -172,7 +172,7 @@ export function CharacterArt({
       )}
 
       {/* Casque */}
-      <circle cx="50" cy="48" r="31" fill={color} stroke={INK} strokeWidth="5" />
+      <circle cx="50" cy="48" r="34" fill={color} stroke={INK} strokeWidth="5" />
       <path d="M28 36 A24 24 0 0 1 48 22" stroke="#fff" strokeWidth="4" strokeLinecap="round" fill="none" opacity={variant === 5 ? 0.3 : 0.45} />
       {variant === 3 && (
         <polygon
@@ -193,16 +193,16 @@ export function CharacterArt({
       {/* Visière + yeux */}
       {variant !== 5 ? (
         <>
-          <rect x="26" y="40" width="48" height="26" rx="13" fill="#121a45" stroke={INK} strokeWidth="4" />
-          <circle cx="40" cy="53" r="5" fill="#fff" />
-          <circle cx="60" cy="53" r="5" fill="#fff" />
-          <circle cx="41.5" cy="54" r="2.2" fill={INK} />
-          <circle cx="61.5" cy="54" r="2.2" fill={INK} />
+          <rect x="23" y="39" width="54" height="29" rx="14.5" fill="#121a45" stroke={INK} strokeWidth="4" />
+          <circle cx="39" cy="53" r="6" fill="#fff" />
+          <circle cx="61" cy="53" r="6" fill="#fff" />
+          <circle cx="40.5" cy="54.5" r="2.6" fill={INK} />
+          <circle cx="62.5" cy="54.5" r="2.6" fill={INK} />
         </>
       ) : (
         <>
           {/* visière de moto avec deux gros yeux jaunes d'insecte */}
-          <rect x="23" y="40" width="54" height="28" rx="14" fill="#0a0a0e" stroke={INK} strokeWidth="4" />
+          <rect x="20" y="39" width="60" height="30" rx="15" fill="#0a0a0e" stroke={INK} strokeWidth="4" />
           {[39, 61].map((cx) => (
             <g key={cx}>
               <ellipse cx={cx} cy="54" rx="10" ry="11" fill={accent} stroke={INK} strokeWidth="2.5" />

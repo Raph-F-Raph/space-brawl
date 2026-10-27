@@ -17,14 +17,16 @@ export function ChaptersScreen({
       <div className="scroll">
         {CHAPTERS.map((ch) => {
           const cleared = clearedLevel(ch.id);
+          const prev = CHAPTERS.find((c) => c.id === ch.id - 1);
+          const open = !prev || clearedLevel(prev.id) >= prev.levels.length; // chapitre précédent terminé ?
           return (
-            <section className="chapter" key={ch.id}>
+            <section className={`chapter ${open ? '' : 'chapter-locked'}`} key={ch.id}>
               <h2 className="chapter-title">
                 Chapitre {ch.id} <span>— {ch.name}</span>
               </h2>
               <div className="path">
                 {ch.levels.map((lv) => {
-                  const state = lv.level <= cleared ? 'done' : lv.level === cleared + 1 ? 'current' : 'locked';
+                  const state = !open ? 'locked' : lv.level <= cleared ? 'done' : lv.level === cleared + 1 ? 'current' : 'locked';
                   return (
                     <div className="node-wrap" key={lv.level}>
                       <button
@@ -42,18 +44,10 @@ export function ChaptersScreen({
                   );
                 })}
               </div>
+              {!open && <p className="legend">Termine le chapitre {ch.id - 1} pour débloquer celui-ci.</p>}
             </section>
           );
         })}
-
-        <section className="chapter chapter-locked">
-          <h2 className="chapter-title">
-            Chapitre 2 <span>— Bientôt</span>
-          </h2>
-          <p className="legend">
-            Termine le chapitre 1 pour changer le look de ton écran d'accueil… de nouveaux chapitres arrivent !
-          </p>
-        </section>
       </div>
     </div>
   );

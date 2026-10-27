@@ -14,7 +14,7 @@
     { id: 's4', name: 'Comet X', rarity: 'legendary', hp: 110, strength: 11, resistance: 6, speed: 9, color: '#ff5d8f', accent: '#ffd23f', price: 120, sort_order: 4 },
     { id: 's5', name: 'Aiguillon', rarity: 'epic', hp: 100, strength: 10, resistance: 5, speed: 8, color: '#1b1b1f', accent: '#ffd400', price: 100, sort_order: 5 },
   ];
-  const st = { session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: 0 }], calls: [], today: '2026-10-26' };
+  const st = { session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: window.__startCleared ?? 0 }], calls: [], today: '2026-10-26' };
   const L = [];
   const mk = () => ({ access_token: 't', user: { id: 'u1', email: 'a@b.c' } });
   const fire = (ev) => L.forEach((f) => f(ev, st.session));
@@ -75,8 +75,13 @@
       P.gems += 1; P.coins += 30; P.last_daily = st.today;
     }
     if (name === 'complete_level') {
-      P.coins += Math.max(0, Math.min(a.p_coins, 150));
-      const p = st.progress[0];
+      if (a.p_chapter < 1 || a.p_chapter > 6) return fail('Chapitre invalide');
+      const get = (c) => st.progress.find((x) => x.chapter === c);
+      if (a.p_chapter > 1 && (get(a.p_chapter - 1)?.cleared_level ?? 0) < 5) return fail('Chapitre pas encore débloqué');
+      let p = get(a.p_chapter);
+      if (!p) { p = { chapter: a.p_chapter, cleared_level: 0 }; st.progress.push(p); }
+      if (a.p_level > p.cleared_level + 1) return fail('Niveau pas encore débloqué');
+      P.coins += Math.max(0, Math.min(a.p_coins, 250));
       if (a.p_won && a.p_level > p.cleared_level) { p.cleared_level = a.p_level; P.gems += a.p_level === 5 ? 10 : 2; }
     }
     return { data: null, error: null };

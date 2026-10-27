@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useGame } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
-import { ItemCard } from '../components/ItemCard';
+import { ItemSheet } from '../components/ItemSheet';
+import { ItemTile } from '../components/ItemTile';
+import type { Kind } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
 import { COINS_DAILY, GEMS_BOSS_FIRST_CLEAR, GEMS_DAILY, GEMS_FIRST_CLEAR } from '../game/progress';
 
@@ -9,6 +11,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
   const g = useGame();
   const buy = useBuyFlow();
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState<{ kind: Kind; id: string } | null>(null);
 
   const gems = g.profile?.gems ?? 0;
   const lockedChars = g.characters.filter((c) => !g.ownedCharacters.has(c.id));
@@ -51,22 +54,9 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           {lockedChars.length === 0 ? (
             <p className="legend">Tu as débloqué tous les personnages. Bravo, pilote !</p>
           ) : (
-            <div className="grid">
+            <div className="tiles">
               {lockedChars.map((c) => (
-                <ItemCard
-                  key={c.id}
-                  kind="characters"
-                  item={c}
-                  owned={false}
-                  footer={
-                    <button
-                      className={`btn btn-small ${gems >= c.price ? 'btn-yellow' : 'btn-grey'}`}
-                      onClick={() => buy.askBuy('characters', c)}
-                    >
-                      💎 {c.price.toLocaleString('fr-FR')}
-                    </button>
-                  }
-                />
+                <ItemTile key={c.id} kind="characters" item={c} owned={false} onOpen={() => setOpen({ kind: 'characters', id: c.id })} />
               ))}
             </div>
           )}
@@ -79,22 +69,9 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           {lockedShips.length === 0 ? (
             <p className="legend">Tu as débloqué toutes les soucoupes. Quelle flotte !</p>
           ) : (
-            <div className="grid">
-              {lockedShips.map((s) => (
-                <ItemCard
-                  key={s.id}
-                  kind="ships"
-                  item={s}
-                  owned={false}
-                  footer={
-                    <button
-                      className={`btn btn-small ${gems >= s.price ? 'btn-yellow' : 'btn-grey'}`}
-                      onClick={() => buy.askBuy('ships', s)}
-                    >
-                      💎 {s.price.toLocaleString('fr-FR')}
-                    </button>
-                  }
-                />
+            <div className="tiles">
+              {lockedShips.map((c) => (
+                <ItemTile key={c.id} kind="ships" item={c} owned={false} onOpen={() => setOpen({ kind: 'ships', id: c.id })} />
               ))}
             </div>
           )}
@@ -138,6 +115,9 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
         </section>
       </div>
 
+      {open && (
+        <ItemSheet kind={open.kind} id={open.id} onClose={() => setOpen(null)} onBuy={buy.askBuy} onToast={buy.showToast} />
+      )}
       {buy.ui}
     </div>
   );

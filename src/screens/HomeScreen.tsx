@@ -12,7 +12,8 @@ export function HomeScreen({
   onSoon: (what: string) => void;
 }) {
   const { profile, character, ship, charLevel, shipLevel, clearedLevel } = useGame();
-  const chapter = CHAPTERS[0];
+  // Chapitre en cours = le premier pas encore terminé
+  const chapter = CHAPTERS.find((c) => clearedLevel(c.id) < c.levels.length) ?? CHAPTERS[CHAPTERS.length - 1];
   const cleared = clearedLevel(chapter.id);
   const done = cleared >= chapter.levels.length;
 
@@ -24,7 +25,7 @@ export function HomeScreen({
           <div>
             <div className="player-name">{profile?.username}</div>
             <div className="player-sub">
-              {done ? 'Chapitre 1 terminé ★' : `Chapitre 1 · niveau ${Math.min(cleared + 1, 5)}/5`}
+              {done ? 'Tous les chapitres terminés ★' : `Chapitre ${chapter.id} · niveau ${Math.min(cleared + 1, 5)}/5`}
             </div>
           </div>
         </div>

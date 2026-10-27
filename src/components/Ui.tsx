@@ -1,10 +1,16 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { CHAPTERS } from '../game/levels';
 import { useGame } from '../lib/GameContext';
 
 /** Fond d'espace animé. Ne capte jamais les clics (pointer-events: none). */
 export function Backdrop({ theme }: { theme: number }) {
+  // theme = nombre de chapitres terminés : l'accueil prend les couleurs du prochain chapitre
+  const next = CHAPTERS[theme];
+  const vars = (next
+    ? { '--bg1': next.theme.bg1, '--bg2': next.theme.bg2 }
+    : { '--bg1': '#2b1a00', '--bg2': '#d99a1e' }) as CSSProperties; // tout terminé : or
   return (
-    <div className={`backdrop theme-${theme}`} aria-hidden="true">
+    <div className={`backdrop theme-${theme}`} style={vars} aria-hidden="true">
       <div className="stars stars-1" />
       <div className="stars stars-2" />
       <div className="stars stars-3" />
