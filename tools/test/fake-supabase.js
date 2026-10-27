@@ -22,6 +22,11 @@
     { id: 'k5', character_id: 'c3', name: 'Fantôme', price: 60, color: '#e9e4ff', accent: '#9d4edd', style: 'halo', sort_order: 1 },
     { id: 'k6', character_id: 'c3', name: 'Flamme', price: 80, color: '#ff5d2e', accent: '#ffd23f', style: 'flame', sort_order: 2 },
   ];
+  const bundles = [
+    { id: 'b2', name: 'Duo Nova', character_id: 'c2', ship_id: 's2', price: 32, sort_order: 2 },
+    { id: 'b3', name: 'Duo Volt', character_id: 'c3', ship_id: 's3', price: 96, sort_order: 3 },
+    { id: 'b5', name: 'Duo Frelon', character_id: 'c5', ship_id: 's5', price: 160, sort_order: 5 },
+  ];
   const st = { clan: null, clanRole: null, clanMsgs: [], otherClans: [{ id: 'x1', name: 'Les Comètes', description: 'Bienvenue', badge: '☄️', members: 12 }, { id: 'x2', name: 'Pleine', description: '', badge: '🔥', members: 30 }], skinsOwned: {}, equipped: {}, session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: window.__startCleared ?? 0 }], calls: [], today: '2026-10-26' };
   const L = [];
   const mk = () => ({ access_token: 't', user: { id: 'u1', email: 'a@b.c' } });
@@ -47,6 +52,7 @@
         if (t === 'player_ships') return Object.entries(st.ownS).map(([id, level]) => ({ ship_id: id, level }));
         if (t === 'clans') return st.clan ? [st.clan] : [];
         if (t === 'clan_messages') return st.clanMsgs.slice().reverse();
+        if (t === 'bundles') return bundles;
         if (t === 'skins') return skins;
         if (t === 'player_skins') return Object.keys(st.skinsOwned).map((id) => ({ skin_id: id }));
         if (t === 'player_progress') return st.progress;
@@ -98,6 +104,12 @@
     if (name === 'send_clan_message') {
       if (/https?:|www\./i.test(a.p_body)) return fail('Les liens ne sont pas autorisés');
       st.clanMsgs.push({ id: st.clanMsgs.length + 1, user_id: 'u1', username: P.username, body: a.p_body, created_at: '' });
+    }
+    if (name === 'buy_bundle') {
+      const bd = bundles.find((x) => x.id === a.p_bundle);
+      if (st.ownC[bd.character_id] || st.ownS[bd.ship_id]) return fail('Tu possèdes déjà un des deux objets du pack');
+      if (P.gems < bd.price) return fail('Pas assez de gemmes');
+      P.gems -= bd.price; st.ownC[bd.character_id] = 1; st.ownS[bd.ship_id] = 1;
     }
     if (name === 'buy_skin') {
       const k = skins.find((x) => x.id === a.p_skin);

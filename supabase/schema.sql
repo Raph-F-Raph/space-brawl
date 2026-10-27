@@ -743,3 +743,43 @@ revoke all on function public.search_clans(text), public.create_clan(text,text,t
   public.clan_members_list(), public.send_clan_message(text) from public, anon;
 grant execute on function public.search_clans(text), public.create_clan(text,text,text), public.join_clan(uuid), public.leave_clan(),
   public.clan_members_list(), public.send_clan_message(text) to authenticated;
+
+
+-- =====================================================================
+-- PACKS DUO : personnage + soucoupe assortie, -20 % (appliqué sur la vraie base)
+-- =====================================================================
+create table if not exists public.bundles (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  character_id uuid not null references public.characters(id) on delete cascade,
+  ship_id uuid not null references public.ships(id) on delete cascade,
+  price int not null check (price > 0),
+  sort_order int not null default 1
+);
+alter table public.bundles enable row level security;
+create policy "packs visibles pour les joueurs connectés" on public.bundles for select to authenticated using (true);
+create index on public.bundles (character_id);
+create index on public.bundles (ship_id);
+insert into public.bundles (name, character_id, ship_id, price, sort_order)
+select 'Duo ' || c.name, c.id, s.id, ((c.price + s.price) * 0.8)::int, c.sort_order
+from public.characters c join public.ships s on s.sort_order = c.sort_order
+where c.price > 0 and s.price > 0;
+
+create or replace function public.buy_bundle(p_bundle uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_price int; v_char uuid; v_ship uuid; v_gems int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select price, character_id, ship_id into v_price, v_char, v_ship from public.bundles where id = p_bundle;
+  if v_price is null then raise exception 'Pack inconnu'; end if;
+  if exists (select 1 from public.player_characters where user_id = auth.uid() and character_id = v_char)
+     or exists (select 1 from public.player_ships where user_id = auth.uid() and ship_id = v_ship) then
+    raise exception 'Tu possèdes déjà un des deux objets du pack'; end if;
+  update public.profiles set gems = gems - v_price where id = auth.uid() and gems >= v_price returning gems into v_gems;
+  if v_gems is null then raise exception 'Pas assez de gemmes'; end if;
+  insert into public.player_characters (user_id, character_id) values (auth.uid(), v_char);
+  insert into public.player_ships (user_id, ship_id) values (auth.uid(), v_ship);
+  return v_gems;
+end; $$;
+revoke all on function public.buy_bundle(uuid) from public, anon;
+grant execute on function public.buy_bundle(uuid) to authenticated;

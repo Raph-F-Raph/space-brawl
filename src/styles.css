@@ -1593,3 +1593,14 @@ button.mode-card:active {
 .chat-msg.mine { align-self: flex-end; background: rgba(255, 210, 63, 0.22); }
 .chat-msg.mine strong { color: var(--yellow); }
 .clan-leave { align-self: center; margin: 14px auto 24px; display: block; }
+
+/* Packs duo */
+.duo-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.duo {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+  background: linear-gradient(#2a3fa8, #16226b); border: 3px solid var(--yellow); border-radius: 18px; padding: 8px 10px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+}
+.duo-art { display: flex; align-items: center; gap: 4px; }
+.duo-name { flex: 1; min-width: 120px; font: 800 15px var(--font-body); text-align: left; }
+.old-price { opacity: 0.6; margin-left: 4px; font-size: 0.85em; }

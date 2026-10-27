@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
+import { CharacterArt, ShipArt } from '../components/Art';
 import { ItemSheet } from '../components/ItemSheet';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
@@ -20,6 +21,16 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
   // Le cadeau se renouvelle chaque jour à minuit (heure UTC, comme dans la base de données)
   const todayUtc = new Date().toISOString().slice(0, 10);
   const giftTaken = g.profile?.last_daily === todayUtc;
+
+  // Packs duo : personnage + soucoupe assortie, proposés tant qu'on n'en possède aucun des deux
+  const packs = g.bundles.filter((b) => !g.ownedCharacters.has(b.character_id) && !g.ownedShips.has(b.ship_id));
+  const [packBusy, setPackBusy] = useState<string | null>(null);
+  async function buyPack(id: string, name: string) {
+    setPackBusy(id);
+    const err = await g.buyBundle(id);
+    setPackBusy(null);
+    buy.showToast(err ?? `${name} débloqué !`);
+  }
 
   async function claim() {
     setBusy(true);
@@ -46,6 +57,41 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
             </button>
           </div>
         </section>
+
+        {packs.length > 0 && (
+          <section className="chapter">
+            <h2 className="chapter-title">
+              Packs <span>duo −20 %</span>
+            </h2>
+            <p className="legend shop-note">Un personnage et sa soucoupe assortie, moins chers qu'à l'unité.</p>
+            <div className="duo-list">
+              {packs.map((b) => {
+                const c = g.characters.find((x) => x.id === b.character_id);
+                const s = g.ships.find((x) => x.id === b.ship_id);
+                if (!c || !s) return null;
+                const full = c.price + s.price;
+                return (
+                  <div className="duo" key={b.id}>
+                    <div className="duo-art">
+                      <CharacterArt color={c.color} accent={c.accent} variant={c.sort_order} size={64} />
+                      <ShipArt color={s.color} accent={s.accent} variant={s.sort_order} size={104} />
+                    </div>
+                    <strong className="duo-name">
+                      {c.name} + {s.name}
+                    </strong>
+                    <button
+                      className={`btn btn-small ${gems >= b.price ? 'btn-yellow' : 'btn-grey'}`}
+                      disabled={packBusy === b.id}
+                      onClick={() => void buyPack(b.id, b.name)}
+                    >
+                      💎 {b.price} <s className="old-price">{full}</s>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <section className="chapter">
           <h2 className="chapter-title">

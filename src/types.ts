@@ -17,6 +17,15 @@ export interface Character {
   style?: string | null; // accessoire du skin équipé (couronne, bandana…)
 }
 
+export interface Bundle {
+  id: string;
+  name: string;
+  character_id: string;
+  ship_id: string;
+  price: number; // en GEMMES
+  sort_order: number;
+}
+
 export interface Skin {
   id: string;
   character_id: string;

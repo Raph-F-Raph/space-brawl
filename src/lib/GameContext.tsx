@@ -9,7 +9,7 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { Character, Profile, Progress, Ship, Skin } from '../types';
+import type { Character, Profile, Bundle, Progress, Ship, Skin } from '../types';
 
 interface GameState {
   loading: boolean;
@@ -44,6 +44,8 @@ interface GameState {
   ownedSkins: Set<string>;
   equippedSkin: Record<string, string | null>; // personnage -> skin équipé
   withSkin: (c: Character) => Character; // le personnage avec les couleurs de son skin équipé
+  bundles: Bundle[];
+  buyBundle: (id: string) => Promise<string | null>;
   buySkin: (id: string) => Promise<string | null>;
   equipSkin: (characterId: string, skinId: string | null) => Promise<string | null>;
 }
@@ -79,11 +81,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [shipLevels, setShipLevels] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState<Progress[]>([]);
   const [skins, setSkins] = useState<Skin[]>([]);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
   const [ownedSkins, setOwnedSkins] = useState<Set<string>>(new Set());
   const [equippedSkin, setEquippedSkin] = useState<Record<string, string | null>>({});
 
   const loadData = useCallback(async (userId: string) => {
-    const [p, ch, sh, pc, ps, pr, sk, psk] = await Promise.all([
+    const [p, ch, sh, pc, ps, pr, sk, psk, bu] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('characters').select('*').order('sort_order'),
       supabase.from('ships').select('*').order('sort_order'),
@@ -92,6 +95,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       supabase.from('player_progress').select('chapter, cleared_level').eq('user_id', userId),
       supabase.from('skins').select('*').order('sort_order'),
       supabase.from('player_skins').select('skin_id').eq('user_id', userId),
+      supabase.from('bundles').select('*').order('sort_order'),
     ]);
     setProfile((p.data as Profile | null) ?? null);
     setCharacters((ch.data as Character[] | null) ?? []);
@@ -104,6 +108,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setShipLevels(Object.fromEntries(psRows.map((r) => [r.ship_id, r.level ?? 1])));
     setProgress((pr.data as Progress[] | null) ?? []);
     setSkins((sk.data as Skin[] | null) ?? []);
+    setBundles((bu.data as Bundle[] | null) ?? []);
     setOwnedSkins(new Set(((psk.data ?? []) as { skin_id: string }[]).map((r) => r.skin_id)));
     setEquippedSkin(Object.fromEntries(pcRows.map((r) => [r.character_id, r.skin_id ?? null])));
   }, []);
@@ -257,6 +262,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [skins, equippedSkin]
   );
 
+  const buyBundle = useCallback(
+    async (id: string) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('buy_bundle', { p_bundle: id });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
   const buySkin = useCallback(
     async (id: string) => {
       if (!session) return 'Connexion requise';
@@ -317,6 +332,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     ownedSkins,
     equippedSkin,
     withSkin,
+    bundles,
+    buyBundle,
     buySkin,
     equipSkin,
   };

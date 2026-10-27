@@ -1,0 +1,17 @@
+import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
+import fs from 'node:fs';
+const SP = process.argv[2]; const fake = fs.readFileSync(`${SP}/test/fake-supabase.js`, 'utf8');
+const b = await chromium.launch(); const errs = [];
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+const p = await ctx.newPage(); p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+await p.addInitScript('window.__startGems = 200;');
+await p.route('**/*', (r) => { const u = r.request().url(); if (u.includes('jsdelivr')) return r.fulfill({ contentType: 'application/javascript', body: fake }); if (u.startsWith('file:')) return r.continue(); return r.fulfill({ status: 200, contentType: 'text/css', body: '' }); });
+await p.goto(`file://${SP}/index.html`); await p.waitForSelector('form'); await p.click('button.link');
+await p.fill('input[type=text]', 'Raphael'); await p.fill('input[type=email]', 'a@b.co'); await p.fill('input[type=password]', 'secret123'); await p.click('button[type=submit]');
+await p.waitForSelector('.btn-play');
+await p.locator('button', { hasText: 'Boutique' }).first().click({ force: true }); await p.waitForTimeout(500);
+console.log('Packs:', await p.locator('.duo-name').allInnerTexts());
+await p.locator('.duo').first().scrollIntoViewIfNeeded(); await p.screenshot({ path: `${SP}/test/96-duo.png` });
+await p.locator('.duo', { hasText: 'Frelon' }).locator('.btn').click({ force: true }); await p.waitForTimeout(700);
+console.log('Après achat Duo Frelon: gemmes =', await p.evaluate(() => window.__fake.profile.gems), '| perso Frelon =', await p.evaluate(() => !!window.__fake.ownC.c5), '| soucoupe Aiguillon =', await p.evaluate(() => !!window.__fake.ownS.s5), '| packs restants:', await p.locator('.duo-name').allInnerTexts());
+console.log('ERREURS:', errs.length ? errs : 'aucune'); await b.close();
