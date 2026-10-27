@@ -517,7 +517,7 @@ begin
   v_coins := greatest(0, least(p_coins, 150));
   if p_won and p_level > v_cleared then
     update public.player_progress set cleared_level = p_level where user_id = auth.uid() and chapter = p_chapter;
-    v_gems := case when p_level = 5 then 10 else 2 end;
+    v_gems := case when p_level = 5 then 15 else 0 end; -- gemmes : seulement le méga boss
   end if;
   update public.profiles set coins = coins + v_coins, gems = gems + v_gems where id = auth.uid() returning coins into v_total;
   return v_total;
@@ -548,7 +548,7 @@ begin
   v_coins := greatest(0, least(p_coins, 250));
   if p_won and p_level > v_cleared then
     update public.player_progress set cleared_level = p_level where user_id = auth.uid() and chapter = p_chapter;
-    v_gems := case when p_level = 5 then 10 else 2 end;
+    v_gems := case when p_level = 5 then 15 else 0 end; -- gemmes : seulement le méga boss
   end if;
   update public.profiles set coins = coins + v_coins, gems = gems + v_gems where id = auth.uid() returning coins into v_total;
   return v_total;

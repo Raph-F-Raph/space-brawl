@@ -82,7 +82,7 @@
       if (!p) { p = { chapter: a.p_chapter, cleared_level: 0 }; st.progress.push(p); }
       if (a.p_level > p.cleared_level + 1) return fail('Niveau pas encore débloqué');
       P.coins += Math.max(0, Math.min(a.p_coins, 250));
-      if (a.p_won && a.p_level > p.cleared_level) { p.cleared_level = a.p_level; P.gems += a.p_level === 5 ? 10 : 2; }
+      if (a.p_won && a.p_level > p.cleared_level) { p.cleared_level = a.p_level; P.gems += a.p_level === 5 ? 15 : 0; }
     }
     return { data: null, error: null };
   }

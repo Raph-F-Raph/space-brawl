@@ -5,7 +5,7 @@ import { ItemSheet } from '../components/ItemSheet';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
-import { COINS_DAILY, GEMS_BOSS_FIRST_CLEAR, GEMS_DAILY, GEMS_FIRST_CLEAR } from '../game/progress';
+import { COINS_DAILY, GEMS_BOSS_FIRST_CLEAR, GEMS_DAILY } from '../game/progress';
 
 export function ShopScreen({ onBack }: { onBack: () => void }) {
   const g = useGame();
@@ -82,9 +82,6 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
             Gagner <span>des gemmes</span>
           </h2>
           <ul className="earn">
-            <li>
-              <strong>+{GEMS_FIRST_CLEAR} 💎</strong> la première fois que tu réussis un niveau
-            </li>
             <li>
               <strong>+{GEMS_BOSS_FIRST_CLEAR} 💎</strong> la première fois que tu bats un méga boss
             </li>

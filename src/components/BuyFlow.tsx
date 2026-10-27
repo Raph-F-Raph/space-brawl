@@ -58,8 +58,8 @@ export function useBuyFlow() {
           </p>
           {missing > 0 ? (
             <p>
-              Il te manque 💎 {missing.toLocaleString('fr-FR')} gemmes. Gagne-en en réussissant un niveau pour la
-              première fois, en battant un méga boss, ou avec le cadeau du jour dans la boutique.
+              Il te manque 💎 {missing.toLocaleString('fr-FR')} gemmes. Gagne-en en battant un méga boss pour la
+              première fois, ou avec le cadeau du jour dans la boutique.
             </p>
           ) : (
             <p>Il te restera 💎 {(gems - target.item.price).toLocaleString('fr-FR')} gemmes.</p>

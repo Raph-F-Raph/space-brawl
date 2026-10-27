@@ -20,7 +20,7 @@ export function scaled(base: number, level: number): number {
 }
 
 // Gemmes gagnées (pour l'affichage ; le calcul réel est fait par la base de données)
-export const GEMS_FIRST_CLEAR = 2;
-export const GEMS_BOSS_FIRST_CLEAR = 10;
+export const GEMS_FIRST_CLEAR = 0; // les niveaux normaux ne donnent plus de gemmes
+export const GEMS_BOSS_FIRST_CLEAR = 15;
 export const GEMS_DAILY = 1;
 export const COINS_DAILY = 30;
