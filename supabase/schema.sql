@@ -626,3 +626,120 @@ begin
 end; $$;
 revoke all on function public.buy_skin(uuid), public.equip_skin(uuid, uuid) from public, anon;
 grant execute on function public.buy_skin(uuid), public.equip_skin(uuid, uuid) to authenticated;
+
+
+-- =====================================================================
+-- CLANS (appliqué sur la vraie base)
+-- =====================================================================
+create table if not exists public.clans (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique check (char_length(name) between 3 and 20),
+  description text not null default '' check (char_length(description) <= 80),
+  badge text not null default '🚀',
+  created_at timestamptz not null default now()
+);
+create table if not exists public.clan_members (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  clan_id uuid not null references public.clans(id) on delete cascade,
+  role text not null default 'membre' check (role in ('chef','membre')),
+  joined_at timestamptz not null default now()
+);
+create index on public.clan_members (clan_id);
+create table if not exists public.clan_messages (
+  id bigint generated always as identity primary key,
+  clan_id uuid not null references public.clans(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  username text not null,
+  body text not null check (char_length(body) between 1 and 200),
+  created_at timestamptz not null default now()
+);
+create index on public.clan_messages (clan_id, id desc);
+create index on public.clan_messages (user_id);
+alter table public.clans enable row level security;
+alter table public.clan_members enable row level security;
+alter table public.clan_messages enable row level security;
+
+create or replace function public.my_clan_id() returns uuid
+language sql stable security definer set search_path = public as $$
+  select clan_id from public.clan_members where user_id = auth.uid() $$;
+revoke all on function public.my_clan_id() from public, anon;
+grant execute on function public.my_clan_id() to authenticated;
+
+create policy "voir mon clan" on public.clans for select to authenticated using (id = (select public.my_clan_id()));
+create policy "voir les membres de mon clan" on public.clan_members for select to authenticated using (clan_id = (select public.my_clan_id()));
+create policy "lire le chat de mon clan" on public.clan_messages for select to authenticated using (clan_id = (select public.my_clan_id()));
+
+create or replace function public.search_clans(p_query text default '') returns table (id uuid, name text, description text, badge text, members bigint)
+language sql stable security definer set search_path = public as $$
+  select c.id, c.name, c.description, c.badge, (select count(*) from public.clan_members m where m.clan_id = c.id)
+  from public.clans c
+  where auth.uid() is not null and (coalesce(p_query,'') = '' or c.name ilike '%' || replace(replace(p_query,'%',''),'_','') || '%')
+  order by 5 desc, c.created_at desc limit 30 $$;
+
+create or replace function public.create_clan(p_name text, p_description text, p_badge text) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare v_id uuid; v_name text := btrim(p_name);
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if exists (select 1 from public.clan_members where user_id = auth.uid()) then raise exception 'Tu es déjà dans un clan'; end if;
+  if char_length(v_name) < 3 or char_length(v_name) > 20 then raise exception 'Le nom doit faire 3 à 20 lettres'; end if;
+  if exists (select 1 from public.clans where lower(name) = lower(v_name)) then raise exception 'Ce nom de clan existe déjà'; end if;
+  insert into public.clans (name, description, badge) values (v_name, left(coalesce(p_description,''), 80), coalesce(nullif(left(p_badge, 8), ''), '🚀')) returning id into v_id;
+  insert into public.clan_members (user_id, clan_id, role) values (auth.uid(), v_id, 'chef');
+  return v_id;
+end; $$;
+
+create or replace function public.join_clan(p_clan uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if exists (select 1 from public.clan_members where user_id = auth.uid()) then raise exception 'Tu es déjà dans un clan'; end if;
+  if not exists (select 1 from public.clans where id = p_clan) then raise exception 'Clan introuvable'; end if;
+  if (select count(*) from public.clan_members where clan_id = p_clan) >= 30 then raise exception 'Ce clan est complet (30 membres)'; end if;
+  insert into public.clan_members (user_id, clan_id) values (auth.uid(), p_clan);
+end; $$;
+
+create or replace function public.leave_clan() returns void
+language plpgsql security definer set search_path = public as $$
+declare v_clan uuid; v_role text; v_next uuid;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select clan_id, role into v_clan, v_role from public.clan_members where user_id = auth.uid();
+  if v_clan is null then raise exception 'Tu n''es dans aucun clan'; end if;
+  delete from public.clan_members where user_id = auth.uid();
+  if not exists (select 1 from public.clan_members where clan_id = v_clan) then
+    delete from public.clans where id = v_clan;
+  elsif v_role = 'chef' then
+    select user_id into v_next from public.clan_members where clan_id = v_clan order by joined_at limit 1;
+    update public.clan_members set role = 'chef' where user_id = v_next;
+  end if;
+end; $$;
+
+create or replace function public.clan_members_list() returns table (username text, role text, chapters int, is_me boolean)
+language sql stable security definer set search_path = public as $$
+  select p.username, m.role,
+         coalesce((select sum(pp.cleared_level) from public.player_progress pp where pp.user_id = m.user_id), 0)::int,
+         m.user_id = auth.uid()
+  from public.clan_members m join public.profiles p on p.id = m.user_id
+  where m.clan_id = (select public.my_clan_id())
+  order by (m.role = 'chef') desc, m.joined_at $$;
+
+create or replace function public.send_clan_message(p_body text) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_clan uuid; v_name text; v_body text := btrim(p_body);
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  v_clan := public.my_clan_id();
+  if v_clan is null then raise exception 'Tu n''es dans aucun clan'; end if;
+  if char_length(v_body) < 1 or char_length(v_body) > 200 then raise exception 'Message de 1 à 200 caractères'; end if;
+  if v_body ~* '(https?://|www\.|\.com|\.fr|\.net)' then raise exception 'Les liens ne sont pas autorisés'; end if;
+  if (select count(*) from public.clan_messages where user_id = auth.uid() and created_at > now() - interval '10 seconds') >= 5 then
+    raise exception 'Doucement ! Attends quelques secondes'; end if;
+  select username into v_name from public.profiles where id = auth.uid();
+  insert into public.clan_messages (clan_id, user_id, username, body) values (v_clan, auth.uid(), coalesce(v_name,'?'), v_body);
+end; $$;
+
+revoke all on function public.search_clans(text), public.create_clan(text,text,text), public.join_clan(uuid), public.leave_clan(),
+  public.clan_members_list(), public.send_clan_message(text) from public, anon;
+grant execute on function public.search_clans(text), public.create_clan(text,text,text), public.join_clan(uuid), public.leave_clan(),
+  public.clan_members_list(), public.send_clan_message(text) to authenticated;

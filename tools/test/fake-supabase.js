@@ -22,7 +22,7 @@
     { id: 'k5', character_id: 'c3', name: 'Fantôme', price: 60, color: '#e9e4ff', accent: '#9d4edd', style: 'halo', sort_order: 1 },
     { id: 'k6', character_id: 'c3', name: 'Flamme', price: 80, color: '#ff5d2e', accent: '#ffd23f', style: 'flame', sort_order: 2 },
   ];
-  const st = { skinsOwned: {}, equipped: {}, session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: window.__startCleared ?? 0 }], calls: [], today: '2026-10-26' };
+  const st = { clan: null, clanRole: null, clanMsgs: [], otherClans: [{ id: 'x1', name: 'Les Comètes', description: 'Bienvenue', badge: '☄️', members: 12 }, { id: 'x2', name: 'Pleine', description: '', badge: '🔥', members: 30 }], skinsOwned: {}, equipped: {}, session: null, profile: null, ownC: { c1: 1 }, ownS: { s1: 1 }, progress: [{ chapter: 1, cleared_level: window.__startCleared ?? 0 }], calls: [], today: '2026-10-26' };
   const L = [];
   const mk = () => ({ access_token: 't', user: { id: 'u1', email: 'a@b.c' } });
   const fire = (ev) => L.forEach((f) => f(ev, st.session));
@@ -38,13 +38,15 @@
   };
   function from(t) {
     const q = {
-      select() { return q; }, eq() { return q; }, order() { return q; },
+      select() { return q; }, eq() { return q; }, order() { return q; }, limit() { return q; },
       rows() {
         if (t === 'profiles') return st.profile ? [st.profile] : [];
         if (t === 'characters') return chars;
         if (t === 'ships') return ships;
         if (t === 'player_characters') return Object.entries(st.ownC).map(([id, level]) => ({ character_id: id, level, skin_id: st.equipped[id] ?? null }));
         if (t === 'player_ships') return Object.entries(st.ownS).map(([id, level]) => ({ ship_id: id, level }));
+        if (t === 'clans') return st.clan ? [st.clan] : [];
+        if (t === 'clan_messages') return st.clanMsgs.slice().reverse();
         if (t === 'skins') return skins;
         if (t === 'player_skins') return Object.keys(st.skinsOwned).map((id) => ({ skin_id: id }));
         if (t === 'player_progress') return st.progress;
@@ -79,6 +81,23 @@
       const cost = 60 * own[id];
       if (P.coins < cost) return fail('Pas assez de pièces');
       P.coins -= cost; own[id] += 1;
+    }
+    if (name === 'search_clans') return { data: st.otherClans.filter((c) => c.name.toLowerCase().includes((a.p_query || '').toLowerCase())), error: null };
+    if (name === 'create_clan') {
+      if (st.clan) return fail('Tu es déjà dans un clan');
+      if (a.p_name.trim().length < 3) return fail('Le nom doit faire 3 à 20 lettres');
+      st.clan = { id: 'm1', name: a.p_name.trim(), description: a.p_description, badge: a.p_badge }; st.clanRole = 'chef'; return { data: 'm1', error: null };
+    }
+    if (name === 'join_clan') {
+      const c = st.otherClans.find((x) => x.id === a.p_clan);
+      if (c.members >= 30) return fail('Ce clan est complet (30 membres)');
+      st.clan = { id: c.id, name: c.name, description: c.description, badge: c.badge }; st.clanRole = 'membre';
+    }
+    if (name === 'leave_clan') { st.clan = null; st.clanRole = null; }
+    if (name === 'clan_members_list') return { data: [{ username: 'Chef', role: 'chef', chapters: 12, is_me: false }, { username: P.username, role: st.clanRole, chapters: 3, is_me: true }].filter((m, i) => i === 0 ? st.clanRole !== 'chef' : true), error: null };
+    if (name === 'send_clan_message') {
+      if (/https?:|www\./i.test(a.p_body)) return fail('Les liens ne sont pas autorisés');
+      st.clanMsgs.push({ id: st.clanMsgs.length + 1, user_id: 'u1', username: P.username, body: a.p_body, created_at: '' });
     }
     if (name === 'buy_skin') {
       const k = skins.find((x) => x.id === a.p_skin);

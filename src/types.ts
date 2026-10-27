@@ -62,6 +62,7 @@ export type Screen =
   | 'characters'
   | 'ships'
   | 'shop'
+  | 'clans'
   | 'play'
   | 'chapters'
   | 'level'

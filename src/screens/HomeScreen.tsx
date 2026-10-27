@@ -58,7 +58,7 @@ export function HomeScreen({
             <span className="nav-icon">🧑‍🚀</span>
             Personnages
           </button>
-          <button className="nav-btn" onClick={() => onSoon('Les clans')}>
+          <button className="nav-btn" onClick={() => onNavigate('clans')}>
             <span className="nav-icon">🛡️</span>
             Clans
           </button>

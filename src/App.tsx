@@ -9,6 +9,7 @@ import { PlayScreen } from './screens/PlayScreen';
 import { ChaptersScreen } from './screens/ChaptersScreen';
 import { LevelScreen } from './screens/LevelScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { ClansScreen } from './screens/ClansScreen';
 import { ShopScreen } from './screens/ShopScreen';
 import { CHAPTERS } from './game/levels';
 import type { Screen } from './types';
@@ -101,6 +102,8 @@ function Shell() {
     content = <CollectionScreen kind="characters" onBack={() => setScreen('home')} />;
   } else if (screen === 'ships') {
     content = <CollectionScreen kind="ships" onBack={() => setScreen('home')} />;
+  } else if (screen === 'clans') {
+    content = <ClansScreen onBack={() => setScreen('home')} />;
   } else if (screen === 'shop') {
     content = <ShopScreen onBack={() => setScreen('home')} />;
   } else if (screen === 'play') {
