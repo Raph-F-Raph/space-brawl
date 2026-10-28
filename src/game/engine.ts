@@ -97,6 +97,15 @@ interface Bullet {
   hit: Set<Enemy>;
 }
 
+interface Asteroid {
+  x: number;
+  y: number;
+  r: number;
+  rot: number;
+  spin: number;
+  shape: number[]; // rayon de chaque sommet (forme irrégulière)
+}
+
 interface Ring {
   x: number;
   y: number;
@@ -146,13 +155,15 @@ export class Engine {
   private fireCd = 0;
 
   // --- parcours : le terrain est plus large que l'écran, on avance vers un portail ---
-  private worldW = W * 3;
-  private camX = 0;
-  private portalX = 0;
+  // On avance vers le HAUT de l'écran (« vers l'avant ») : le terrain est plus haut que l'écran.
+  private worldH = H * 5;
+  private camY = 0;
+  private portalY = 90;
   private portalOpen = false;
   private arenaLocked = false; // le boss est là : on ne peut plus reculer
-  private encounters: { x: number; kinds: EnemyKind[] }[] = [];
+  private encounters: { y: number; kinds: EnemyKind[] }[] = [];
   private nextEnc = 0;
+  private asteroids: Asteroid[] = [];
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -165,11 +176,12 @@ export class Engine {
     this.ctx = ctx;
     this.theme = getChapter(level.chapter).theme;
     this.player.hp = stats.maxHp;
-    this.player.x = 90;
-    this.portalX = this.worldW - 90;
+    this.player.x = W / 2;
+    this.player.y = this.worldH - 90;
     this.encounters = this.buildEncounters();
+    this.makeAsteroids();
     for (let i = 0; i < 200; i++) {
-      this.stars.push({ x: Math.random() * this.worldW, y: Math.random() * H, r: 0.6 + Math.random() * 1.6, p: Math.random() * TAU });
+      this.stars.push({ x: Math.random() * W, y: Math.random() * this.worldH, r: 0.6 + Math.random() * 1.6, p: Math.random() * TAU });
     }
   }
 
@@ -215,7 +227,7 @@ export class Engine {
     return {
       hp: Math.max(0, Math.ceil(this.player.hp)),
       maxHp: this.stats.maxHp,
-      progress: Math.round(clamp(this.player.x / this.portalX, 0, 1) * 100),
+      progress: Math.round(clamp((this.worldH - 90 - this.player.y) / (this.worldH - 90 - this.portalY), 0, 1) * 100),
       portalOpen: this.portalOpen,
       coins: this.coins,
       boss: boss ? { hp: Math.max(0, boss.hp), max: boss.maxHp } : null,
@@ -227,8 +239,8 @@ export class Engine {
   // ------------------------------------------------------------------
   // Les anciennes « vagues » deviennent des rencontres réparties le long du chemin :
   // elles se déclenchent quand on arrive à leur position. Le boss attend dans l'arène, au bout.
-  private buildEncounters(): { x: number; kinds: EnemyKind[] }[] {
-    const L = this.worldW;
+  private buildEncounters(): { y: number; kinds: EnemyKind[] }[] {
+    const L = this.worldH;
     const shuffle = <T,>(arr: T[]) => {
       for (let a = arr.length - 1; a > 0; a--) {
         const b = Math.floor(Math.random() * (a + 1));
@@ -242,18 +254,54 @@ export class Engine {
       return shuffle(out);
     };
     const waves = this.level.waves;
-    const enc: { x: number; kinds: EnemyKind[] }[] = [];
+    const enc: { y: number; kinds: EnemyKind[] }[] = [];
     if (this.level.isBoss) {
       const pool = shuffle([...waves.slice(0, -1).flatMap(expand), ...waves.slice(0, -1).flatMap(expand)]);
       const parts = 3;
       const per = Math.ceil(pool.length / parts);
-      for (let i = 0; i < parts; i++) enc.push({ x: i === 0 ? 0 : (i / parts) * (L - W * 1.4), kinds: pool.slice(i * per, (i + 1) * per) });
-      enc.push({ x: L - W * 0.5, kinds: expand(waves[waves.length - 1]) }); // le boss
+      for (let i = 0; i < parts; i++) enc.push({ y: L - (i / parts) * (L - H * 1.4), kinds: pool.slice(i * per, (i + 1) * per) });
+      enc.push({ y: H * 0.62, kinds: expand(waves[waves.length - 1]) }); // le boss, dans l'arène tout en haut
     } else {
       const n = waves.length;
-      waves.forEach((w, i) => enc.push({ x: n === 1 ? 0 : (i / n) * (L - W * 1.3), kinds: expand(w) }));
+      waves.forEach((w, i) => enc.push({ y: L - (i / n) * (L - H * 1.3), kinds: expand(w) }));
     }
     return enc.filter((e) => e.kinds.length > 0);
+  }
+
+  // Quelques astéroïdes sur le chemin (pas beaucoup) : ils bloquent le passage et arrêtent les tirs.
+  private makeAsteroids() {
+    const count = this.level.isBoss ? 6 : 8;
+    const top = this.level.isBoss ? H + 120 : 280; // pas d'astéroïde dans l'arène du boss ni devant le portail
+    const bottom = this.worldH - 300; // ni au départ
+    let guard = 0;
+    while (this.asteroids.length < count && guard++ < 400) {
+      const r = 24 + Math.random() * 20;
+      const x = r + 30 + Math.random() * (W - 2 * r - 60);
+      const y = top + Math.random() * (bottom - top);
+      if (this.asteroids.some((a) => Math.hypot(a.x - x, a.y - y) < a.r + r + 150)) continue; // jamais de mur : on peut toujours passer
+      this.asteroids.push({
+        x,
+        y,
+        r,
+        rot: Math.random() * TAU,
+        spin: (Math.random() - 0.5) * 0.5,
+        shape: Array.from({ length: 9 }, () => 0.82 + Math.random() * 0.3),
+      });
+    }
+  }
+
+  /** Repousse un cercle (joueur, monstre) hors des astéroïdes. */
+  private pushOutOfAsteroids(o: { x: number; y: number }, radius: number) {
+    for (const a of this.asteroids) {
+      const dx = o.x - a.x;
+      const dy = o.y - a.y;
+      const d = Math.hypot(dx, dy) || 0.001;
+      const min = a.r * 0.95 + radius;
+      if (d < min) {
+        o.x = a.x + (dx / d) * min;
+        o.y = a.y + (dy / d) * min;
+      }
+    }
   }
 
   private spawn(kind: EnemyKind, at?: { x: number; y: number }) {
@@ -264,19 +312,18 @@ export class Engine {
       x = at.x;
       y = at.y;
     } else if (kind === 'boss') {
-      x = this.worldW - W / 2;
+      x = W / 2;
       y = d.r + 20;
     } else {
-      // les monstres arrivent surtout de devant (la droite), parfois de haut ou de bas
-      const cx = this.camX;
-      const atEnd = cx >= this.worldW - W - 1;
-      let side = Math.random() < 0.5 ? 1 : Math.floor(Math.random() * 4);
-      if (side === 1 && atEnd) side = Math.random() < 0.5 ? 2 : 3;
-      if (side === 0 && cx <= 1) side = 2;
-      if (side === 0) [x, y] = [cx - 20, Math.random() * H];
-      else if (side === 1) [x, y] = [cx + W + 20, Math.random() * H];
-      else if (side === 2) [x, y] = [cx + Math.random() * W, -20];
-      else [x, y] = [cx + Math.random() * W, H + 20];
+      // les monstres arrivent surtout de devant (le haut), parfois des côtés, rarement de derrière
+      const cy = this.camY;
+      let side = Math.random() < 0.55 ? 2 : Math.floor(Math.random() * 4);
+      if (side === 2 && cy <= 1) side = Math.random() < 0.5 ? 0 : 1; // tout en haut : plus rien ne vient d'en haut
+      if (side === 3 && cy >= this.worldH - H - 1 && Math.random() < 0.5) side = 0;
+      if (side === 0) [x, y] = [-20, cy + Math.random() * H];
+      else if (side === 1) [x, y] = [W + 20, cy + Math.random() * H];
+      else if (side === 2) [x, y] = [Math.random() * W, cy - 20];
+      else [x, y] = [Math.random() * W, cy + H + 20];
     }
     this.enemies.push({
       kind,
@@ -306,7 +353,9 @@ export class Engine {
     p.invuln = Math.max(0, p.invuln - dt);
 
     this.movePlayer(dt);
-    this.camX = this.arenaLocked ? this.worldW - W : clamp(p.x - W / 2, 0, this.worldW - W);
+    this.pushOutOfAsteroids(p, PLAYER_R);
+    this.camY = this.arenaLocked ? 0 : clamp(p.y - H * 0.62, 0, this.worldH - H); // le joueur reste dans le bas de l'écran : on voit devant
+    for (const a of this.asteroids) a.rot += a.spin * dt;
     this.tryFire(dt);
     this.updateSpawning(dt);
     this.updateEnemies(dt);
@@ -347,10 +396,10 @@ export class Engine {
       mx /= jm;
       my /= jm;
     }
-    const minX = this.arenaLocked ? this.worldW - W + PLAYER_R : PLAYER_R;
-    const maxX = this.portalOpen ? this.worldW - PLAYER_R : this.portalX - 70; // portail fermé = on ne passe pas
-    p.x = clamp(p.x + mx * this.stats.speed * dt, minX, maxX);
-    p.y = clamp(p.y + my * this.stats.speed * dt, PLAYER_R, H - PLAYER_R);
+    const minY = this.portalOpen ? PLAYER_R : this.portalY + 70; // portail fermé = on ne passe pas
+    const maxY = this.arenaLocked ? H - PLAYER_R : this.worldH - PLAYER_R; // arène du boss : on ne recule plus
+    p.x = clamp(p.x + mx * this.stats.speed * dt, PLAYER_R, W - PLAYER_R);
+    p.y = clamp(p.y + my * this.stats.speed * dt, minY, maxY);
     if ((mx !== 0 || my !== 0) && !this.nearest(620) && !this.aim) p.facing = Math.atan2(my, mx);
   }
 
@@ -429,7 +478,7 @@ export class Engine {
   private updateSpawning(dt: number) {
     const p = this.player;
     // une nouvelle rencontre se déclenche quand on arrive à sa position
-    if (this.nextEnc < this.encounters.length && this.queue.length === 0 && p.x >= this.encounters[this.nextEnc].x) {
+    if (this.nextEnc < this.encounters.length && this.queue.length === 0 && p.y <= this.encounters[this.nextEnc].y) {
       const enc = this.encounters[this.nextEnc];
       this.nextEnc++;
       this.queue = [...enc.kinds];
@@ -452,11 +501,11 @@ export class Engine {
     const cleared = this.nextEnc >= this.encounters.length && !this.enemies.some((e) => e.hp > 0);
     if (cleared && !this.portalOpen) {
       this.portalOpen = true;
-      this.rings.push({ x: this.portalX, y: H / 2, max: 150, life: 0.8, maxLife: 0.8 });
+      this.rings.push({ x: W / 2, y: this.portalY, max: 150, life: 0.8, maxLife: 0.8 });
       this.pops.push({ x: p.x, y: p.y - 44, text: 'Portail ouvert !', life: 1.8 });
       vibrate(80);
     }
-    if (this.portalOpen && Math.abs(p.x - this.portalX) < 46 && Math.abs(p.y - H / 2) < 90) this.finish(true); // le portail est haut et étroit
+    if (this.portalOpen && Math.abs(p.x - W / 2) < 90 && Math.abs(p.y - this.portalY) < 46) this.finish(true); // le portail est large et plat
   }
 
   private hurtPlayer(base: number) {
@@ -490,6 +539,7 @@ export class Engine {
         e.y += ny * e.speed * dt;
       }
 
+      if (e.kind !== 'boss') this.pushOutOfAsteroids(e, e.r);
       if (d < e.r + PLAYER_R - 4) this.hurtPlayer(e.dmg);
     }
 
@@ -566,7 +616,7 @@ export class Engine {
       e.summonT = 9;
     }
 
-    e.x = clamp(e.x, this.worldW - W + e.r, this.worldW - e.r);
+    e.x = clamp(e.x, e.r, W - e.r);
     e.y = clamp(e.y, e.r, H - e.r);
   }
 
@@ -576,7 +626,8 @@ export class Engine {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.life -= dt;
-      if (b.x < this.camX - 40 || b.x > this.camX + W + 40 || b.y < -40 || b.y > H + 40) b.life = 0;
+      if (b.x < -40 || b.x > W + 40 || b.y < this.camY - 40 || b.y > this.camY + H + 40) b.life = 0;
+      for (const a of this.asteroids) if (Math.hypot(b.x - a.x, b.y - a.y) < a.r * 0.9 + b.r) b.life = 0; // les astéroïdes arrêtent les tirs
       if (b.life <= 0) continue;
 
       if (b.friendly) {
@@ -649,23 +700,23 @@ export class Engine {
 
     // tout ce qui suit est dessiné dans le terrain (décalé par la caméra)
     c.save();
-    c.translate(-this.camX, 0);
+    c.translate(0, -this.camY);
 
     c.strokeStyle = 'rgba(255,255,255,0.05)';
     c.lineWidth = 1;
     c.beginPath();
-    for (let x = Math.floor(this.camX / 60) * 60; x <= this.camX + W; x += 60) {
-      c.moveTo(x, 0);
-      c.lineTo(x, H);
+    for (let x = 0; x <= W; x += 60) {
+      c.moveTo(x, this.camY);
+      c.lineTo(x, this.camY + H);
     }
-    for (let y = 0; y <= H; y += 60) {
-      c.moveTo(this.camX, y);
-      c.lineTo(this.camX + W, y);
+    for (let y = Math.floor(this.camY / 60) * 60; y <= this.camY + H; y += 60) {
+      c.moveTo(0, y);
+      c.lineTo(W, y);
     }
     c.stroke();
 
     for (const s of this.stars) {
-      if (s.x < this.camX - 4 || s.x > this.camX + W + 4) continue;
+      if (s.y < this.camY - 4 || s.y > this.camY + H + 4) continue;
       c.globalAlpha = 0.45 + 0.4 * Math.sin(this.time * 2 + s.p);
       c.fillStyle = '#fff';
       c.beginPath();
@@ -685,6 +736,7 @@ export class Engine {
     }
 
     this.drawPortal();
+    this.drawAsteroids();
     for (const e of this.enemies) this.drawEnemy(e);
 
     for (const b of this.bullets) {
@@ -714,16 +766,26 @@ export class Engine {
 
     // Flèche « avance » quand il n'y a plus de monstres devant soi
     const idle = this.queue.length === 0 && !this.enemies.some((e) => e.hp > 0);
-    if (idle && !this.arenaLocked && this.player.x < this.portalX - 200) {
+    if (idle && !this.arenaLocked && this.player.y > this.portalY + 220) {
+      c.save();
       c.globalAlpha = 0.55 + 0.4 * Math.sin(this.time * 6);
-      c.font = "bold 56px 'Lilita One', 'Arial Black', sans-serif";
-      c.textAlign = 'center';
-      c.lineWidth = 6;
-      c.strokeStyle = '#0b1030';
-      c.strokeText('➜', W - 50 + Math.sin(this.time * 6) * 6, H / 2 + 18);
+      c.translate(W / 2, 70 - Math.sin(this.time * 6) * 6);
+      c.beginPath(); // grosse flèche vers le haut
+      c.moveTo(0, -26);
+      c.lineTo(30, 6);
+      c.lineTo(12, 6);
+      c.lineTo(12, 28);
+      c.lineTo(-12, 28);
+      c.lineTo(-12, 6);
+      c.lineTo(-30, 6);
+      c.closePath();
       c.fillStyle = '#ffd23f';
-      c.fillText('➜', W - 50 + Math.sin(this.time * 6) * 6, H / 2 + 18);
-      c.globalAlpha = 1;
+      c.strokeStyle = '#0b1030';
+      c.lineWidth = 5;
+      c.lineJoin = 'round';
+      c.stroke();
+      c.fill();
+      c.restore();
     }
 
     c.restore();
@@ -736,19 +798,19 @@ export class Engine {
 
   private drawPortal() {
     const c = this.ctx;
-    const x = this.portalX;
-    const y = H / 2;
+    const x = W / 2;
+    const y = this.portalY;
     const t = this.time;
     const open = this.portalOpen;
-    if (x < this.camX - 160 || x > this.camX + W + 160) return;
+    if (y < this.camY - 160 || y > this.camY + H + 160) return;
     c.save();
     c.translate(x, y);
-    const g = c.createRadialGradient(0, 0, 10, 0, 0, 120);
+    const g = c.createRadialGradient(0, 0, 10, 0, 0, 160);
     g.addColorStop(0, open ? 'rgba(125,249,255,0.6)' : 'rgba(120,120,170,0.25)');
     g.addColorStop(1, 'rgba(125,249,255,0)');
     c.fillStyle = g;
     c.beginPath();
-    c.ellipse(0, 0, 120, 160, 0, 0, TAU);
+    c.ellipse(0, 0, 200, 120, 0, 0, TAU);
     c.fill();
     c.globalAlpha = open ? 1 : 0.55;
     const cols = open ? ['#7df9ff', '#b57bff', '#ffffff'] : ['#6b6f9a', '#55597f', '#7a7ea8'];
@@ -756,7 +818,7 @@ export class Engine {
       c.strokeStyle = cols[i];
       c.lineWidth = 8 - i * 2;
       c.beginPath();
-      c.ellipse(0, 0, 36 + i * 6 + (open ? Math.sin(t * 4 + i) * 3 : 0), 82 - i * 9, 0, 0, TAU);
+      c.ellipse(0, 0, 100 - i * 11 + (open ? Math.sin(t * 4 + i) * 3 : 0), 40 + i * 6, 0, 0, TAU);
       c.stroke();
     }
     if (open) {
@@ -766,7 +828,7 @@ export class Engine {
       for (let k = 0; k < 3; k++) {
         const a = t * 3 + (k * TAU) / 3;
         c.beginPath();
-        c.ellipse(0, 0, 22, 58, 0, a, a + 1.1);
+        c.ellipse(0, 0, 70, 24, 0, a, a + 1.1);
         c.stroke();
       }
     } else {
@@ -775,6 +837,39 @@ export class Engine {
       c.fillText('🔒', 0, 12);
     }
     c.restore();
+  }
+
+  private drawAsteroids() {
+    const c = this.ctx;
+    for (const a of this.asteroids) {
+      if (a.y < this.camY - 80 || a.y > this.camY + H + 80) continue;
+      c.save();
+      c.translate(a.x, a.y);
+      c.rotate(a.rot);
+      c.beginPath();
+      a.shape.forEach((k, i) => {
+        const ang = (i / a.shape.length) * TAU;
+        const px = Math.cos(ang) * a.r * k;
+        const py = Math.sin(ang) * a.r * k;
+        if (i === 0) c.moveTo(px, py);
+        else c.lineTo(px, py);
+      });
+      c.closePath();
+      c.fillStyle = '#7b7488';
+      c.strokeStyle = '#0b1030';
+      c.lineWidth = 4;
+      c.lineJoin = 'round';
+      c.fill();
+      c.stroke();
+      // cratères
+      c.fillStyle = 'rgba(0,0,0,0.22)';
+      for (const [cx, cy, cr] of [[-0.3, -0.2, 0.28], [0.35, 0.25, 0.2], [0.05, 0.45, 0.14]]) {
+        c.beginPath();
+        c.arc(cx * a.r, cy * a.r, cr * a.r, 0, TAU);
+        c.fill();
+      }
+      c.restore();
+    }
   }
 
   private drawEnemy(e: Enemy) {

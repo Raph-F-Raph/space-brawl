@@ -70,7 +70,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
       onHud: (h) => {
         if (hpFill.current) hpFill.current.style.width = `${(h.hp / h.maxHp) * 100}%`;
         if (hpText.current) hpText.current.textContent = `${h.hp}`;
-        if (waveText.current) waveText.current.textContent = h.boss ? 'Bats le boss !' : h.portalOpen ? 'Portail ouvert ➜' : `Portail ${h.progress} %`;
+        if (waveText.current) waveText.current.textContent = h.boss ? 'Bats le boss !' : h.portalOpen ? 'Portail ouvert ⬆' : `Portail ${h.progress} %`;
         if (coinText.current) coinText.current.textContent = `${h.coins}`;
         if (bossBar.current) bossBar.current.style.display = h.boss ? 'block' : 'none';
         if (bossFill.current && h.boss) bossFill.current.style.width = `${(h.boss.hp / h.boss.max) * 100}%`;

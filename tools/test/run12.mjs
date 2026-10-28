@@ -16,20 +16,20 @@ await p.waitForSelector('canvas');
 const hud = () => p.evaluate(() => document.querySelector('.hud-wave')?.textContent);
 console.log('HUD départ:', await hud());
 await p.screenshot({ path: `${SP}/test/r12-${tag}-0.png` });
-await p.keyboard.down('Space'); await p.keyboard.down('ArrowRight');
+await p.keyboard.down('Space'); await p.keyboard.down('ArrowUp');
 let ended = false, t = 0, shots = 0;
-const dodge = ['ArrowUp', 'ArrowDown'];
+const dodge = ['ArrowLeft', 'ArrowRight'];
 while (!ended && t < 140) {
   await p.evaluate(() => { if (window.__engine && window.__heal) window.__engine.player.hp = 9999; });
   const open = /ouvert/.test((await hud()) ?? '');
   const k = dodge[Math.floor(t / 1.2) % 2];
-  if (open) await p.evaluate(() => { window.__engine.player.y = 270; });
+  if (open) await p.evaluate(() => { window.__engine.player.x = 480; });
   if (!open) await p.keyboard.down(k);
   await p.waitForTimeout(600); if (!open) await p.keyboard.up(k); t += 0.6;
   ended = await p.evaluate(() => /VICTOIRE|DÉFAITE/.test(document.body.innerText));
   if (Math.floor(t) % 15 === 0 && shots < 6 && !ended) { shots++; await p.screenshot({ path: `${SP}/test/r12-${tag}-${shots}.png` }); console.log(`t=${t.toFixed(0)}s HUD:`, await hud()); }
 }
-await p.keyboard.up('Space'); await p.keyboard.up('ArrowRight');
+await p.keyboard.up('Space'); await p.keyboard.up('ArrowUp');
 await p.waitForTimeout(500);
 console.log('Fini après ~', t.toFixed(0), 's :', (await p.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, 120));
 console.log('Appels:', JSON.stringify(await p.evaluate(() => window.__fake.calls)));
