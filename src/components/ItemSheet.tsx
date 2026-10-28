@@ -97,6 +97,12 @@ export function ItemSheet({
             <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={230} />
           )}
         </div>
+        {isChars && shownSkin && (
+          <div className="skin-ship">
+            <ShipArt color={shownSkin.color} accent={shownSkin.accent} variant={g.ship?.sort_order ?? 1} size={120} />
+            <small>Soucoupe assortie incluse</small>
+          </div>
+        )}
         <h2 className="card-name">{item.name}</h2>
         <div className="card-tags">
           <span className="rarity">{RARITY_LABEL[item.rarity]}</span>
@@ -151,7 +157,7 @@ export function ItemSheet({
         </div>
         {isChars && owned && charSkins.length > 0 && (
           <div className="skins">
-            <h3 className="skins-title">🎨 Skins</h3>
+            <h3 className="skins-title">🎨 Skins + soucoupe assortie</h3>
             <div className="skin-row">
               <button
                 className={`skin-chip ${previewSkin === null ? 'on' : ''}`}

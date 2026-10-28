@@ -296,10 +296,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const c = characters.find((x) => x.id === profile?.selected_character);
     return c ? withSkin(c) : null;
   }, [characters, profile, withSkin]);
-  const ship = useMemo(
-    () => ships.find((s) => s.id === profile?.selected_ship) ?? null,
-    [ships, profile]
-  );
+  // La soucoupe prend les couleurs du skin équipé sur le personnage choisi (pack skin + soucoupe)
+  const ship = useMemo(() => {
+    const s = ships.find((x) => x.id === profile?.selected_ship);
+    if (!s) return null;
+    const sk = skins.find((x) => x.id === equippedSkin[profile?.selected_character ?? '']);
+    return sk ? { ...s, color: sk.color, accent: sk.accent } : s;
+  }, [ships, profile, skins, equippedSkin]);
 
   const value: GameState = {
     loading,
