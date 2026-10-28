@@ -1,5 +1,5 @@
 import type { AttackKind, Character, Ship } from '../types';
-import { getChapter, type EnemyKind, type LevelDef } from './levels';
+import { getChapter, type ChapterTheme, type EnemyKind, type LevelDef, type WaveEntry } from './levels';
 import { vibrate } from '../lib/settings';
 import { levelMult } from './progress';
 
@@ -42,8 +42,8 @@ export function makeStats(c: Character, s: Ship, charLevel = 1, shipLevel = 1): 
 export interface Hud {
   hp: number;
   maxHp: number;
-  wave: number;
-  waves: number;
+  progress: number; // 0 à 100 : avancée vers le portail
+  portalOpen: boolean;
   coins: number;
   boss: { hp: number; max: number } | null;
 }
@@ -120,6 +120,7 @@ export class Engine {
   joy = { x: 0, y: 0 };
   keys = new Set<string>();
   fireBtn = false;
+  aim: { x: number; y: number } | null = null; // visée manuelle (glisser sur le bouton de tir), sinon visée auto
 
   private ctx: CanvasRenderingContext2D;
   private cw = W;
@@ -138,13 +139,20 @@ export class Engine {
   private pops: Pop[] = [];
   private stars: { x: number; y: number; r: number; p: number }[] = [];
 
-  private waveIndex = 0;
   private queue: EnemyKind[] = [];
   private spawnT = 0;
-  private waveGap = 1.2;
   private coins = 0;
   private theme: ChapterTheme;
   private fireCd = 0;
+
+  // --- parcours : le terrain est plus large que l'écran, on avance vers un portail ---
+  private worldW = W * 3;
+  private camX = 0;
+  private portalX = 0;
+  private portalOpen = false;
+  private arenaLocked = false; // le boss est là : on ne peut plus reculer
+  private encounters: { x: number; kinds: EnemyKind[] }[] = [];
+  private nextEnc = 0;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -157,14 +165,16 @@ export class Engine {
     this.ctx = ctx;
     this.theme = getChapter(level.chapter).theme;
     this.player.hp = stats.maxHp;
-    for (let i = 0; i < 70; i++) {
-      this.stars.push({ x: Math.random() * W, y: Math.random() * H, r: 0.6 + Math.random() * 1.6, p: Math.random() * TAU });
+    this.player.x = 90;
+    this.portalX = this.worldW - 90;
+    this.encounters = this.buildEncounters();
+    for (let i = 0; i < 200; i++) {
+      this.stars.push({ x: Math.random() * this.worldW, y: Math.random() * H, r: 0.6 + Math.random() * 1.6, p: Math.random() * TAU });
     }
   }
 
   start() {
     this.running = true;
-    this.beginWave(0);
     this.last = performance.now();
     this.raf = requestAnimationFrame(this.loop);
   }
@@ -205,8 +215,8 @@ export class Engine {
     return {
       hp: Math.max(0, Math.ceil(this.player.hp)),
       maxHp: this.stats.maxHp,
-      wave: Math.min(this.waveIndex + 1, this.level.waves.length),
-      waves: this.level.waves.length,
+      progress: Math.round(clamp(this.player.x / this.portalX, 0, 1) * 100),
+      portalOpen: this.portalOpen,
       coins: this.coins,
       boss: boss ? { hp: Math.max(0, boss.hp), max: boss.maxHp } : null,
     };
@@ -215,18 +225,35 @@ export class Engine {
   // ------------------------------------------------------------------
   // Vagues et apparition des monstres
   // ------------------------------------------------------------------
-  private beginWave(i: number) {
-    this.waveIndex = i;
-    const list: EnemyKind[] = [];
-    for (const g of this.level.waves[i]) for (let k = 0; k < g.count; k++) list.push(g.kind);
-    // mélange (le boss arrive toujours en premier)
-    for (let a = list.length - 1; a > 0; a--) {
-      const b = Math.floor(Math.random() * (a + 1));
-      [list[a], list[b]] = [list[b], list[a]];
+  // Les anciennes « vagues » deviennent des rencontres réparties le long du chemin :
+  // elles se déclenchent quand on arrive à leur position. Le boss attend dans l'arène, au bout.
+  private buildEncounters(): { x: number; kinds: EnemyKind[] }[] {
+    const L = this.worldW;
+    const shuffle = <T,>(arr: T[]) => {
+      for (let a = arr.length - 1; a > 0; a--) {
+        const b = Math.floor(Math.random() * (a + 1));
+        [arr[a], arr[b]] = [arr[b], arr[a]];
+      }
+      return arr;
+    };
+    const expand = (w: WaveEntry[]) => {
+      const out: EnemyKind[] = [];
+      for (const g of w) for (let k = 0; k < g.count; k++) out.push(g.kind);
+      return shuffle(out);
+    };
+    const waves = this.level.waves;
+    const enc: { x: number; kinds: EnemyKind[] }[] = [];
+    if (this.level.isBoss) {
+      const pool = shuffle([...waves.slice(0, -1).flatMap(expand), ...waves.slice(0, -1).flatMap(expand)]);
+      const parts = 3;
+      const per = Math.ceil(pool.length / parts);
+      for (let i = 0; i < parts; i++) enc.push({ x: i === 0 ? 0 : (i / parts) * (L - W * 1.4), kinds: pool.slice(i * per, (i + 1) * per) });
+      enc.push({ x: L - W * 0.5, kinds: expand(waves[waves.length - 1]) }); // le boss
+    } else {
+      const n = waves.length;
+      waves.forEach((w, i) => enc.push({ x: n === 1 ? 0 : (i / n) * (L - W * 1.3), kinds: expand(w) }));
     }
-    list.sort((a, b) => (a === 'boss' ? 1 : 0) - (b === 'boss' ? 1 : 0)); // boss à la fin = sorti en premier (pop)
-    this.queue = list;
-    this.spawnT = 0.8;
+    return enc.filter((e) => e.kinds.length > 0);
   }
 
   private spawn(kind: EnemyKind, at?: { x: number; y: number }) {
@@ -237,14 +264,19 @@ export class Engine {
       x = at.x;
       y = at.y;
     } else if (kind === 'boss') {
-      x = W / 2;
+      x = this.worldW - W / 2;
       y = d.r + 20;
     } else {
-      const side = Math.floor(Math.random() * 4);
-      if (side === 0) [x, y] = [-20, Math.random() * H];
-      else if (side === 1) [x, y] = [W + 20, Math.random() * H];
-      else if (side === 2) [x, y] = [Math.random() * W, -20];
-      else [x, y] = [Math.random() * W, H + 20];
+      // les monstres arrivent surtout de devant (la droite), parfois de haut ou de bas
+      const cx = this.camX;
+      const atEnd = cx >= this.worldW - W - 1;
+      let side = Math.random() < 0.5 ? 1 : Math.floor(Math.random() * 4);
+      if (side === 1 && atEnd) side = Math.random() < 0.5 ? 2 : 3;
+      if (side === 0 && cx <= 1) side = 2;
+      if (side === 0) [x, y] = [cx - 20, Math.random() * H];
+      else if (side === 1) [x, y] = [cx + W + 20, Math.random() * H];
+      else if (side === 2) [x, y] = [cx + Math.random() * W, -20];
+      else [x, y] = [cx + Math.random() * W, H + 20];
     }
     this.enemies.push({
       kind,
@@ -274,6 +306,7 @@ export class Engine {
     p.invuln = Math.max(0, p.invuln - dt);
 
     this.movePlayer(dt);
+    this.camX = this.arenaLocked ? this.worldW - W : clamp(p.x - W / 2, 0, this.worldW - W);
     this.tryFire(dt);
     this.updateSpawning(dt);
     this.updateEnemies(dt);
@@ -314,9 +347,11 @@ export class Engine {
       mx /= jm;
       my /= jm;
     }
-    p.x = clamp(p.x + mx * this.stats.speed * dt, PLAYER_R, W - PLAYER_R);
+    const minX = this.arenaLocked ? this.worldW - W + PLAYER_R : PLAYER_R;
+    const maxX = this.portalOpen ? this.worldW - PLAYER_R : this.portalX - 70; // portail fermé = on ne passe pas
+    p.x = clamp(p.x + mx * this.stats.speed * dt, minX, maxX);
     p.y = clamp(p.y + my * this.stats.speed * dt, PLAYER_R, H - PLAYER_R);
-    if ((mx !== 0 || my !== 0) && !this.nearest(620)) p.facing = Math.atan2(my, mx);
+    if ((mx !== 0 || my !== 0) && !this.nearest(620) && !this.aim) p.facing = Math.atan2(my, mx);
   }
 
   private nearest(range: number): Enemy | null {
@@ -353,7 +388,8 @@ export class Engine {
     this.fireCd = Math.max(0, this.fireCd - dt);
     const p = this.player;
     const target = this.nearest(620);
-    if (target) p.facing = Math.atan2(target.y - p.y, target.x - p.x);
+    if (this.aim) p.facing = Math.atan2(this.aim.y, this.aim.x); // visée manuelle
+    else if (target) p.facing = Math.atan2(target.y - p.y, target.x - p.x);
     const firing = this.fireBtn || this.keys.has(' ');
     if (!firing || this.fireCd > 0) return;
 
@@ -391,27 +427,36 @@ export class Engine {
   }
 
   private updateSpawning(dt: number) {
+    const p = this.player;
+    // une nouvelle rencontre se déclenche quand on arrive à sa position
+    if (this.nextEnc < this.encounters.length && this.queue.length === 0 && p.x >= this.encounters[this.nextEnc].x) {
+      const enc = this.encounters[this.nextEnc];
+      this.nextEnc++;
+      this.queue = [...enc.kinds];
+      if (enc.kinds.includes('boss')) {
+        this.arenaLocked = true;
+        this.queue.sort((a, b) => (a === 'boss' ? 1 : 0) - (b === 'boss' ? 1 : 0)); // le boss sort en premier
+      }
+      this.spawnT = 0.4;
+    }
     if (this.queue.length > 0) {
       this.spawnT -= dt;
       if (this.spawnT <= 0) {
         const kind = this.queue.pop() as EnemyKind;
         this.spawn(kind);
-        this.spawnT = kind === 'boss' ? 0.2 : 0.55;
+        this.spawnT = kind === 'boss' ? 0.2 : 0.5;
       }
-      this.waveGap = 1.2;
       return;
     }
-    if (this.enemies.some((e) => e.hp > 0)) {
-      this.waveGap = 1.2;
-      return;
+    // tout est passé et nettoyé : le portail s'ouvre
+    const cleared = this.nextEnc >= this.encounters.length && !this.enemies.some((e) => e.hp > 0);
+    if (cleared && !this.portalOpen) {
+      this.portalOpen = true;
+      this.rings.push({ x: this.portalX, y: H / 2, max: 150, life: 0.8, maxLife: 0.8 });
+      this.pops.push({ x: p.x, y: p.y - 44, text: 'Portail ouvert !', life: 1.8 });
+      vibrate(80);
     }
-    // Vague terminée : petite pause puis vague suivante (ou victoire)
-    this.waveGap -= dt;
-    if (this.waveGap <= 0) {
-      this.waveGap = 1.2;
-      if (this.waveIndex + 1 >= this.level.waves.length) this.finish(true);
-      else this.beginWave(this.waveIndex + 1);
-    }
+    if (this.portalOpen && Math.abs(p.x - this.portalX) < 46 && Math.abs(p.y - H / 2) < 90) this.finish(true); // le portail est haut et étroit
   }
 
   private hurtPlayer(base: number) {
@@ -521,7 +566,7 @@ export class Engine {
       e.summonT = 9;
     }
 
-    e.x = clamp(e.x, e.r, W - e.r);
+    e.x = clamp(e.x, this.worldW - W + e.r, this.worldW - e.r);
     e.y = clamp(e.y, e.r, H - e.r);
   }
 
@@ -531,7 +576,7 @@ export class Engine {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.life -= dt;
-      if (b.x < -40 || b.x > W + 40 || b.y < -40 || b.y > H + 40) b.life = 0;
+      if (b.x < this.camX - 40 || b.x > this.camX + W + 40 || b.y < -40 || b.y > H + 40) b.life = 0;
       if (b.life <= 0) continue;
 
       if (b.friendly) {
@@ -602,20 +647,25 @@ export class Engine {
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
 
+    // tout ce qui suit est dessiné dans le terrain (décalé par la caméra)
+    c.save();
+    c.translate(-this.camX, 0);
+
     c.strokeStyle = 'rgba(255,255,255,0.05)';
     c.lineWidth = 1;
     c.beginPath();
-    for (let x = 0; x <= W; x += 60) {
+    for (let x = Math.floor(this.camX / 60) * 60; x <= this.camX + W; x += 60) {
       c.moveTo(x, 0);
       c.lineTo(x, H);
     }
     for (let y = 0; y <= H; y += 60) {
-      c.moveTo(0, y);
-      c.lineTo(W, y);
+      c.moveTo(this.camX, y);
+      c.lineTo(this.camX + W, y);
     }
     c.stroke();
 
     for (const s of this.stars) {
+      if (s.x < this.camX - 4 || s.x > this.camX + W + 4) continue;
       c.globalAlpha = 0.45 + 0.4 * Math.sin(this.time * 2 + s.p);
       c.fillStyle = '#fff';
       c.beginPath();
@@ -634,6 +684,7 @@ export class Engine {
       c.stroke();
     }
 
+    this.drawPortal();
     for (const e of this.enemies) this.drawEnemy(e);
 
     for (const b of this.bullets) {
@@ -659,6 +710,21 @@ export class Engine {
       c.fillText(o.text, o.x, o.y);
     }
     c.globalAlpha = 1;
+    c.restore(); // fin du décalage caméra
+
+    // Flèche « avance » quand il n'y a plus de monstres devant soi
+    const idle = this.queue.length === 0 && !this.enemies.some((e) => e.hp > 0);
+    if (idle && !this.arenaLocked && this.player.x < this.portalX - 200) {
+      c.globalAlpha = 0.55 + 0.4 * Math.sin(this.time * 6);
+      c.font = "bold 56px 'Lilita One', 'Arial Black', sans-serif";
+      c.textAlign = 'center';
+      c.lineWidth = 6;
+      c.strokeStyle = '#0b1030';
+      c.strokeText('➜', W - 50 + Math.sin(this.time * 6) * 6, H / 2 + 18);
+      c.fillStyle = '#ffd23f';
+      c.fillText('➜', W - 50 + Math.sin(this.time * 6) * 6, H / 2 + 18);
+      c.globalAlpha = 1;
+    }
 
     c.restore();
 
@@ -666,6 +732,49 @@ export class Engine {
     c.strokeStyle = 'rgba(125,249,255,0.5)';
     c.lineWidth = 3;
     c.strokeRect(0, 0, W, H);
+  }
+
+  private drawPortal() {
+    const c = this.ctx;
+    const x = this.portalX;
+    const y = H / 2;
+    const t = this.time;
+    const open = this.portalOpen;
+    if (x < this.camX - 160 || x > this.camX + W + 160) return;
+    c.save();
+    c.translate(x, y);
+    const g = c.createRadialGradient(0, 0, 10, 0, 0, 120);
+    g.addColorStop(0, open ? 'rgba(125,249,255,0.6)' : 'rgba(120,120,170,0.25)');
+    g.addColorStop(1, 'rgba(125,249,255,0)');
+    c.fillStyle = g;
+    c.beginPath();
+    c.ellipse(0, 0, 120, 160, 0, 0, TAU);
+    c.fill();
+    c.globalAlpha = open ? 1 : 0.55;
+    const cols = open ? ['#7df9ff', '#b57bff', '#ffffff'] : ['#6b6f9a', '#55597f', '#7a7ea8'];
+    for (let i = 0; i < 3; i++) {
+      c.strokeStyle = cols[i];
+      c.lineWidth = 8 - i * 2;
+      c.beginPath();
+      c.ellipse(0, 0, 36 + i * 6 + (open ? Math.sin(t * 4 + i) * 3 : 0), 82 - i * 9, 0, 0, TAU);
+      c.stroke();
+    }
+    if (open) {
+      c.strokeStyle = 'rgba(255,255,255,0.85)';
+      c.lineWidth = 3;
+      c.lineCap = 'round';
+      for (let k = 0; k < 3; k++) {
+        const a = t * 3 + (k * TAU) / 3;
+        c.beginPath();
+        c.ellipse(0, 0, 22, 58, 0, a, a + 1.1);
+        c.stroke();
+      }
+    } else {
+      c.font = '36px sans-serif';
+      c.textAlign = 'center';
+      c.fillText('🔒', 0, 12);
+    }
+    c.restore();
   }
 
   private drawEnemy(e: Enemy) {
@@ -770,7 +879,7 @@ export class Engine {
     const s = this.stats;
 
     // Ligne de visée
-    const hasTarget = this.nearest(620) !== null;
+    const hasTarget = this.nearest(620) !== null || this.aim !== null;
     if (hasTarget) {
       c.save();
       c.strokeStyle = 'rgba(125,249,255,0.35)';

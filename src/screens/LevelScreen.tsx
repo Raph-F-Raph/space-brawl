@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { useGame } from '../lib/GameContext';
 import { Engine, makeStats } from '../game/engine';
-import { CHAPTERS, getLevel } from '../game/levels';
+import { CHAPTERS, getChapter, getLevel } from '../game/levels';
 
 const JOY_RADIUS = 60;
+const FIRE_RADIUS = 55;
 
 interface Props {
   chapter: number;
@@ -32,6 +33,10 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
   const joyBase = useRef<HTMLDivElement>(null);
   const joyKnob = useRef<HTMLDivElement>(null);
 
+  const fireBase = useRef<HTMLDivElement>(null);
+  const fireKnob = useRef<HTMLDivElement>(null);
+  const firePointer = useRef<number | null>(null);
+  const fireOrigin = useRef({ x: 0, y: 0 });
   const joyPointer = useRef<number | null>(null);
   const joyOrigin = useRef({ x: 0, y: 0 });
 
@@ -65,7 +70,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
       onHud: (h) => {
         if (hpFill.current) hpFill.current.style.width = `${(h.hp / h.maxHp) * 100}%`;
         if (hpText.current) hpText.current.textContent = `${h.hp}`;
-        if (waveText.current) waveText.current.textContent = `Vague ${h.wave}/${h.waves}`;
+        if (waveText.current) waveText.current.textContent = h.boss ? 'Bats le boss !' : h.portalOpen ? 'Portail ouvert ➜' : `Portail ${h.progress} %`;
         if (coinText.current) coinText.current.textContent = `${h.coins}`;
         if (bossBar.current) bossBar.current.style.display = h.boss ? 'block' : 'none';
         if (bossFill.current && h.boss) bossFill.current.style.width = `${(h.boss.hp / h.boss.max) * 100}%`;
@@ -74,6 +79,8 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
     });
     engine.paused = pausedRef.current;
     engineRef.current = engine;
+    // pour les tests automatiques uniquement : ajouter ?debug à l'adresse
+    if (new URLSearchParams(location.search).has('debug')) (window as unknown as { __engine?: Engine }).__engine = engine;
 
     const fit = () => {
       const rect = wrap.getBoundingClientRect();
@@ -168,14 +175,45 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
     if (joyBase.current) joyBase.current.style.display = 'none';
   }
 
-  // --- Bouton d'attaque ---
-  function fireDown(e: RPointerEvent<HTMLButtonElement>) {
+  // --- Bouton d'attaque flottant : il apparaît sous le pouce, comme le joystick ---
+  // Tenir = tirer (visée automatique). Glisser = viser à la main dans la direction du glissement.
+  function fireDown(e: RPointerEvent<HTMLDivElement>) {
+    if (firePointer.current !== null) return;
+    firePointer.current = e.pointerId;
     e.currentTarget.setPointerCapture(e.pointerId);
-    if (engineRef.current) engineRef.current.fireBtn = true;
+    const rect = e.currentTarget.getBoundingClientRect();
+    fireOrigin.current = { x: e.clientX, y: e.clientY };
+    if (fireBase.current) {
+      fireBase.current.style.display = 'block';
+      fireBase.current.style.left = `${e.clientX - rect.left}px`;
+      fireBase.current.style.top = `${e.clientY - rect.top}px`;
+    }
+    if (fireKnob.current) fireKnob.current.style.transform = 'translate(-50%, -50%)';
+    if (engineRef.current) {
+      engineRef.current.fireBtn = true;
+      engineRef.current.aim = null;
+    }
     setFiring(true);
   }
-  function fireUp() {
-    if (engineRef.current) engineRef.current.fireBtn = false;
+  function fireMove(e: RPointerEvent<HTMLDivElement>) {
+    if (e.pointerId !== firePointer.current) return;
+    const dx = e.clientX - fireOrigin.current.x;
+    const dy = e.clientY - fireOrigin.current.y;
+    const m = Math.hypot(dx, dy);
+    const k = m > FIRE_RADIUS ? FIRE_RADIUS / m : 1;
+    if (fireKnob.current) {
+      fireKnob.current.style.transform = `translate(calc(-50% + ${dx * k}px), calc(-50% + ${dy * k}px))`;
+    }
+    if (engineRef.current) engineRef.current.aim = m > 14 ? { x: dx / m, y: dy / m } : null;
+  }
+  function fireUp(e: RPointerEvent<HTMLDivElement>) {
+    if (e.pointerId !== firePointer.current) return;
+    firePointer.current = null;
+    if (engineRef.current) {
+      engineRef.current.fireBtn = false;
+      engineRef.current.aim = null;
+    }
+    if (fireBase.current) fireBase.current.style.display = 'none';
     setFiring(false);
   }
 
@@ -198,7 +236,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         <div className="hud-center">
           <span className="hud-level">{def.isBoss ? 'BOSS' : `Niveau ${level}`}</span>
           <span className="hud-wave" ref={waveText}>
-            Vague 1/1
+            Portail 0 %
           </span>
         </div>
         <div className="hud-right">
@@ -214,7 +252,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         </div>
       </div>
       <div className="boss-bar" ref={bossBar} style={{ display: 'none' }}>
-        <span className="boss-name">👹 Gorgonax</span>
+        <span className="boss-name">👹 {getChapter(chapter).theme.bossName}</span>
         <div className="boss-track">
           <div className="boss-fill" ref={bossFill} />
         </div>
@@ -233,16 +271,22 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
           <div className="joy-knob" ref={joyKnob} />
         </div>
       </div>
-      <button
-        className={`fire-btn ${firing ? 'pressed' : ''}`}
+      <div
+        className="fire-zone"
         onPointerDown={fireDown}
+        onPointerMove={fireMove}
         onPointerUp={fireUp}
         onPointerCancel={fireUp}
         onContextMenu={(e) => e.preventDefault()}
-        aria-label="Attaquer"
+        aria-label="Attaquer : pose le doigt pour tirer, glisse pour viser"
       >
-        💥
-      </button>
+        <div className={`fire-hint ${firing ? 'hidden' : ''}`}>💥</div>
+        <div className="fire-base" ref={fireBase} style={{ display: 'none' }}>
+          <div className="fire-knob" ref={fireKnob}>
+            💥
+          </div>
+        </div>
+      </div>
 
       {/* Pause */}
       {userPaused && !result && (
