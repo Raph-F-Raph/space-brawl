@@ -12,6 +12,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { ClansScreen } from './screens/ClansScreen';
 import { ShopScreen } from './screens/ShopScreen';
 import { CHAPTERS } from './game/levels';
+import { audioStats, setMusic, sfx, unlockAudio } from './lib/audio';
 import type { Screen } from './types';
 
 export default function App() {
@@ -29,6 +30,26 @@ function Shell() {
   const [level, setLevel] = useState(1);
   const [runKey, setRunKey] = useState(0);
   const [soon, setSoon] = useState<string | null>(null);
+
+  // Son : le navigateur n'autorise le son qu'après un premier toucher ; petit clic sur chaque bouton
+  useEffect(() => {
+    const onDown = (e: Event) => {
+      unlockAudio();
+      const b = (e.target as HTMLElement | null)?.closest?.('button');
+      if (b && !(b as HTMLButtonElement).disabled) sfx('click');
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    document.addEventListener('touchend', unlockAudio, true);
+    if (new URLSearchParams(location.search).has('debug')) (window as unknown as { __audio?: unknown }).__audio = audioStats;
+    return () => {
+      document.removeEventListener('pointerdown', onDown, true);
+      document.removeEventListener('touchend', unlockAudio, true);
+    };
+  }, []);
+  // La musique change selon l'écran : calme dans les menus, rythmée en niveau
+  useEffect(() => {
+    setMusic(g.session ? (screen === 'level' ? 'level' : 'menu') : null);
+  }, [screen, g.session]);
 
   // Après une déconnexion, on repart toujours de l'écran d'accueil
   useEffect(() => {

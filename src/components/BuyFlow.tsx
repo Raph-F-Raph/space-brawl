@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../lib/GameContext';
 import { ConfirmModal } from './Ui';
+import { sfx } from '../lib/audio';
 import type { Kind } from './ItemCard';
 import type { Character, Ship } from '../types';
 
@@ -34,6 +35,7 @@ export function useBuyFlow() {
       setError(err);
       return;
     }
+    sfx('buy');
     setToast(`${target.item.name} débloqué !`);
     setTarget(null);
   }

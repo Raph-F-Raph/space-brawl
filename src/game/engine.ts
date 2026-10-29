@@ -1,6 +1,7 @@
 import type { AttackKind, Character, Ship } from '../types';
 import { getChapter, type ChapterTheme, type EnemyKind, type LevelDef, type WaveEntry } from './levels';
 import { vibrate } from '../lib/settings';
+import { sfx } from '../lib/audio';
 import { levelMult } from './progress';
 
 // Taille du terrain (le jeu s'adapte ensuite à l'écran, avec des bandes noires si besoin)
@@ -446,19 +447,23 @@ export class Engine {
     switch (s.attackKind) {
       case 'laser':
         this.shoot(p.facing, 520, s.damage, 7, false);
+        sfx('laser');
         this.fireCd = 0.32;
         break;
       case 'burst':
         for (const off of [-0.14, 0, 0.14]) this.shoot(p.facing + off, 560, s.damage * 0.62, 6, false);
+        sfx('burst');
         this.fireCd = 0.5;
         break;
       case 'pierce':
         this.shoot(p.facing, 640, s.damage * 0.9, 9, true);
+        sfx('pierce');
         this.fireCd = 0.5;
         break;
       case 'shockwave': {
         const range = 125;
         this.rings.push({ x: p.x, y: p.y, max: range, life: 0.35, maxLife: 0.35 });
+        sfx('shockwave');
         for (const e of this.enemies) {
           const d = Math.hypot(e.x - p.x, e.y - p.y);
           if (d < range + e.r) {
@@ -484,6 +489,7 @@ export class Engine {
       this.queue = [...enc.kinds];
       if (enc.kinds.includes('boss')) {
         this.arenaLocked = true;
+        sfx('boss');
         this.queue.sort((a, b) => (a === 'boss' ? 1 : 0) - (b === 'boss' ? 1 : 0)); // le boss sort en premier
       }
       this.spawnT = 0.4;
@@ -503,6 +509,7 @@ export class Engine {
       this.portalOpen = true;
       this.rings.push({ x: W / 2, y: this.portalY, max: 150, life: 0.8, maxLife: 0.8 });
       this.pops.push({ x: p.x, y: p.y - 44, text: 'Portail ouvert !', life: 1.8 });
+      sfx('portal');
       vibrate(80);
     }
     if (this.portalOpen && Math.abs(p.x - W / 2) < 90 && Math.abs(p.y - this.portalY) < 46) this.finish(true); // le portail est large et plat
@@ -514,12 +521,14 @@ export class Engine {
     const dmg = Math.max(1, Math.round(base - this.stats.reduction));
     p.hp -= dmg;
     p.invuln = 0.7;
+    sfx('hurt');
     vibrate(40);
   }
 
   private damageEnemy(e: Enemy, dmg: number) {
     e.hp -= dmg;
     e.flash = 0.08;
+    sfx('hit');
   }
 
   private updateEnemies(dt: number) {
@@ -607,6 +616,7 @@ export class Engine {
         });
       }
       e.shootT = phase2 ? 1.6 : 2.4;
+      sfx('bossShot');
     }
 
     e.summonT -= dt;
@@ -659,6 +669,8 @@ export class Engine {
       }
       const c = ENEMY[e.kind].coins;
       this.coins += c;
+      sfx('kill');
+      sfx('coin');
       this.pops.push({ x: e.x, y: e.y, text: `+${c}`, life: 0.8 });
     }
     this.enemies = alive;
@@ -667,6 +679,7 @@ export class Engine {
   private finish(won: boolean) {
     if (this.ended) return;
     this.ended = true;
+    sfx(won ? 'win' : 'lose');
     if (won) this.coins += this.level.bonus;
     this.cb.onEnd({ won, coins: this.coins });
   }

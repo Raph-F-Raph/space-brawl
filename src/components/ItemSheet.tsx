@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { ConfirmModal } from './Ui';
+import { sfx } from '../lib/audio';
 import { useGame } from '../lib/GameContext';
 import { CharacterArt, ShipArt } from './Art';
 import { StatBar } from './Ui';
@@ -66,6 +67,7 @@ export function ItemSheet({
     const err2 = await g.equipSkin(id, shownSkin.id);
     setBusy(false);
     setSkinBuy(false);
+    if (!err2) sfx('buy');
     onToast(err2 ?? `${shownSkin.name} débloqué et équipé !`);
   }
 
@@ -73,6 +75,7 @@ export function ItemSheet({
     setBusy(true);
     const err = isChars ? await g.upgradeCharacter(id) : await g.upgradeShip(id);
     setBusy(false);
+    if (!err) sfx('buy');
     onToast(err ?? `${item!.name} passe au niveau ${level + 1} !`);
   }
 

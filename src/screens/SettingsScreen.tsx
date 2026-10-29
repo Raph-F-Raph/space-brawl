@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { useGame } from '../lib/GameContext';
 import { TopBar } from '../components/Ui';
 import { loadSettings, saveSettings } from '../lib/settings';
+import { applyAudioSettings, sfx } from '../lib/audio';
 import { canPromptInstall, isIos, isStandalone, onInstallChange, promptInstall } from '../lib/install';
 
 export function SettingsScreen({ onBack }: { onBack: () => void }) {
   const { profile, session, signOut } = useGame();
   const [vibration, setVibration] = useState(loadSettings().vibration);
+  const [sound, setSound] = useState(loadSettings().sound);
+  const [music, setMusicOn] = useState(loadSettings().music);
   const [canInstall, setCanInstall] = useState(canPromptInstall());
   useEffect(() => onInstallChange(() => setCanInstall(canPromptInstall())), []);
   const installed = isStandalone();
@@ -14,7 +17,20 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
   function toggleVibration() {
     const next = !vibration;
     setVibration(next);
-    saveSettings({ vibration: next });
+    saveSettings({ ...loadSettings(), vibration: next });
+  }
+
+  function toggleSound() {
+    const next = !sound;
+    setSound(next);
+    saveSettings({ ...loadSettings(), sound: next });
+    if (next) sfx('buy'); // petit son pour montrer que ça marche
+  }
+  function toggleMusic() {
+    const next = !music;
+    setMusicOn(next);
+    saveSettings({ ...loadSettings(), music: next });
+    applyAudioSettings();
   }
 
   return (
@@ -63,6 +79,18 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
 
         <div className="panel">
           <h2 className="panel-title">Jeu</h2>
+          <div className="row">
+            <span>Bruitages</span>
+            <button className={`toggle ${sound ? 'on' : ''}`} role="switch" aria-checked={sound} onClick={toggleSound}>
+              <span className="toggle-knob" />
+            </button>
+          </div>
+          <div className="row">
+            <span>Musique</span>
+            <button className={`toggle ${music ? 'on' : ''}`} role="switch" aria-checked={music} onClick={toggleMusic}>
+              <span className="toggle-knob" />
+            </button>
+          </div>
           <div className="row">
             <span>Vibrations</span>
             <button

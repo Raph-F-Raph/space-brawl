@@ -3,6 +3,7 @@ import { useGame } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
 import { CharacterArt, ShipArt } from '../components/Art';
 import { ItemSheet } from '../components/ItemSheet';
+import { sfx } from '../lib/audio';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
@@ -29,6 +30,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
     setPackBusy(id);
     const err = await g.buyBundle(id);
     setPackBusy(null);
+    if (!err) sfx('buy');
     buy.showToast(err ?? `${name} débloqué !`);
   }
 
@@ -36,6 +38,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
     setBusy(true);
     const err = await g.claimDailyGift();
     setBusy(false);
+    if (!err) sfx('coin');
     buy.showToast(err ?? `Cadeau reçu : +${GEMS_DAILY} 💎 et +${COINS_DAILY} 🪙`);
   }
 
