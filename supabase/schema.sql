@@ -783,3 +783,17 @@ begin
 end; $$;
 revoke all on function public.buy_bundle(uuid) from public, anon;
 grant execute on function public.buy_bundle(uuid) to authenticated;
+
+-- Contenu : Lynx (attaque en éventail), soucoupe Lunaire, skins et pack duo
+alter table public.characters drop constraint if exists characters_attack_kind_check;
+alter table public.characters add constraint characters_attack_kind_check check (attack_kind in ('laser','burst','pierce','shockwave','spread'));
+insert into public.characters (name, rarity, hp, strength, resistance, attack_type, attack_kind, color, accent, price, sort_order)
+values ('Lynx','legendary',95,11,5,'Griffes en éventail','spread','#2ec4b6','#fff3b0',80,6);
+insert into public.ships (name, rarity, hp, strength, resistance, speed, color, accent, price, sort_order)
+values ('Lunaire','legendary',105,8,7,8,'#e0e7ff','#7b2cbf',80,6);
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select id,'Safari',60,'#f4a261','#2a9d8f','headband',1 from public.characters where name='Lynx';
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select id,'Minuit',80,'#22223b','#c77dff','halo',2 from public.characters where name='Lynx';
+insert into public.bundles (name, character_id, ship_id, price, sort_order)
+select 'Duo Lynx', c.id, s.id, 128, 6 from public.characters c, public.ships s where c.name='Lynx' and s.name='Lunaire';

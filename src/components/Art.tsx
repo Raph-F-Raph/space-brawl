@@ -59,6 +59,14 @@ export function CharacterArt({
           <polygon points="72,30 80,6 58,22" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         </>
       )}
+      {variant === 6 && (
+        <>
+          <polygon points="22,44 20,8 46,24" fill={color} stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+          <polygon points="27,34 26,17 39,26" fill={accent} />
+          <polygon points="78,44 80,8 54,24" fill={color} stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+          <polygon points="73,34 74,17 61,26" fill={accent} />
+        </>
+      )}
       {variant === 5 && (
         <>
           {/* petites antennes du casque */}
@@ -128,6 +136,14 @@ export function CharacterArt({
               strokeWidth="2.5"
               strokeLinejoin="round"
             />
+          )}
+          {variant === 6 && (
+            <>
+              <ellipse cx="50" cy="94" rx="6" ry="5" fill={accent} stroke={INK} strokeWidth="2.5" />
+              {[-8, 0, 8].map((dx) => (
+                <circle key={dx} cx={50 + dx} cy="85" r="2.8" fill={accent} stroke={INK} strokeWidth="2" />
+              ))}
+            </>
           )}
           {variant === 4 && (
             <>
@@ -295,6 +311,12 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
       {variant === 5 && (
         <polygon points="14,56 -24,64 14,74" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
       )}
+      {variant === 6 && (
+        <>
+          <path d="M 10 62 Q -22 52 -14 24 Q -4 46 24 52 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M 150 62 Q 182 52 174 24 Q 164 46 136 52 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        </>
+      )}
       {variant === 2 && (
         <>
           <polygon points="12,62 -16,36 22,52" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
@@ -353,6 +375,15 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
         <circle key={x} cx={x} cy={y} r="5" fill={variant === 5 ? '#fff' : accent} stroke={INK} strokeWidth="2.5" />
       ))}
 
+      {variant === 6 && (
+        <polygon
+          points="80,52 83,60 92,60 85,65 88,73 80,68 72,73 75,65 68,60 77,60"
+          fill="#fff"
+          stroke={INK}
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+      )}
       {variant === 3 && (
         <path d="M -8 62 A 88 14 0 0 0 168 62" stroke={accent} strokeWidth="6" fill="none" strokeLinecap="round" />
       )}

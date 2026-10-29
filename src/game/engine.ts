@@ -455,6 +455,11 @@ export class Engine {
         sfx('burst');
         this.fireCd = 0.5;
         break;
+      case 'spread':
+        for (const off of [-0.32, -0.16, 0, 0.16, 0.32]) this.shoot(p.facing + off, 500, s.damage * 0.5, 5, false);
+        sfx('burst');
+        this.fireCd = 0.62;
+        break;
       case 'pierce':
         this.shoot(p.facing, 640, s.damage * 0.9, 9, true);
         sfx('pierce');

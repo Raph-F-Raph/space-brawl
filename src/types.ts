@@ -1,5 +1,5 @@
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
-export type AttackKind = 'laser' | 'burst' | 'pierce' | 'shockwave';
+export type AttackKind = 'laser' | 'burst' | 'pierce' | 'shockwave' | 'spread';
 
 export interface Character {
   id: string;
