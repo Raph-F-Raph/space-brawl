@@ -4,6 +4,7 @@ import { useBuyFlow } from '../components/BuyFlow';
 import { CharacterArt, ShipArt } from '../components/Art';
 import { ItemSheet } from '../components/ItemSheet';
 import { sfx } from '../lib/audio';
+import { byRarity } from '../types';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
@@ -16,8 +17,8 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
   const [open, setOpen] = useState<{ kind: Kind; id: string } | null>(null);
 
   const gems = g.profile?.gems ?? 0;
-  const lockedChars = g.characters.filter((c) => !g.ownedCharacters.has(c.id));
-  const lockedShips = g.ships.filter((s) => !g.ownedShips.has(s.id));
+  const lockedChars = byRarity(g.characters.filter((c) => !g.ownedCharacters.has(c.id)));
+  const lockedShips = byRarity(g.ships.filter((s) => !g.ownedShips.has(s.id)));
 
   // Le cadeau se renouvelle chaque jour à minuit (heure UTC, comme dans la base de données)
   const todayUtc = new Date().toISOString().slice(0, 10);

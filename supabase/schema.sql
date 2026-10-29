@@ -797,3 +797,24 @@ insert into public.skins (character_id, name, price, color, accent, style, sort_
 select id,'Minuit',80,'#22223b','#c77dff','halo',2 from public.characters where name='Lynx';
 insert into public.bundles (name, character_id, ship_id, price, sort_order)
 select 'Duo Lynx', c.id, s.id, 128, 6 from public.characters c, public.ships s where c.name='Lynx' and s.name='Lunaire';
+
+-- Raretés : commun, rare (30), super_rare (60), epic (90), mythic (120), legendary (150) ; soucoupes +20
+alter table public.characters drop constraint characters_rarity_check;
+alter table public.ships drop constraint ships_rarity_check;
+alter table public.characters add constraint characters_rarity_check check (rarity in ('common','rare','super_rare','epic','mythic','legendary'));
+alter table public.ships add constraint ships_rarity_check check (rarity in ('common','rare','super_rare','epic','mythic','legendary'));
+update public.characters set rarity='rare', price=30 where name='Nova';
+update public.characters set rarity='super_rare', price=60 where name='Volt';
+update public.characters set rarity='epic', price=90 where name='Frelon';
+update public.characters set rarity='mythic', price=120 where name='Titan';
+update public.characters set rarity='legendary', price=150 where name='Lynx';
+update public.ships set rarity='rare', price=50 where name='Star Cruiser';
+update public.ships set rarity='super_rare', price=80 where name='Nebula Disc';
+update public.ships set rarity='epic', price=110 where name='Aiguillon';
+update public.ships set rarity='mythic', price=140 where name='Comet X';
+update public.ships set rarity='legendary', price=170 where name='Lunaire';
+update public.bundles set price=64 where name='Duo Nova';
+update public.bundles set price=112 where name='Duo Volt';
+update public.bundles set price=160 where name='Duo Frelon';
+update public.bundles set price=208 where name='Duo Titan';
+update public.bundles set price=256 where name='Duo Lynx';

@@ -5,6 +5,7 @@ import { ItemSheet } from '../components/ItemSheet';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
+import { RARITY_COLOR, RARITY_LABEL, RARITY_ORDER, byRarity } from '../types';
 import type { Character, Ship } from '../types';
 
 export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => void }) {
@@ -19,8 +20,17 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
       <TopBar title={isChars ? 'Personnages' : 'Soucoupes'} onBack={onBack} />
 
       <div className="scroll">
+        {RARITY_ORDER.map((r) => {
+          const group = byRarity(items).filter((it) => it.rarity === r);
+          if (group.length === 0) return null;
+          return (
+            <section key={r} className="rarity-group">
+              <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
+                {RARITY_LABEL[r]}
+                {!isChars || group[0].price > 0 ? <span> · {group[0].price + 0} 💎</span> : null}
+              </h3>
         <div className="tiles">
-          {items.map((it) => (
+          {group.map((it) => (
             <ItemTile
               key={it.id}
               kind={kind}
@@ -32,6 +42,9 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
             />
           ))}
         </div>
+            </section>
+          );
+        })}
         <p className="legend">
           Touche une vignette pour voir les détails et l'améliorer. Le personnage et la soucoupe s'additionnent !
           Chaque niveau ajoute 8 % aux statistiques. Pièces 🪙 = améliorer, gemmes 💎 = débloquer.

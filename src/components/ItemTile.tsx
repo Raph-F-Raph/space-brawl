@@ -23,7 +23,7 @@ export function ItemTile({
   const isChars = kind === 'characters';
   const style = { '--rarity': RARITY_COLOR[item.rarity] } as CSSProperties;
   return (
-    <button className={`tile ${selected ? 'selected' : ''} ${owned ? '' : 'locked'}`} style={style} onClick={onOpen}>
+    <button className={`tile rar-${item.rarity} ${selected ? 'selected' : ''} ${owned ? '' : 'locked'}`} style={style} onClick={onOpen}>
       <div className="tile-art">
         {isChars ? (
           <CharacterArt color={item.color} accent={item.accent} variant={item.sort_order} look={(item as Character).style} size={64} />

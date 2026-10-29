@@ -25,7 +25,7 @@ export function CharacterArt({
 }: ArtProps & { headOnly?: boolean; look?: string | null }) {
   const clipId = useId().replace(/:/g, '');
   const big = variant === 4; // Titan : plus large
-  const handColor = variant === 4 ? color : accent;
+  const handColor = variant === 4 ? color : variant === 6 ? '#ffd23f' : accent;
   const torso = big ? { x: 11, y: 78, w: 78, h: 31, rx: 15 } : { x: 21, y: 78, w: 58, h: 31, rx: 15 };
   const legW = big ? 26 : 22;
   const legX: [number, number] = big ? [22, 52] : [27, 51];
@@ -57,6 +57,22 @@ export function CharacterArt({
         <>
           <polygon points="28,30 20,6 42,22" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
           <polygon points="72,30 80,6 58,22" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 6 && (
+        <>
+          {/* aura dorée + étincelles */}
+          {!headOnly && (
+            <>
+              <circle cx="50" cy="70" r="62" fill="#ffd23f" opacity="0.14" />
+              <circle cx="50" cy="70" r="46" fill="#ffd23f" opacity="0.12" />
+              <polygon points="-6,40 -2,48 6,52 -2,56 -6,64 -10,56 -18,52 -10,48" fill="#ffe08a" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+              <polygon points="106,24 109,30 115,33 109,36 106,42 103,36 97,33 103,30" fill="#ffe08a" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+              {/* cape */}
+              <path d="M26 82 Q8 112 22 140 L50 128 L78 140 Q92 112 74 82 Z" fill="#7b2cbf" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+              <path d="M30 86 Q16 112 27 134" stroke="#c77dff" strokeWidth="3" fill="none" strokeLinecap="round" />
+            </>
+          )}
         </>
       )}
       {variant === 6 && (
@@ -207,6 +223,13 @@ export function CharacterArt({
         </>
       )}
 
+      {variant === 6 && (
+        <>
+          <polygon points="50,9 56,22 50,30 44,22" fill="#ffd23f" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <circle cx="50" cy="21" r="2.6" fill="#e63946" stroke={INK} strokeWidth="1.5" />
+          <path d="M26 20 Q50 8 74 20" stroke="#ffd23f" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        </>
+      )}
       {/* Visière + yeux */}
       {variant !== 5 ? (
         <>
@@ -215,6 +238,13 @@ export function CharacterArt({
           <circle cx="61" cy="53" r="6" fill="#fff" />
           <circle cx="40.5" cy="54.5" r="2.6" fill={INK} />
           <circle cx="62.5" cy="54.5" r="2.6" fill={INK} />
+          {variant === 6 && (
+            <>
+              <path d="M17 54 L3 50 M17 60 L4 62 M83 54 L97 50 M83 60 L96 62" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+              <path d="M17 54 L3 50 M17 60 L4 62 M83 54 L97 50 M83 60 L96 62" stroke="#ffd23f" strokeWidth="1" strokeLinecap="round" />
+              <polygon points="50,60 46,64 54,64" fill="#ffd23f" stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
+            </>
+          )}
         </>
       ) : (
         <>
@@ -313,6 +343,14 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
       )}
       {variant === 6 && (
         <>
+          <ellipse cx="80" cy="60" rx="96" ry="40" fill="#c77dff" opacity="0.18" />
+          <ellipse cx="80" cy="60" rx="84" ry="32" fill="#ffd23f" opacity="0.14" />
+          <polygon points="-18,14 -15,21 -8,24 -15,27 -18,34 -21,27 -28,24 -21,21" fill="#ffe08a" stroke={INK} strokeWidth="1.8" strokeLinejoin="round" />
+          <polygon points="168,10 171,17 178,20 171,23 168,30 165,23 158,20 165,17" fill="#ffe08a" stroke={INK} strokeWidth="1.8" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 6 && (
+        <>
           <path d="M 10 62 Q -22 52 -14 24 Q -4 46 24 52 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
           <path d="M 150 62 Q 182 52 174 24 Q 164 46 136 52 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         </>
@@ -375,6 +413,14 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
         <circle key={x} cx={x} cy={y} r="5" fill={variant === 5 ? '#fff' : accent} stroke={INK} strokeWidth="2.5" />
       ))}
 
+      {variant === 6 && (
+        <>
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke="#ffd23f" strokeWidth="3" strokeDasharray="2 6" strokeLinecap="round" />
+          <path d="M60 22 L66 8 L73 18 L80 4 L87 18 L94 8 L100 22 Z" fill="#ffd23f" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <circle cx="80" cy="9" r="2.6" fill="#e63946" stroke={INK} strokeWidth="1.5" />
+          <polygon points="80,96 70,84 90,84" fill="#ffd23f" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        </>
+      )}
       {variant === 6 && (
         <polygon
           points="80,52 83,60 92,60 85,65 88,73 80,68 72,73 75,65 68,60 77,60"

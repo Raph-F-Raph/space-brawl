@@ -1638,3 +1638,10 @@ button.mode-card:active {
 .old-price { opacity: 0.6; margin-left: 4px; font-size: 0.85em; }
 .skin-ship { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: -4px; }
 .skin-ship small { font: 700 12px var(--font-body); opacity: 0.85; }
+
+.rarity-group { margin-bottom: 10px; }
+.rarity-title { margin: 8px 4px 6px; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 0 #0b1030; }
+.rarity-title span { font-size: 13px; color: #ffe08a; text-transform: none; }
+.tile.rar-legendary { box-shadow: 0 0 14px 2px rgba(255,183,3,.55), inset 0 0 18px rgba(255,214,102,.25); }
+.tile.rar-mythic { box-shadow: 0 0 12px 1px rgba(255,77,109,.45); }
+.rarity-group { width: 100%; }
