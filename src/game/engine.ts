@@ -354,6 +354,8 @@ export class Engine {
     p.invuln = Math.max(0, p.invuln - dt);
 
     this.movePlayer(dt);
+    // un astéroïde touché fait de petits dégâts (le joueur clignote 0,7 s entre deux coups)
+    if (this.asteroids.some((r) => Math.hypot(p.x - r.x, p.y - r.y) < r.r * 0.95 + PLAYER_R + 1)) this.hurtPlayer(Math.max(3, Math.round(this.stats.maxHp * 0.04)), true);
     this.pushOutOfAsteroids(p, PLAYER_R);
     this.camY = this.arenaLocked ? 0 : clamp(p.y - H * 0.62, 0, this.worldH - H); // le joueur reste dans le bas de l'écran : on voit devant
     for (const a of this.asteroids) a.rot += a.spin * dt;
@@ -520,10 +522,10 @@ export class Engine {
     if (this.portalOpen && Math.abs(p.x - W / 2) < 90 && Math.abs(p.y - this.portalY) < 46) this.finish(true); // le portail est large et plat
   }
 
-  private hurtPlayer(base: number) {
+  private hurtPlayer(base: number, flat = false) {
     const p = this.player;
     if (p.invuln > 0) return;
-    const dmg = Math.max(1, Math.round(base - this.stats.reduction));
+    const dmg = flat ? base : Math.max(1, Math.round(base - this.stats.reduction));
     p.hp -= dmg;
     p.invuln = 0.7;
     sfx('hurt');

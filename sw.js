@@ -1,6 +1,6 @@
 // Service worker minimal : permet l'installation et un démarrage rapide.
 // Les appels à Supabase (autre domaine) ne sont jamais mis en cache.
-const CACHE = 'space-brawl-v8';
+const CACHE = 'space-brawl-v9';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'icon.svg'])));
