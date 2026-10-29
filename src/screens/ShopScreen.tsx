@@ -4,7 +4,7 @@ import { useBuyFlow } from '../components/BuyFlow';
 import { CharacterArt, ShipArt } from '../components/Art';
 import { ItemSheet } from '../components/ItemSheet';
 import { sfx } from '../lib/audio';
-import { byRarity } from '../types';
+import { byRarity, RARITY_COLOR, RARITY_LABEL, RARITY_ORDER } from '../types';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
 import { TopBar } from '../components/Ui';
@@ -104,10 +104,23 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           {lockedChars.length === 0 ? (
             <p className="legend">Tu as débloqué tous les personnages. Bravo, pilote !</p>
           ) : (
-            <div className="tiles">
-              {lockedChars.map((c) => (
-                <ItemTile key={c.id} kind="characters" item={c} owned={false} onOpen={() => setOpen({ kind: 'characters', id: c.id })} />
-              ))}
+            <div>
+              {RARITY_ORDER.map((r) => {
+                const grp = lockedChars.filter((it) => it.rarity === r);
+                if (grp.length === 0) return null;
+                return (
+                  <div key={r} className="rarity-group">
+                    <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
+                      {RARITY_LABEL[r]} <span>· {grp[0].price} 💎</span>
+                    </h3>
+                    <div className="tiles">
+                      {grp.map((c) => (
+                        <ItemTile key={c.id} kind="characters" item={c} owned={false} onOpen={() => setOpen({ kind: 'characters', id: c.id })} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
@@ -119,10 +132,23 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           {lockedShips.length === 0 ? (
             <p className="legend">Tu as débloqué toutes les soucoupes. Quelle flotte !</p>
           ) : (
-            <div className="tiles">
-              {lockedShips.map((c) => (
-                <ItemTile key={c.id} kind="ships" item={c} owned={false} onOpen={() => setOpen({ kind: 'ships', id: c.id })} />
-              ))}
+            <div>
+              {RARITY_ORDER.map((r) => {
+                const grp = lockedShips.filter((it) => it.rarity === r);
+                if (grp.length === 0) return null;
+                return (
+                  <div key={r} className="rarity-group">
+                    <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
+                      {RARITY_LABEL[r]} <span>· {grp[0].price} 💎</span>
+                    </h3>
+                    <div className="tiles">
+                      {grp.map((c) => (
+                        <ItemTile key={c.id} kind="ships" item={c} owned={false} onOpen={() => setOpen({ kind: 'ships', id: c.id })} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>

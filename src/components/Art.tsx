@@ -75,6 +75,20 @@ export function CharacterArt({
           )}
         </>
       )}
+      {variant === 6 && !headOnly && (
+        <>
+          <defs>
+            <radialGradient id={`${clipId}aura`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#fff3b0" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#fff3b0" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="50" cy="80" rx="66" ry="68" fill={`url(#${clipId}aura)`} />
+          <path d="M72 112 Q112 108 104 78 Q100 62 88 66" stroke={INK} strokeWidth="14" strokeLinecap="round" fill="none" />
+          <path d="M72 112 Q112 108 104 78 Q100 62 88 66" stroke={color} strokeWidth="7" strokeLinecap="round" fill="none" />
+          <circle cx="88" cy="66" r="4.5" fill="#fff3b0" stroke={INK} strokeWidth="2.5" />
+        </>
+      )}
       {variant === 6 && (
         <>
           <polygon points="22,44 20,8 46,24" fill={color} stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
@@ -152,6 +166,14 @@ export function CharacterArt({
               strokeWidth="2.5"
               strokeLinejoin="round"
             />
+          )}
+          {variant === 6 && (
+            <>
+              <rect x="21" y="99" width="58" height="7" fill="#ffd166" stroke={INK} strokeWidth="2.5" />
+              <circle cx="50" cy="102.5" r="4.5" fill="#fff" stroke={INK} strokeWidth="2.5" />
+              <circle cx="27" cy="88" r="7" fill="#ffd166" stroke={INK} strokeWidth="3" />
+              <circle cx="73" cy="88" r="7" fill="#ffd166" stroke={INK} strokeWidth="3" />
+            </>
           )}
           {variant === 6 && (
             <>
@@ -265,6 +287,15 @@ export function CharacterArt({
         </>
       )}
       {/* Accessoires des skins (dessinés par-dessus le casque) */}
+      {variant === 6 && (
+        <>
+          <path d="M44 22 L50 14 L56 22 L50 30 Z" fill="#ffd166" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <circle cx="50" cy="22" r="2.4" fill="#fff" />
+          <path d="M17 52 L6 48 M17 58 L5 60 M83 52 L94 48 M83 58 L95 60" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+          <path d="M24 12 L21 8 M76 12 L79 8" stroke="#ffd166" strokeWidth="4" strokeLinecap="round" />
+          <path d="M90 28 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z M8 34 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" fill="#fff" stroke="#ffd166" strokeWidth="1.2" />
+        </>
+      )}
       {look === 'crown' && (
         <g>
           <polygon points="30,25 33,10 42,19 50,8 58,19 67,10 70,25" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
@@ -351,6 +382,11 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
       )}
       {variant === 6 && (
         <>
+          <ellipse cx="80" cy="64" rx="86" ry="34" fill="#fff3b0" opacity="0.22" />
+        </>
+      )}
+      {variant === 6 && (
+        <>
           <path d="M 10 62 Q -22 52 -14 24 Q -4 46 24 52 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
           <path d="M 150 62 Q 182 52 174 24 Q 164 46 136 52 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         </>
@@ -419,6 +455,14 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
           <path d="M60 22 L66 8 L73 18 L80 4 L87 18 L94 8 L100 22 Z" fill="#ffd23f" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
           <circle cx="80" cy="9" r="2.6" fill="#e63946" stroke={INK} strokeWidth="1.5" />
           <polygon points="80,96 70,84 90,84" fill="#ffd23f" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 6 && (
+        <>
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke="#ffd166" strokeWidth="3.5" strokeDasharray="2 0" />
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke={INK} strokeWidth="1.5" opacity="0.5" />
+          <path d="M 36 28 Q 80 -2 124 28" stroke="#ffd166" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.9" />
+          <path d="M 142 14 l2.4 6 6 2.4 -6 2.4 -2.4 6 -2.4 -6 -6 -2.4 6 -2.4z M 10 10 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z M 150 84 l1.8 4.5 4.5 1.8 -4.5 1.8 -1.8 4.5 -1.8 -4.5 -4.5 -1.8 4.5 -1.8z" fill="#fff" stroke="#ffd166" strokeWidth="1.2" />
         </>
       )}
       {variant === 6 && (

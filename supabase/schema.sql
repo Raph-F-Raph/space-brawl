@@ -818,3 +818,22 @@ update public.bundles set price=112 where name='Duo Volt';
 update public.bundles set price=160 where name='Duo Frelon';
 update public.bundles set price=208 where name='Duo Titan';
 update public.bundles set price=256 where name='Duo Lynx';
+
+-- Raretés et prix (personnages ; soucoupes +20) ; packs duo à -20 %
+update public.characters set rarity='common', price=0 where name='Cosmo';
+update public.characters set rarity='rare', price=30 where name='Nova';
+update public.characters set rarity='super_rare', price=60 where name='Volt';
+update public.characters set rarity='epic', price=90 where name='Frelon';
+update public.characters set rarity='mythic', price=120 where name='Titan';
+update public.characters set rarity='legendary', price=150 where name='Lynx';
+update public.ships set rarity='common', price=0 where name='UFO-Alpha';
+update public.ships set rarity='rare', price=50 where name='Star Cruiser';
+update public.ships set rarity='super_rare', price=80 where name='Nebula Disc';
+update public.ships set rarity='epic', price=110 where name='Aiguillon';
+update public.ships set rarity='mythic', price=140 where name='Comet X';
+update public.ships set rarity='legendary', price=170 where name='Lunaire';
+update public.bundles set price=64 where name='Duo Nova';
+update public.bundles set price=112 where name='Duo Volt';
+update public.bundles set price=160 where name='Duo Frelon';
+update public.bundles set price=208 where name='Duo Titan';
+update public.bundles set price=256 where name='Duo Lynx';
