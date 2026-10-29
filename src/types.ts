@@ -75,6 +75,7 @@ export type Screen =
   | 'play'
   | 'chapters'
   | 'level'
+  | 'arena'
   | 'settings';
 
 export const RARITY_LABEL: Record<Rarity, string> = {

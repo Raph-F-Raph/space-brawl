@@ -7,6 +7,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { ChaptersScreen } from './screens/ChaptersScreen';
+import { ArenaScreen } from './screens/ArenaScreen';
 import { LevelScreen } from './screens/LevelScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ClansScreen } from './screens/ClansScreen';
@@ -48,7 +49,7 @@ function Shell() {
   }, []);
   // La musique change selon l'écran : calme dans les menus, rythmée en niveau
   useEffect(() => {
-    setMusic(g.session ? (screen === 'level' ? 'level' : 'menu') : null);
+    setMusic(g.session ? (screen === 'level' || screen === 'arena' ? 'level' : 'menu') : null);
   }, [screen, g.session]);
 
   // Après une déconnexion, on repart toujours de l'écran d'accueil
@@ -119,6 +120,8 @@ function Shell() {
         onNextChapter={() => startLevel(chapter + 1, 1)}
       />
     );
+  } else if (screen === 'arena') {
+    content = <ArenaScreen key={`arena-${runKey}`} onExit={() => setScreen('play')} onRetry={() => setRunKey((k) => k + 1)} />;
   } else if (screen === 'characters') {
     content = <CollectionScreen kind="characters" onBack={() => setScreen('home')} />;
   } else if (screen === 'ships') {

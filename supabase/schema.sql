@@ -883,3 +883,19 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 ('Kabuto','epic',105,11,6,7,'#9d0208','#ffd166',110,10),
 ('Éclipse','legendary',115,10,8,8,'#1b1b2f','#ffb703',170,11);
 -- skins (2 par personnage) et packs duo (-20 %) : voir la migration "contenu_glacon_shogun_solaris"
+
+-- Battle Royale (contre des robots) : récompense selon le classement (1er 120, 2e 80, 3e 60, 4e 40, sinon 20 pièces) + 10 par pilote éliminé (max 7)
+create or replace function public.complete_arena(p_place int, p_kills int) returns int
+language plpgsql security definer set search_path = public as $$
+declare v_coins int; v_total int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if p_place < 1 or p_place > 8 then raise exception 'Classement invalide'; end if;
+  v_coins := (case p_place when 1 then 120 when 2 then 80 when 3 then 60 when 4 then 40 else 20 end)
+             + 10 * greatest(0, least(p_kills, 7));
+  perform public.bump_missions(p_place = 1, v_coins);
+  update public.profiles set coins = coins + v_coins where id = auth.uid() returning coins into v_total;
+  return v_total;
+end; $$;
+revoke all on function public.complete_arena(int,int) from public, anon;
+grant execute on function public.complete_arena(int,int) to authenticated;

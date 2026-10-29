@@ -33,6 +33,7 @@ interface GameState {
   selectCharacter: (id: string) => Promise<void>;
   selectShip: (id: string) => Promise<void>;
   finishLevel: (chapter: number, level: number, coins: number, won: boolean) => Promise<void>;
+  finishArena: (place: number, kills: number) => Promise<void>;
   // Boutique : renvoient null si tout va bien, sinon un message d'erreur à afficher
   buyCharacter: (id: string) => Promise<string | null>;
   buyShip: (id: string) => Promise<string | null>;
@@ -193,6 +194,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [session, loadData]
   );
 
+  const finishArena = useCallback(
+    async (place: number, kills: number) => {
+      if (!session) return;
+      await supabase.rpc('complete_arena', { p_place: place, p_kills: kills });
+      await loadData(session.user.id);
+    },
+    [session, loadData]
+  );
+
   const finishLevel = useCallback(
     async (chapter: number, level: number, coins: number, won: boolean) => {
       if (!session) return;
@@ -342,6 +352,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     selectCharacter,
     selectShip,
     finishLevel,
+    finishArena,
     buyCharacter,
     buyShip,
     upgradeCharacter,

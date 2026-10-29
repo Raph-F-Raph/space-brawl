@@ -13,15 +13,14 @@ export function PlayScreen({
       <TopBar title="Choisis ton mode" onBack={onBack} />
       <div className="scroll">
         <div className="modes">
-          <section className="mode-card mode-royale disabled" aria-disabled="true">
-            <span className="badge">Bientôt</span>
+          <button className="mode-card mode-royale" onClick={() => onNavigate('arena')}>
             <div className="mode-icon">💥</div>
             <h2 className="mode-title">Battle Royale</h2>
             <p className="mode-desc">
-              8 pilotes en ligne, une zone qui se referme… Le dernier en vie gagne !
+              8 pilotes, une zone qui se referme… Le dernier en vie gagne ! Tu affrontes 7 robots pour l'instant, de vrais joueurs arriveront plus tard.
             </p>
-            <span className="mode-tag">En ligne · 8 joueurs</span>
-          </section>
+            <span className="mode-tag">8 pilotes · contre des robots</span>
+          </button>
 
           <button className="mode-card mode-story" onClick={() => onNavigate('chapters')}>
             <div className="mode-icon">🌌</div>
