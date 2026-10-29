@@ -837,3 +837,23 @@ update public.bundles set price=112 where name='Duo Volt';
 update public.bundles set price=160 where name='Duo Frelon';
 update public.bundles set price=208 where name='Duo Titan';
 update public.bundles set price=256 where name='Duo Lynx';
+
+-- Contenu : Pixel (rare), Mirage (mythique), soucoupes Météore et Spectre, skins, packs duo
+insert into public.characters (name, rarity, hp, strength, resistance, attack_type, attack_kind, color, accent, price, sort_order) values
+('Pixel','rare',110,9,6,'Tir robotique','laser','#adb5bd','#ff7b00',30,7),
+('Mirage','mythic',85,14,4,'Lance spectrale','pierce','#7b2cbf','#7ef9ff',120,8);
+insert into public.ships (name, rarity, hp, strength, resistance, speed, color, accent, price, sort_order) values
+('Météore','rare',100,7,5,8,'#ef476f','#ffd166',50,7),
+('Spectre','mythic',90,11,5,9,'#3a0ca3','#7ef9ff',140,8);
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select id,'Doré',60,'#ffd166','#fff3b0','crown',1 from public.characters where name='Pixel';
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select id,'Turbo',80,'#e63946','#ffd166','flame',2 from public.characters where name='Pixel';
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select id,'Aube',60,'#ffafcc','#fff3b0','halo',1 from public.characters where name='Mirage';
+insert into public.skins (character_id, name, price, color, accent, style, sort_order)
+select id,'Abysse',80,'#03045e','#00b4d8','frost',2 from public.characters where name='Mirage';
+insert into public.bundles (name, character_id, ship_id, price, sort_order)
+select 'Duo Pixel', c.id, s.id, 64, 7 from public.characters c, public.ships s where c.name='Pixel' and s.name='Météore';
+insert into public.bundles (name, character_id, ship_id, price, sort_order)
+select 'Duo Mirage', c.id, s.id, 208, 8 from public.characters c, public.ships s where c.name='Mirage' and s.name='Spectre';
