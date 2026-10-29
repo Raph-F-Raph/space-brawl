@@ -872,3 +872,14 @@ alter table public.daily_missions enable row level security;
 create policy "missions: lecture de ses propres missions" on public.daily_missions for select to authenticated using (user_id = auth.uid());
 -- bump_missions(p_won, p_coins) est appelée par complete_level ; claim_mission(p_index) vérifie et verse la récompense.
 -- (fonctions complètes : voir la migration "missions_du_jour" du projet Supabase)
+
+-- Contenu : Glaçon (super rare), Shogun (épique), Solaris (légendaire) + soucoupes Iceberg, Kabuto, Éclipse, skins, packs duo
+insert into public.characters (name, rarity, hp, strength, resistance, attack_type, attack_kind, color, accent, price, sort_order) values
+('Glaçon','super_rare',105,11,8,'Rafale de givre','burst','#a8dadc','#1d3557',60,9),
+('Shogun','epic',100,14,6,'Lame d''énergie','pierce','#c1121f','#ffd166',90,10),
+('Solaris','legendary',120,12,8,'Éruption solaire','shockwave','#ffb703','#fb5607',150,11);
+insert into public.ships (name, rarity, hp, strength, resistance, speed, color, accent, price, sort_order) values
+('Iceberg','super_rare',130,7,9,5,'#caf0f8','#0077b6',80,9),
+('Kabuto','epic',105,11,6,7,'#9d0208','#ffd166',110,10),
+('Éclipse','legendary',115,10,8,8,'#1b1b2f','#ffb703',170,11);
+-- skins (2 par personnage) et packs duo (-20 %) : voir la migration "contenu_glacon_shogun_solaris"
