@@ -857,3 +857,18 @@ insert into public.bundles (name, character_id, ship_id, price, sort_order)
 select 'Duo Pixel', c.id, s.id, 64, 7 from public.characters c, public.ships s where c.name='Pixel' and s.name='Météore';
 insert into public.bundles (name, character_id, ship_id, price, sort_order)
 select 'Duo Mirage', c.id, s.id, 208, 8 from public.characters c, public.ships s where c.name='Mirage' and s.name='Spectre';
+
+-- Missions du jour (jouer 3 niveaux +100 pièces, gagner 2 +150 pièces, ramasser 200 pièces +1 gemme)
+create table public.daily_missions (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  day date not null,
+  played int not null default 0,
+  won int not null default 0,
+  coins int not null default 0,
+  claimed int not null default 0,
+  primary key (user_id, day)
+);
+alter table public.daily_missions enable row level security;
+create policy "missions: lecture de ses propres missions" on public.daily_missions for select to authenticated using (user_id = auth.uid());
+-- bump_missions(p_won, p_coins) est appelée par complete_level ; claim_mission(p_index) vérifie et verse la récompense.
+-- (fonctions complètes : voir la migration "missions_du_jour" du projet Supabase)

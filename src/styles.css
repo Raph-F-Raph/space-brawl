@@ -1645,3 +1645,11 @@ button.mode-card:active {
 .tile.rar-legendary { box-shadow: 0 0 14px 2px rgba(255,183,3,.55), inset 0 0 18px rgba(255,214,102,.25); }
 .tile.rar-mythic { box-shadow: 0 0 12px 1px rgba(255,77,109,.45); }
 .rarity-group { width: 100%; }
+
+.missions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mission { display: flex; align-items: center; gap: 12px; background: linear-gradient(#1f2f8a, #121a55); border: 3px solid #3a4fd0; border-radius: 16px; padding: 8px 12px; }
+.mission-info { flex: 1; min-width: 0; text-align: left; display: flex; flex-direction: column; gap: 4px; }
+.mission-info strong { font: 800 15px var(--font-body); }
+.mission-info small { font: 700 12px var(--font-body); opacity: 0.8; }
+.mission-bar { height: 10px; border-radius: 6px; background: #0b1030; overflow: hidden; border: 2px solid #0b1030; }
+.mission-bar div { height: 100%; background: linear-gradient(#7bf1a8, #2ec4b6); border-radius: 6px; }

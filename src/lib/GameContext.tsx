@@ -39,6 +39,8 @@ interface GameState {
   upgradeCharacter: (id: string) => Promise<string | null>;
   upgradeShip: (id: string) => Promise<string | null>;
   claimDailyGift: () => Promise<string | null>;
+  missions: { played: number; won: number; coins: number; claimed: number };
+  claimMission: (index: number) => Promise<string | null>;
   // Skins
   skins: Skin[];
   ownedSkins: Set<string>;
@@ -82,11 +84,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [progress, setProgress] = useState<Progress[]>([]);
   const [skins, setSkins] = useState<Skin[]>([]);
   const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [missions, setMissions] = useState({ played: 0, won: 0, coins: 0, claimed: 0 });
   const [ownedSkins, setOwnedSkins] = useState<Set<string>>(new Set());
   const [equippedSkin, setEquippedSkin] = useState<Record<string, string | null>>({});
 
   const loadData = useCallback(async (userId: string) => {
-    const [p, ch, sh, pc, ps, pr, sk, psk, bu] = await Promise.all([
+    const today = new Date().toISOString().slice(0, 10);
+    const [p, ch, sh, pc, ps, pr, sk, psk, bu, mi] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('characters').select('*').order('sort_order'),
       supabase.from('ships').select('*').order('sort_order'),
@@ -96,7 +100,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       supabase.from('skins').select('*').order('sort_order'),
       supabase.from('player_skins').select('skin_id').eq('user_id', userId),
       supabase.from('bundles').select('*').order('sort_order'),
+      supabase.from('daily_missions').select('played, won, coins, claimed').eq('user_id', userId).eq('day', today).maybeSingle(),
     ]);
+    setMissions((mi.data as { played: number; won: number; coins: number; claimed: number } | null) ?? { played: 0, won: 0, coins: 0, claimed: 0 });
     setProfile((p.data as Profile | null) ?? null);
     setCharacters((ch.data as Character[] | null) ?? []);
     setShips((sh.data as Ship[] | null) ?? []);
@@ -249,6 +255,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return error ? frenchError(error.message) : null;
   }, [session, loadData]);
 
+  const claimMission = useCallback(
+    async (index: number) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('claim_mission', { p_index: index });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
   const clearedLevel = useCallback(
     (chapter: number) => progress.find((p) => p.chapter === chapter)?.cleared_level ?? 0,
     [progress]
@@ -331,6 +347,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     upgradeCharacter,
     upgradeShip,
     claimDailyGift,
+    missions,
+    claimMission,
     skins,
     ownedSkins,
     equippedSkin,

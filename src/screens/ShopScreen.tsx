@@ -35,6 +35,19 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
     buy.showToast(err ?? `${name} débloqué !`);
   }
 
+  const MISSIONS = [
+    { label: 'Joue 3 niveaux', value: g.missions.played, goal: 3, reward: '+100 🪙' },
+    { label: 'Gagne 2 niveaux', value: g.missions.won, goal: 2, reward: '+150 🪙' },
+    { label: 'Ramasse 200 pièces', value: g.missions.coins, goal: 200, reward: '+1 💎' },
+  ];
+  async function claimMission(i: number) {
+    setBusy(true);
+    const err = await g.claimMission(i + 1);
+    setBusy(false);
+    if (!err) sfx('coin');
+    buy.showToast(err ?? `Mission accomplie ! ${MISSIONS[i].reward}`);
+  }
+
   async function claim() {
     setBusy(true);
     const err = await g.claimDailyGift();
@@ -60,6 +73,39 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
               {giftTaken ? 'Reviens demain !' : `🎁 Récupérer`}
             </button>
           </div>
+        </section>
+
+        <section className="chapter">
+          <h2 className="chapter-title">
+            Missions <span>du jour</span>
+          </h2>
+          <ul className="missions">
+            {MISSIONS.map((m, i) => {
+              const done = m.value >= m.goal;
+              const taken = (g.missions.claimed & (1 << i)) !== 0;
+              return (
+                <li key={m.label} className="mission">
+                  <div className="mission-info">
+                    <strong>{m.label}</strong>
+                    <div className="mission-bar">
+                      <div style={{ width: `${Math.min(100, (m.value / m.goal) * 100)}%` }} />
+                    </div>
+                    <small>
+                      {Math.min(m.value, m.goal)} / {m.goal}
+                    </small>
+                  </div>
+                  <button
+                    className={`btn btn-small ${done && !taken ? 'btn-yellow' : 'btn-grey'}`}
+                    disabled={busy || !done || taken}
+                    onClick={() => void claimMission(i)}
+                  >
+                    {taken ? '✓ Reçu' : m.reward}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="legend shop-note">Les missions se renouvellent chaque jour à minuit (heure UTC).</p>
         </section>
 
         {packs.length > 0 && (
