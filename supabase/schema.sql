@@ -899,3 +899,30 @@ begin
 end; $$;
 revoke all on function public.complete_arena(int,int) from public, anon;
 grant execute on function public.complete_arena(int,int) to authenticated;
+
+-- Trophées et classement : 1er +30, 2e +20, 3e +10, 4e +5, 5e 0, 6e -3, 7e -5, 8e -8 (jamais en dessous de 0)
+alter table public.profiles add column if not exists trophies int not null default 0;
+create or replace function public.complete_arena(p_place int, p_kills int) returns int
+language plpgsql security definer set search_path = public as $$
+declare v_coins int; v_total int; v_delta int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if p_place < 1 or p_place > 8 then raise exception 'Classement invalide'; end if;
+  v_coins := (case p_place when 1 then 120 when 2 then 80 when 3 then 60 when 4 then 40 else 20 end)
+             + 10 * greatest(0, least(p_kills, 7));
+  v_delta := case p_place when 1 then 30 when 2 then 20 when 3 then 10 when 4 then 5 when 5 then 0 when 6 then -3 when 7 then -5 else -8 end;
+  perform public.bump_missions(p_place = 1, v_coins);
+  update public.profiles set coins = coins + v_coins, trophies = greatest(0, trophies + v_delta)
+    where id = auth.uid() returning coins into v_total;
+  return v_total;
+end; $$;
+create or replace function public.get_leaderboard() returns table (rank bigint, username text, trophies int, is_me boolean)
+language sql security definer set search_path = public stable as $$
+  select r.rank, r.username, r.trophies, r.id = auth.uid()
+  from (select id, username, trophies, rank() over (order by trophies desc) as rank from public.profiles) r
+  where r.rank <= 20 or r.id = auth.uid()
+  order by r.rank, r.username
+  limit 30;
+$$;
+revoke all on function public.get_leaderboard() from public, anon;
+grant execute on function public.get_leaderboard() to authenticated;

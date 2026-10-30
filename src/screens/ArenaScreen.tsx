@@ -11,6 +11,8 @@ interface Props {
   onRetry: () => void;
 }
 
+const TROPHY = (place: number) => [30, 20, 10, 5, 0, -3, -5, -8][place - 1] ?? 0;
+
 const REWARD = (place: number, kills: number) =>
   (place === 1 ? 120 : place === 2 ? 80 : place === 3 ? 60 : place === 4 ? 40 : 20) + 10 * Math.max(0, Math.min(kills, 7));
 
@@ -306,6 +308,10 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
             <h2 className={`title ${result.won ? 'win' : 'lose'}`}>{result.won ? 'VICTOIRE ROYALE !' : `${result.place}e place`}</h2>
             <p className="reward">
               +{result.coins} <span>🪙</span>
+            </p>
+            <p className="reward">
+              {TROPHY(result.place) >= 0 ? '+' : ''}
+              {TROPHY(result.place)} <span>🏆</span>
             </p>
             <p className="modal-body">
               {result.kills} {result.kills > 1 ? 'pilotes éliminés' : 'pilote éliminé'} · classé {result.place}/8

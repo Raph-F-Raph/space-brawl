@@ -7,6 +7,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { CollectionScreen } from './screens/CollectionScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { ChaptersScreen } from './screens/ChaptersScreen';
+import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { ArenaScreen } from './screens/ArenaScreen';
 import { LevelScreen } from './screens/LevelScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
@@ -122,6 +123,8 @@ function Shell() {
     );
   } else if (screen === 'arena') {
     content = <ArenaScreen key={`arena-${runKey}`} onExit={() => setScreen('play')} onRetry={() => setRunKey((k) => k + 1)} />;
+  } else if (screen === 'leaderboard') {
+    content = <LeaderboardScreen onBack={() => setScreen('play')} />;
   } else if (screen === 'characters') {
     content = <CollectionScreen kind="characters" onBack={() => setScreen('home')} />;
   } else if (screen === 'ships') {

@@ -1653,3 +1653,10 @@ button.mode-card:active {
 .mission-info small { font: 700 12px var(--font-body); opacity: 0.8; }
 .mission-bar { height: 10px; border-radius: 6px; background: #0b1030; overflow: hidden; border: 2px solid #0b1030; }
 .mission-bar div { height: 100%; background: linear-gradient(#7bf1a8, #2ec4b6); border-radius: 6px; }
+
+.board { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.board-row { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 14px; background: linear-gradient(#1f2f8a, #121a55); border: 3px solid #3a4fd0; font: 800 16px var(--font-body); }
+.board-row.me { border-color: #ffd23f; box-shadow: 0 0 12px rgba(255,210,63,.45); }
+.board-rank { width: 40px; text-align: center; font-size: 20px; }
+.board-name { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-score { color: #ffe08a; }

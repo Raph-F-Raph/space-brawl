@@ -56,6 +56,7 @@ export interface Profile {
   username: string;
   coins: number;
   gems: number;
+  trophies: number;
   selected_character: string | null;
   selected_ship: string | null;
   last_daily: string | null; // date (AAAA-MM-JJ) du dernier cadeau du jour
@@ -76,6 +77,7 @@ export type Screen =
   | 'chapters'
   | 'level'
   | 'arena'
+  | 'leaderboard'
   | 'settings';
 
 export const RARITY_LABEL: Record<Rarity, string> = {
