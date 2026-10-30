@@ -63,6 +63,8 @@ const ENEMY: Record<
   fast: { hp: 24, speed: 125, r: 12, dmg: 10, coins: 2, color: '#ff9f1c' },
   tank: { hp: 130, speed: 45, r: 24, dmg: 22, coins: 4, color: '#9b5de5' },
   minion: { hp: 30, speed: 90, r: 12, dmg: 10, coins: 1, color: '#ff6b9d' },
+  shooter: { hp: 36, speed: 60, r: 14, dmg: 10, coins: 3, color: '#ffd166' },
+  bomber: { hp: 20, speed: 135, r: 13, dmg: 10, coins: 3, color: '#ef476f' },
   boss: { hp: 1400, speed: 38, r: 52, dmg: 28, coins: 20, color: '#e63946' },
 };
 
@@ -83,6 +85,7 @@ interface Enemy {
   charging: number;
   cvx: number;
   cvy: number;
+  pattern: number;
 }
 
 interface Bullet {
@@ -342,6 +345,7 @@ export class Engine {
       charging: 0,
       cvx: 0,
       cvy: 0,
+      pattern: 0,
     });
   }
 
@@ -550,13 +554,44 @@ export class Engine {
       e.flash = Math.max(0, e.flash - dt);
 
       if (e.kind === 'boss') this.updateBoss(e, dt, nx, ny);
-      else {
+      else if (e.kind === 'shooter') {
+        // il garde ses distances et tire sur toi
+        if (d > 320) {
+          e.x += nx * e.speed * dt;
+          e.y += ny * e.speed * dt;
+        } else if (d < 230) {
+          e.x -= nx * e.speed * dt;
+          e.y -= ny * e.speed * dt;
+        } else {
+          e.x += -ny * e.speed * 0.7 * dt;
+          e.y += nx * e.speed * 0.7 * dt;
+        }
+        e.shootT -= dt;
+        if (e.shootT <= 0 && d < 520) {
+          this.bullets.push({ x: e.x, y: e.y, vx: nx * 230, vy: ny * 230, r: 6, dmg: e.dmg + 2, life: 4, friendly: false, pierce: false, hit: new Set() });
+          e.shootT = 2.1 + Math.random() * 0.7;
+        }
+      } else if (e.kind === 'bomber') {
+        if (e.charging > 0) {
+          // la mèche brûle : boum !
+          e.charging -= dt;
+          if (e.charging <= 0) {
+            this.rings.push({ x: e.x, y: e.y, max: 95, life: 0.35, maxLife: 0.35 });
+            if (Math.hypot(p.x - e.x, p.y - e.y) < 95 + PLAYER_R) this.hurtPlayer(Math.max(6, Math.round(this.stats.maxHp * 0.08)), true);
+            e.hp = 0;
+          }
+        } else {
+          e.x += nx * e.speed * dt;
+          e.y += ny * e.speed * dt;
+          if (d < 70) e.charging = 0.6;
+        }
+      } else {
         e.x += nx * e.speed * dt;
         e.y += ny * e.speed * dt;
       }
 
       if (e.kind !== 'boss') this.pushOutOfAsteroids(e, e.r);
-      if (d < e.r + PLAYER_R - 4) this.hurtPlayer(e.dmg);
+      if (e.kind !== 'bomber' && d < e.r + PLAYER_R - 4) this.hurtPlayer(e.dmg);
     }
 
     // Les monstres se poussent entre eux pour ne pas se superposer
@@ -598,31 +633,42 @@ export class Engine {
         e.charging = 0.9;
         e.cvx = nx * 340;
         e.cvy = ny * 340;
-        e.chargeT = phase2 ? 5 : 7;
+        e.chargeT = (phase2 ? 5 : 7) * (this.level.chapter === 4 ? 0.6 : 1);
       }
     }
 
     e.shootT -= dt;
     if (e.shootT <= 0 && e.charging <= 0) {
-      const n = phase2 ? 18 : 12;
-      const speed = phase2 ? 200 : 165;
-      const off = this.time * 0.7;
-      for (let i = 0; i < n; i++) {
-        const a = off + (i / n) * TAU;
-        this.bullets.push({
-          x: e.x,
-          y: e.y,
-          vx: Math.cos(a) * speed,
-          vy: Math.sin(a) * speed,
-          r: 7,
-          dmg: phase2 ? 18 : 15,
-          life: 6,
-          friendly: false,
-          pierce: false,
-          hit: new Set(),
-        });
+      const ch = this.level.chapter;
+      const dmg = phase2 ? 18 : 15;
+      const fire = (a: number, sp: number, r = 7) =>
+        this.bullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r, dmg, life: 6, friendly: false, pierce: false, hit: new Set() });
+      const ring = (n: number, sp: number, off: number) => {
+        for (let i = 0; i < n; i++) fire(off + (i / n) * TAU, sp);
+      };
+      const toPlayer = Math.atan2(this.player.y - e.y, this.player.x - e.x);
+      const fan = (n: number, spread: number) => {
+        for (let i = 0; i < n; i++) fire(toPlayer + (i - (n - 1) / 2) * spread, 250, 8);
+      };
+      const spiral = () => {
+        const arms = phase2 ? 5 : 3;
+        ring(arms, 190, this.time * 1.7);
+      };
+      e.pattern++;
+      let wait = phase2 ? 1.6 : 2.4;
+      if (ch === 1) ring(phase2 ? 18 : 12, phase2 ? 200 : 165, this.time * 0.7);
+      else if (ch === 2) { spiral(); wait = 0.3; } // spirale continue
+      else if (ch === 3) { fan(phase2 ? 7 : 5, 0.22); if (e.pattern % 3 === 0) ring(12, 150, 0); wait = phase2 ? 1.1 : 1.5; }
+      else if (ch === 4) { ring(phase2 ? 20 : 14, 175, this.time * 0.7); wait = phase2 ? 1.3 : 2; }
+      else if (ch === 5) { ring(10, 140, 0); ring(10, 210, 0.3); wait = phase2 ? 1.5 : 2.2; }
+      else {
+        // chapitre 6 : il enchaîne tous les tirs
+        const k = e.pattern % 3;
+        if (k === 0) ring(phase2 ? 20 : 14, 180, this.time);
+        else if (k === 1) fan(phase2 ? 9 : 7, 0.2);
+        else { spiral(); wait = 0.5; }
       }
-      e.shootT = phase2 ? 1.6 : 2.4;
+      e.shootT = wait;
       sfx('bossShot');
     }
 
@@ -630,7 +676,7 @@ export class Engine {
     if (e.summonT <= 0) {
       this.spawn('minion', { x: e.x - 40, y: e.y });
       this.spawn('minion', { x: e.x + 40, y: e.y });
-      e.summonT = 9;
+      e.summonT = this.level.chapter === 5 ? 5.5 : 9;
     }
 
     e.x = clamp(e.x, e.r, W - e.r);
@@ -919,8 +965,72 @@ export class Engine {
       c.fill();
       c.stroke();
       c.restore();
+    } else if (e.kind === 'shooter') {
+      // losange avec un petit canon qui te vise
+      c.save();
+      c.rotate(ang);
+      c.fillStyle = e.flash > 0 ? '#fff' : '#8d99ae';
+      c.fillRect(r * 0.4, -r * 0.28, r * 1.1, r * 0.56);
+      c.strokeRect(r * 0.4, -r * 0.28, r * 1.1, r * 0.56);
+      c.restore();
+      c.fillStyle = e.flash > 0 ? '#fff' : this.theme.enemy.shooter;
+      c.beginPath();
+      c.moveTo(0, -r * 1.15);
+      c.lineTo(r * 1.05, 0);
+      c.lineTo(0, r * 1.15);
+      c.lineTo(-r * 1.05, 0);
+      c.closePath();
+      c.fill();
+      c.stroke();
+    } else if (e.kind === 'bomber') {
+      // bombe vivante : elle clignote quand la mèche est allumée
+      const armed = e.charging > 0;
+      c.fillStyle = e.flash > 0 || (armed && Math.floor(this.time * 14) % 2 === 0) ? '#ffffff' : this.theme.enemy.bomber;
+      c.beginPath();
+      c.arc(0, 0, r * (armed ? 1.18 : 1), 0, TAU);
+      c.fill();
+      c.stroke();
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(0, -r);
+      c.quadraticCurveTo(r * 0.3, -r * 1.45, r * 0.6, -r * 1.4);
+      c.stroke();
+      c.fillStyle = '#ffd23f';
+      c.beginPath();
+      c.arc(r * 0.62, -r * 1.42, 3.2 + (armed ? Math.sin(this.time * 40) * 1.5 : 0), 0, TAU);
+      c.fill();
+      c.lineWidth = 4;
     } else {
       if (e.kind === 'boss') {
+        // décor propre à chaque chapitre
+        const chp = this.level.chapter;
+        if (chp >= 2) {
+          c.save();
+          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : '#ffd23f';
+          if (chp === 2 || chp === 6) {
+            for (let k = 0; k < 3; k++) {
+              const a2 = this.time * (chp === 6 ? 2.4 : 1.4) + (k / 3) * TAU;
+              c.beginPath();
+              c.arc(Math.cos(a2) * r * 1.35, Math.sin(a2) * r * 1.35, r * 0.17, 0, TAU);
+              c.fill();
+              c.stroke();
+            }
+          } else {
+            for (let k = 0; k < 7; k++) {
+              c.save();
+              c.rotate((k / 7) * TAU + 0.2);
+              c.beginPath();
+              c.moveTo(r * 0.9, -r * 0.18);
+              c.lineTo(r * 1.35 + (chp === 4 ? Math.sin(this.time * 9 + k) * r * 0.12 : 0), 0);
+              c.lineTo(r * 0.9, r * 0.18);
+              c.closePath();
+              c.fill();
+              c.stroke();
+              c.restore();
+            }
+          }
+          c.restore();
+        }
         // cornes
         c.fillStyle = e.flash > 0 ? '#fff' : '#ffd23f';
         for (const sx of [-1, 1]) {

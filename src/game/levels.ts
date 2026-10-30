@@ -1,4 +1,4 @@
-export type EnemyKind = 'grunt' | 'fast' | 'tank' | 'minion' | 'boss';
+export type EnemyKind = 'grunt' | 'fast' | 'tank' | 'minion' | 'shooter' | 'bomber' | 'boss';
 
 export interface WaveEntry {
   kind: EnemyKind;
@@ -38,7 +38,7 @@ export const CHAPTERS: ChapterDef[] = [
     theme: {
       bg1: '#0a0f33',
       bg2: '#1b2a6b',
-      enemy: { grunt: '#5bd75b', fast: '#ff9f1c', tank: '#9b5de5', minion: '#ff6b9d', boss: '#e63946' },
+      enemy: { grunt: '#5bd75b', fast: '#ff9f1c', tank: '#9b5de5', minion: '#ff6b9d', shooter: '#ffd166', bomber: '#ef476f', boss: '#e63946' },
       bossName: 'Gorgonax',
       hpMult: 1,
       dmgMult: 1,
@@ -156,7 +156,7 @@ interface ChapterSeed {
   levelNames: [string, string, string, string];
   bg1: string;
   bg2: string;
-  enemy: ChapterTheme['enemy'];
+  enemy: Omit<ChapterTheme['enemy'], 'shooter' | 'bomber'>;
 }
 
 const SEEDS: ChapterSeed[] = [
@@ -206,6 +206,15 @@ function scaleWaves(waves: WaveEntry[][], factor: number): WaveEntry[][] {
   return waves.map((w) => w.map((e) => ({ kind: e.kind, count: Math.max(1, Math.round(e.count * factor)) })));
 }
 
+// À partir du chapitre 2, des tireurs (qui visent de loin) arrivent ; à partir du chapitre 3, des bombes vivantes aussi.
+function addNewMonsters(waves: WaveEntry[][], chapter: number, levelIndex: number): WaveEntry[][] {
+  if (chapter < 2 || levelIndex < 1) return waves;
+  const out = waves.map((w) => w.map((e) => ({ ...e })));
+  out[out.length - 1].push({ kind: 'shooter', count: Math.min(2 + chapter, 7) });
+  if (chapter >= 3 && out.length > 1) out[1].push({ kind: 'bomber', count: Math.min(chapter, 5) });
+  return out;
+}
+
 function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
   const base = CHAPTERS[0].levels; // on réutilise la forme des vagues du chapitre 1
   const factor = 1 + 0.18 * (id - 1);
@@ -226,7 +235,7 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
       name: seed.levelNames[i],
       isBoss: false,
       bonus: Math.round(b.bonus * (1 + 0.25 * (id - 1))),
-      waves: scaleWaves(b.waves, factor),
+      waves: addNewMonsters(scaleWaves(b.waves, factor), id, i),
     };
   });
   return {
@@ -235,7 +244,7 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
     theme: {
       bg1: seed.bg1,
       bg2: seed.bg2,
-      enemy: { ...seed.enemy },
+      enemy: { shooter: '#ffd166', bomber: '#ef476f', ...seed.enemy },
       bossName: seed.bossName,
       hpMult: 1 + 0.4 * (id - 1),
       dmgMult: 1 + 0.15 * (id - 1),
