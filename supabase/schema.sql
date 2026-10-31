@@ -1057,3 +1057,13 @@ end; $$;
 
 revoke all on function public.break_ship(), public.repair_ship(uuid), public.open_chest(text), public.select_ship(uuid) from public, anon;
 grant execute on function public.break_ship(), public.repair_ship(uuid), public.open_chest(text), public.select_ship(uuid) to authenticated;
+
+-- Route des trophées : 10 paliers, récompense récupérable une seule fois (migration "route_des_trophees")
+create table if not exists public.trophy_claims (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  step int not null,
+  primary key (user_id, step)
+);
+alter table public.trophy_claims enable row level security;
+create policy "trophy_claims: lecture de ses propres paliers" on public.trophy_claims for select to authenticated using (user_id = auth.uid());
+-- claim_trophy_reward(p_step) : paliers 10,30,60,100,150,220,300,400,500,650 trophées ; pièces aux paliers impairs, gemmes aux pairs

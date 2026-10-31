@@ -22,6 +22,20 @@ export function scaled(base: number, level: number): number {
 /** Coût de réparation d'une soucoupe cassée (doit rester identique à ship_repair_cost en base). */
 export const REPAIR_COST: Record<string, number> = { common: 0, rare: 60, super_rare: 100, epic: 150, mythic: 200, legendary: 250 };
 
+/** Route des trophées (doit rester identique à claim_trophy_reward en base). */
+export const TROPHY_ROAD: { need: number; coins: number; gems: number }[] = [
+  { need: 10, coins: 100, gems: 0 },
+  { need: 30, coins: 0, gems: 3 },
+  { need: 60, coins: 200, gems: 0 },
+  { need: 100, coins: 0, gems: 5 },
+  { need: 150, coins: 400, gems: 0 },
+  { need: 220, coins: 0, gems: 8 },
+  { need: 300, coins: 700, gems: 0 },
+  { need: 400, coins: 0, gems: 12 },
+  { need: 500, coins: 1000, gems: 0 },
+  { need: 650, coins: 0, gems: 25 },
+];
+
 // Gemmes gagnées (pour l'affichage ; le calcul réel est fait par la base de données)
 export const GEMS_FIRST_CLEAR = 0; // les niveaux normaux ne donnent plus de gemmes
 export const GEMS_BOSS_FIRST_CLEAR = 15;
