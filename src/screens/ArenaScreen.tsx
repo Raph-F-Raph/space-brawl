@@ -62,7 +62,7 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
 
   const handleEnd = useCallback(
     (r: ArenaResult) => {
-      setResult({ ...r, coins: REWARD(r.place, r.kills), broke: r.place >= 2 && (ship?.price ?? 0) > 0 });
+      setResult({ ...r, coins: REWARD(r.place, r.kills), broke: r.place === 8 && (ship?.price ?? 0) > 0 });
       void finishArena(r.place, r.kills);
     },
     [finishArena, ship]
