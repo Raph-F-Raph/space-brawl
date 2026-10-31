@@ -43,7 +43,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
   const [userPaused, setUserPaused] = useState(false);
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches);
   const [firing, setFiring] = useState(false);
-  const [result, setResult] = useState<{ won: boolean; coins: number } | null>(null);
+  const [result, setResult] = useState<{ won: boolean; coins: number; broke: boolean } | null>(null);
 
   const pausedRef = useRef(false);
   pausedRef.current = userPaused || portrait;
@@ -52,10 +52,10 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
     (r: { won: boolean; coins: number }) => {
       // Défaite : tu gardes la moitié des pièces ramassées
       const reward = r.won ? r.coins : Math.floor(r.coins / 2);
-      setResult({ won: r.won, coins: reward });
+      setResult({ won: r.won, coins: reward, broke: !r.won && (ship?.price ?? 0) > 0 });
       void finishLevel(chapter, level, reward, r.won);
     },
-    [chapter, level, finishLevel]
+    [chapter, level, finishLevel, ship]
   );
   const endRef = useRef(handleEnd);
   endRef.current = handleEnd;
@@ -329,6 +329,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
               <p className="modal-body">Chapitre terminé ! Ton écran d'accueil change de style ✨</p>
             )}
             {!result.won && <p className="modal-body">Tu gardes la moitié des pièces ramassées.</p>}
+            {result.broke && <p className="modal-body">🔧 Ta soucoupe est cassée ! Répare-la dans l'écran Soucoupes. Ta soucoupe de départ est de retour.</p>}
             <div className="modal-actions">
               {result.won && !isLast && (
                 <button className="btn btn-yellow" onClick={() => onNext(level + 1)}>

@@ -37,6 +37,7 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
               item={isChars ? g.withSkin(it as Character) : it}
               owned={isChars ? g.ownedCharacters.has(it.id) : g.ownedShips.has(it.id)}
               selected={isChars ? g.character?.id === it.id : g.ship?.id === it.id}
+              broken={!isChars && g.brokenShips.has(it.id)}
               level={(isChars ? g.characterLevels[it.id] : g.shipLevels[it.id]) ?? 1}
               onOpen={() => setOpenId(it.id)}
             />

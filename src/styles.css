@@ -1667,3 +1667,13 @@ button.mode-card:active {
 .room-code { font: 900 54px var(--font-title, var(--font-body)); letter-spacing: 12px; color: #ffd23f; text-shadow: 0 4px 0 #0b1030; background: #0b1030; border: 3px solid #ffd23f; border-radius: 18px; padding: 4px 22px 4px 34px; }
 .room-error { color: #ff8fa3; font: 800 15px var(--font-body); margin: 0; }
 .room-lobby .board { width: 100%; max-width: 420px; }
+
+/* Coffres et soucoupes cassées */
+.chest small { display: block; opacity: 0.8; font-size: 11px; line-height: 1.2; }
+.chest.shaking .pack-icon { animation: chest-shake 0.25s infinite; display: inline-block; }
+@keyframes chest-shake { 0%,100% { transform: rotate(-12deg) scale(1.15); } 50% { transform: rotate(12deg) scale(1.15); } }
+.chest-loot { text-align: center; font-size: 20px; }
+.chest-open { display: block; font-size: 64px; animation: chest-pop 0.5s ease-out; }
+@keyframes chest-pop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tile.broken .tile-art { filter: grayscale(0.9) brightness(0.7); }
+.tile.broken .tile-sub { color: #ff9f1c; }

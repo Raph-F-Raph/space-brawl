@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGame } from '../lib/GameContext';
+import { useGame, type ChestLoot } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
 import { CharacterArt, ShipArt } from '../components/Art';
 import { ItemSheet } from '../components/ItemSheet';
@@ -7,7 +7,7 @@ import { sfx } from '../lib/audio';
 import { byRarity, RARITY_COLOR, RARITY_LABEL, RARITY_ORDER } from '../types';
 import { ItemTile } from '../components/ItemTile';
 import type { Kind } from '../components/ItemCard';
-import { TopBar } from '../components/Ui';
+import { Modal, TopBar } from '../components/Ui';
 import { COINS_DAILY, GEMS_BOSS_FIRST_CLEAR, GEMS_DAILY } from '../game/progress';
 
 export function ShopScreen({ onBack }: { onBack: () => void }) {
@@ -46,6 +46,31 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
     setBusy(false);
     if (!err) sfx('coin');
     buy.showToast(err ?? `Mission accomplie ! ${MISSIONS[i].reward}`);
+  }
+
+  const CHESTS = [
+    { kind: 'bronze' as const, icon: '📦', name: 'Coffre Bronze', cost: 300, unit: '🪙', hint: 'Pièces, gemmes… et parfois un pilote rare !' },
+    { kind: 'argent' as const, icon: '🧰', name: 'Coffre Argent', cost: 8, unit: '💎', hint: 'Plus de pièces et de gemmes, jusqu\'à un pilote épique.' },
+    { kind: 'or' as const, icon: '🏆', name: 'Méga Coffre Or', cost: 20, unit: '💎', hint: 'Gros gains, skins et même un légendaire !' },
+  ];
+  const [opening, setOpening] = useState<string | null>(null);
+  const [loot, setLoot] = useState<{ chest: string; icon: string; loot: ChestLoot } | null>(null);
+  async function openChest(c: (typeof CHESTS)[number]) {
+    setOpening(c.kind);
+    const [res] = await Promise.all([g.openChest(c.kind), new Promise((r) => setTimeout(r, 900))]);
+    setOpening(null);
+    if (res.error || !res.loot) {
+      buy.showToast(res.error ?? 'Ouverture impossible');
+      return;
+    }
+    sfx(res.loot.type === 'coins' || res.loot.type === 'gems' ? 'coin' : 'buy');
+    setLoot({ chest: c.name, icon: c.icon, loot: res.loot });
+  }
+  function lootText(l: ChestLoot): string {
+    if (l.type === 'coins') return `+${l.amount} 🪙`;
+    if (l.type === 'gems') return `+${l.amount} 💎`;
+    const what = l.type === 'character' ? 'Nouveau pilote' : l.type === 'ship' ? 'Nouvelle soucoupe' : 'Nouveau skin';
+    return `${what} : ${l.name} !`;
   }
 
   async function exchange(n: number) {
@@ -224,6 +249,28 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
 
         <section className="chapter">
           <h2 className="chapter-title">
+            Méga <span>coffres</span>
+          </h2>
+          <div className="packs">
+            {CHESTS.map((c) => {
+              const have = c.unit === '🪙' ? (g.profile?.coins ?? 0) : gems;
+              return (
+                <div className={`pack chest ${opening === c.kind ? 'shaking' : ''}`} key={c.kind}>
+                  <span className="pack-icon">{c.icon}</span>
+                  <strong>{c.name}</strong>
+                  <small className="legend">{c.hint}</small>
+                  <button className={`btn btn-small ${have >= c.cost ? 'btn-yellow' : 'btn-grey'}`} disabled={opening !== null || have < c.cost} onClick={() => void openChest(c)}>
+                    {c.unit} {c.cost}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <p className="legend shop-note">Les objets que tu possèdes déjà ne sortent pas : tu ne perds rien.</p>
+        </section>
+
+        <section className="chapter">
+          <h2 className="chapter-title">
             Échange <span>gemmes → pièces</span>
           </h2>
           <p className="legend shop-note">1 💎 = 100 🪙. Pratique pour améliorer vite tes pilotes.</p>
@@ -270,6 +317,14 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
 
       {open && (
         <ItemSheet kind={open.kind} id={open.id} onClose={() => setOpen(null)} onBuy={buy.askBuy} onToast={buy.showToast} />
+      )}
+      {loot && (
+        <Modal title={loot.chest} onClose={() => setLoot(null)}>
+          <p className="chest-loot">
+            <span className="chest-open">{loot.icon}</span>
+            <strong>{lootText(loot.loot)}</strong>
+          </p>
+        </Modal>
       )}
       {buy.ui}
     </div>

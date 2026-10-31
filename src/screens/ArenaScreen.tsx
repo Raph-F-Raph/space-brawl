@@ -55,17 +55,17 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches);
   const [firing, setFiring] = useState(false);
   const [hostLeft, setHostLeft] = useState(false);
-  const [result, setResult] = useState<(ArenaResult & { coins: number }) | null>(null);
+  const [result, setResult] = useState<(ArenaResult & { coins: number; broke: boolean }) | null>(null);
 
   const pausedRef = useRef(false);
   pausedRef.current = (userPaused || portrait) && !online; // en ligne, la partie des autres ne s'arrête pas
 
   const handleEnd = useCallback(
     (r: ArenaResult) => {
-      setResult({ ...r, coins: REWARD(r.place, r.kills) });
+      setResult({ ...r, coins: REWARD(r.place, r.kills), broke: r.place >= 5 && (ship?.price ?? 0) > 0 });
       void finishArena(r.place, r.kills);
     },
-    [finishArena]
+    [finishArena, ship]
   );
   const endRef = useRef(handleEnd);
   endRef.current = handleEnd;
@@ -371,6 +371,7 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
             <p className="modal-body">
               {result.kills} {result.kills > 1 ? 'pilotes éliminés' : 'pilote éliminé'} · classé {result.place}/8
             </p>
+            {result.broke && <p className="modal-body">🔧 Ta soucoupe est cassée ! Répare-la dans l'écran Soucoupes.</p>}
             <div className="modal-actions">
               {!online && (
                 <button className="btn btn-yellow" onClick={onRetry}>

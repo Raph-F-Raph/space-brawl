@@ -4,7 +4,7 @@ import { sfx } from '../lib/audio';
 import { useGame } from '../lib/GameContext';
 import { CharacterArt, ShipArt } from './Art';
 import { StatBar } from './Ui';
-import { MAX_LEVEL, scaled, upgradeCost } from '../game/progress';
+import { MAX_LEVEL, REPAIR_COST, scaled, upgradeCost } from '../game/progress';
 import { RARITY_COLOR, RARITY_LABEL, type Character, type Ship } from '../types';
 import type { Kind } from './ItemCard';
 
@@ -39,6 +39,15 @@ export function ItemSheet({
   const gems = g.profile?.gems ?? 0;
   const style = { '--rarity': RARITY_COLOR[item.rarity] } as CSSProperties;
   const next = level < MAX_LEVEL;
+  const broken = !isChars && g.brokenShips.has(id);
+  const repairCost = REPAIR_COST[item.rarity] ?? 0;
+  async function repair() {
+    setBusy(true);
+    const err = await g.repairShip(id);
+    setBusy(false);
+    if (!err) sfx('buy');
+    onToast(err ?? 'Soucoupe réparée !');
+  }
 
   // Skins du personnage
   const charSkins = isChars ? g.skins.filter((s) => s.character_id === id) : [];
@@ -133,11 +142,16 @@ export function ItemSheet({
             <>
               <button
                 className={`btn ${selected ? 'btn-green' : 'btn-blue'}`}
-                disabled={selected}
+                disabled={selected || broken}
                 onClick={() => (isChars ? g.selectCharacter(id) : g.selectShip(id))}
               >
-                {selected ? '✓ Sélectionné' : 'Choisir'}
+                {selected ? '✓ Sélectionné' : broken ? '🔧 Cassée' : 'Choisir'}
               </button>
+              {broken && (
+                <button className={`btn ${coins >= repairCost ? 'btn-yellow' : 'btn-grey'}`} disabled={busy} onClick={() => void repair()}>
+                  Réparer 🪙 {repairCost}
+                </button>
+              )}
               {next ? (
                 <button className={`btn ${coins >= cost ? 'btn-yellow' : 'btn-grey'}`} disabled={busy} onClick={() => void upgrade()}>
                   Améliorer 🪙 {cost}

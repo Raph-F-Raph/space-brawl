@@ -953,3 +953,107 @@ end;
 $$;
 revoke all on function public.exchange_gems(int) from public, anon;
 grant execute on function public.exchange_gems(int) to authenticated;
+-- Soucoupes cassées + réparateur + coffres
+alter table public.player_ships add column if not exists broken boolean not null default false;
+
+create or replace function public.ship_repair_cost(p_rarity text) returns int language sql immutable as $$
+  select case p_rarity when 'rare' then 60 when 'super_rare' then 100 when 'epic' then 150 when 'mythic' then 200 when 'legendary' then 250 else 0 end;
+$$;
+
+-- La soucoupe sélectionnée casse (sauf la soucoupe de départ, gratuite), et la soucoupe de départ est resélectionnée
+create or replace function public.break_ship() returns void
+language plpgsql security definer set search_path = public as $$
+declare v_ship uuid; v_price int; v_start uuid;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select selected_ship into v_ship from public.profiles where id = auth.uid();
+  if v_ship is null then return; end if;
+  select price into v_price from public.ships where id = v_ship;
+  if coalesce(v_price, 0) = 0 then return; end if;
+  update public.player_ships set broken = true where user_id = auth.uid() and ship_id = v_ship;
+  select s.id into v_start from public.ships s join public.player_ships ps on ps.ship_id = s.id and ps.user_id = auth.uid()
+    where s.price = 0 order by s.sort_order limit 1;
+  if v_start is not null then update public.profiles set selected_ship = v_start where id = auth.uid(); end if;
+end; $$;
+
+create or replace function public.repair_ship(p_ship uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare v_cost int; v_coins int; v_broken boolean;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select broken into v_broken from public.player_ships where user_id = auth.uid() and ship_id = p_ship for update;
+  if v_broken is null then raise exception 'Soucoupe non possédée'; end if;
+  if not v_broken then raise exception 'Cette soucoupe n''est pas cassée'; end if;
+  select public.ship_repair_cost(rarity::text) into v_cost from public.ships where id = p_ship;
+  select coins into v_coins from public.profiles where id = auth.uid() for update;
+  if v_coins < v_cost then raise exception 'Pas assez de pièces'; end if;
+  update public.profiles set coins = coins - v_cost where id = auth.uid() returning coins into v_coins;
+  update public.player_ships set broken = false where user_id = auth.uid() and ship_id = p_ship;
+  return v_coins;
+end; $$;
+
+create or replace function public.select_ship(p_ship uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_broken boolean;
+begin
+  select broken into v_broken from public.player_ships where user_id = auth.uid() and ship_id = p_ship;
+  if v_broken is null then raise exception 'Soucoupe non possédée'; end if;
+  if v_broken then raise exception 'Soucoupe cassée : répare-la d''abord'; end if;
+  update public.profiles set selected_ship = p_ship where id = auth.uid();
+end; $$;
+
+-- Coffres : bronze 300 pièces, argent 8 gemmes, or 20 gemmes
+create or replace function public.open_chest(p_kind text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid := auth.uid(); v_coins int; v_gems int; v_roll float := random(); v_r float := random();
+  v_rarity text; v_item record; v_kind text; v_amount int; v_item_chance float; v_cost_coins int := 0; v_cost_gems int := 0;
+begin
+  if v_uid is null then raise exception 'Connexion requise'; end if;
+  if p_kind = 'bronze' then v_cost_coins := 300; v_item_chance := 0.03;
+  elsif p_kind = 'argent' then v_cost_gems := 8; v_item_chance := 0.15;
+  elsif p_kind = 'or' then v_cost_gems := 20; v_item_chance := 0.25;
+  else raise exception 'Coffre inconnu'; end if;
+  select coins, gems into v_coins, v_gems from public.profiles where id = v_uid for update;
+  if v_coins < v_cost_coins then raise exception 'Pas assez de pièces'; end if;
+  if v_gems < v_cost_gems then raise exception 'Pas assez de gemmes'; end if;
+  update public.profiles set coins = coins - v_cost_coins, gems = gems - v_cost_gems where id = v_uid;
+
+  if v_roll < v_item_chance then
+    v_rarity := case p_kind
+      when 'bronze' then 'rare'
+      when 'argent' then case when v_r < 0.6 then 'rare' when v_r < 0.9 then 'super_rare' else 'epic' end
+      else case when v_r < 0.35 then 'rare' when v_r < 0.65 then 'super_rare' when v_r < 0.85 then 'epic' when v_r < 0.95 then 'mythic' else 'legendary' end end;
+    select * into v_item from (
+      select 'character' k, c.id, c.name from public.characters c where c.rarity::text = v_rarity
+        and not exists (select 1 from public.player_characters pc where pc.user_id = v_uid and pc.character_id = c.id)
+      union all
+      select 'ship', s.id, s.name from public.ships s where s.rarity::text = v_rarity
+        and not exists (select 1 from public.player_ships ps where ps.user_id = v_uid and ps.ship_id = s.id)
+      union all
+      select 'skin', k.id, k.name from public.skins k where (case k.price when 60 then 'super_rare' when 80 then 'epic' else 'rare' end) = v_rarity
+        and not exists (select 1 from public.player_skins pk where pk.user_id = v_uid and pk.skin_id = k.id)
+    ) t order by random() limit 1;
+    if v_item.id is not null then
+      if v_item.k = 'character' then insert into public.player_characters (user_id, character_id) values (v_uid, v_item.id);
+      elsif v_item.k = 'ship' then insert into public.player_ships (user_id, ship_id) values (v_uid, v_item.id);
+      else insert into public.player_skins (user_id, skin_id) values (v_uid, v_item.id); end if;
+      return jsonb_build_object('type', v_item.k, 'name', v_item.name, 'rarity', v_rarity, 'id', v_item.id);
+    end if;
+  end if;
+
+  -- sinon : pièces ou gemmes (ou lot de consolation si le tirage d'objet n'avait rien de nouveau)
+  if v_roll < v_item_chance + (1 - v_item_chance) * (case p_kind when 'bronze' then 0.78 when 'argent' then 0.55 else 0.4 end) then
+    v_kind := 'coins';
+    v_amount := case p_kind when 'bronze' then 150 + floor(random() * 301)::int when 'argent' then 400 + floor(random() * 501)::int else 800 + floor(random() * 701)::int end;
+    update public.profiles set coins = coins + v_amount where id = v_uid;
+  else
+    v_kind := 'gems';
+    v_amount := case p_kind when 'bronze' then 1 + floor(random() * 3)::int when 'argent' then 4 + floor(random() * 7)::int else 10 + floor(random() * 21)::int end;
+    update public.profiles set gems = gems + v_amount where id = v_uid;
+  end if;
+  return jsonb_build_object('type', v_kind, 'amount', v_amount);
+end; $$;
+
+revoke all on function public.break_ship(), public.repair_ship(uuid), public.open_chest(text), public.select_ship(uuid) from public, anon;
+grant execute on function public.break_ship(), public.repair_ship(uuid), public.open_chest(text), public.select_ship(uuid) to authenticated;

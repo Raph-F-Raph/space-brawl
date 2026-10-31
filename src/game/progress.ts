@@ -19,6 +19,9 @@ export function scaled(base: number, level: number): number {
   return Math.round(base * levelMult(level));
 }
 
+/** Coût de réparation d'une soucoupe cassée (doit rester identique à ship_repair_cost en base). */
+export const REPAIR_COST: Record<string, number> = { common: 0, rare: 60, super_rare: 100, epic: 150, mythic: 200, legendary: 250 };
+
 // Gemmes gagnées (pour l'affichage ; le calcul réel est fait par la base de données)
 export const GEMS_FIRST_CLEAR = 0; // les niveaux normaux ne donnent plus de gemmes
 export const GEMS_BOSS_FIRST_CLEAR = 15;

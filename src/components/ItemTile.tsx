@@ -11,6 +11,7 @@ export function ItemTile({
   owned,
   selected,
   level = 1,
+  broken,
   onOpen,
 }: {
   kind: Kind;
@@ -18,12 +19,13 @@ export function ItemTile({
   owned: boolean;
   selected?: boolean;
   level?: number;
+  broken?: boolean;
   onOpen: () => void;
 }) {
   const isChars = kind === 'characters';
   const style = { '--rarity': RARITY_COLOR[item.rarity] } as CSSProperties;
   return (
-    <button className={`tile rar-${item.rarity} ${selected ? 'selected' : ''} ${owned ? '' : 'locked'}`} style={style} onClick={onOpen}>
+    <button className={`tile rar-${item.rarity} ${selected ? 'selected' : ''} ${owned ? '' : 'locked'} ${broken ? 'broken' : ''}`} style={style} onClick={onOpen}>
       <div className="tile-art">
         {isChars ? (
           <CharacterArt color={item.color} accent={item.accent} variant={item.sort_order} look={(item as Character).style} size={64} />
@@ -34,7 +36,7 @@ export function ItemTile({
       </div>
       <span className="tile-name">{item.name}</span>
       {owned ? (
-        <span className="tile-sub">{selected ? '✓ ' : ''}Niv. {level}/{MAX_LEVEL}</span>
+        <span className="tile-sub">{broken ? '🔧 Cassée' : `${selected ? '✓ ' : ''}Niv. ${level}/${MAX_LEVEL}`}</span>
       ) : (
         <span className="tile-sub tile-price">💎 {item.price.toLocaleString('fr-FR')}</span>
       )}
