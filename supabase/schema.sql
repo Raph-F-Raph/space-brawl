@@ -1067,3 +1067,5 @@ create table if not exists public.trophy_claims (
 alter table public.trophy_claims enable row level security;
 create policy "trophy_claims: lecture de ses propres paliers" on public.trophy_claims for select to authenticated using (user_id = auth.uid());
 -- claim_trophy_reward(p_step) : paliers 10,30,60,100,150,220,300,400,500,650 trophées ; pièces aux paliers impairs, gemmes aux pairs
+
+-- Chapitres 7 et 8 : complete_level accepte maintenant p_chapter de 1 à 8 (migration "chapitres_7_et_8"; même corps que la version des chapitres 2 à 6, avec bump_missions)

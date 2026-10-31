@@ -200,6 +200,22 @@ const SEEDS: ChapterSeed[] = [
     bg2: '#2b1b3d',
     enemy: { grunt: '#adb5bd', fast: '#f72585', tank: '#4361ee', minion: '#e5e5e5', boss: '#ffffff' },
   },
+  {
+    name: 'La cité des robots',
+    bossName: 'Mécanox',
+    levelNames: ['Usine en ruine', 'Chaîne de montage', 'Réacteur surchauffé', 'Tour de contrôle'],
+    bg1: '#021a1f',
+    bg2: '#0b6e7a',
+    enemy: { grunt: '#9ad1d4', fast: '#00f5d4', tank: '#577590', minion: '#caf0f8', boss: '#00bbf9' },
+  },
+  {
+    name: 'Le cœur de la galaxie',
+    bossName: 'Galaxor',
+    levelNames: ['Étoiles jumelles', 'Pluie de comètes', 'Tempête stellaire', 'Le trône cosmique'],
+    bg1: '#1a0533',
+    bg2: '#b5179e',
+    enemy: { grunt: '#ffd166', fast: '#ff4d6d', tank: '#7209b7', minion: '#ffe5ec', boss: '#ffd700' },
+  },
 ];
 
 function scaleWaves(waves: WaveEntry[][], factor: number): WaveEntry[][] {

@@ -661,12 +661,24 @@ export class Engine {
       else if (ch === 3) { fan(phase2 ? 7 : 5, 0.22); if (e.pattern % 3 === 0) ring(12, 150, 0); wait = phase2 ? 1.1 : 1.5; }
       else if (ch === 4) { ring(phase2 ? 20 : 14, 175, this.time * 0.7); wait = phase2 ? 1.3 : 2; }
       else if (ch === 5) { ring(10, 140, 0); ring(10, 210, 0.3); wait = phase2 ? 1.5 : 2.2; }
-      else {
+      else if (ch === 6) {
         // chapitre 6 : il enchaîne tous les tirs
         const k = e.pattern % 3;
         if (k === 0) ring(phase2 ? 20 : 14, 180, this.time);
         else if (k === 1) fan(phase2 ? 9 : 7, 0.2);
         else { spiral(); wait = 0.5; }
+      } else if (ch === 7) {
+        // chapitre 7 : deux rayons en croix qui tournent, puis un éventail visé
+        const k = e.pattern % 4;
+        if (k === 3) { fan(phase2 ? 9 : 7, 0.18); wait = 1.2; }
+        else { ring(4, 230, this.time * 1.3); ring(4, 170, this.time * 1.3 + 0.4); wait = phase2 ? 0.45 : 0.65; }
+      } else {
+        // chapitre 8 (dernier boss) : anneau double, éventail visé et spirale
+        const k = e.pattern % 4;
+        if (k === 0) { ring(phase2 ? 22 : 16, 170, this.time); ring(phase2 ? 22 : 16, 230, this.time + 0.2); }
+        else if (k === 1) fan(phase2 ? 11 : 9, 0.17);
+        else if (k === 2) { spiral(); wait = 0.35; }
+        else { ring(8, 260, toPlayer); wait = 0.9; }
       }
       e.shootT = wait;
       sfx('bossShot');
@@ -676,7 +688,7 @@ export class Engine {
     if (e.summonT <= 0) {
       this.spawn('minion', { x: e.x - 40, y: e.y });
       this.spawn('minion', { x: e.x + 40, y: e.y });
-      e.summonT = this.level.chapter === 5 ? 5.5 : 9;
+      e.summonT = this.level.chapter === 5 || this.level.chapter >= 7 ? 5.5 : 9;
     }
 
     e.x = clamp(e.x, e.r, W - e.r);
@@ -1006,10 +1018,11 @@ export class Engine {
         const chp = this.level.chapter;
         if (chp >= 2) {
           c.save();
-          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : '#ffd23f';
-          if (chp === 2 || chp === 6) {
-            for (let k = 0; k < 3; k++) {
-              const a2 = this.time * (chp === 6 ? 2.4 : 1.4) + (k / 3) * TAU;
+          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : chp === 7 ? '#90e0ef' : '#ffd23f';
+          if (chp === 2 || chp === 6 || chp === 8) {
+            const n = chp === 8 ? 5 : 3;
+            for (let k = 0; k < n; k++) {
+              const a2 = this.time * (chp === 6 || chp === 8 ? 2.4 : 1.4) + (k / n) * TAU;
               c.beginPath();
               c.arc(Math.cos(a2) * r * 1.35, Math.sin(a2) * r * 1.35, r * 0.17, 0, TAU);
               c.fill();
