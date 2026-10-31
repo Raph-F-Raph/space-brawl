@@ -926,3 +926,15 @@ language sql security definer set search_path = public stable as $$
 $$;
 revoke all on function public.get_leaderboard() from public, anon;
 grant execute on function public.get_leaderboard() to authenticated;
+
+-- Suppression de compte (exigée par le Play Store) : tout est supprimé en cascade
+create or replace function public.delete_account()
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'non connecté'; end if;
+  delete from auth.users where id = auth.uid();
+  delete from public.clans c where not exists (select 1 from public.profiles p where p.clan_id = c.id);
+end;
+$$;
+revoke all on function public.delete_account() from public, anon;
+grant execute on function public.delete_account() to authenticated;

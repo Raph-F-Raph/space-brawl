@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../lib/GameContext';
-import { TopBar } from '../components/Ui';
+import { ConfirmModal, TopBar } from '../components/Ui';
+import { supabase } from '../lib/supabase';
 import { loadSettings, saveSettings } from '../lib/settings';
 import { applyAudioSettings, sfx } from '../lib/audio';
 import { canPromptInstall, isIos, isStandalone, onInstallChange, promptInstall } from '../lib/install';
@@ -13,6 +14,22 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
   const [canInstall, setCanInstall] = useState(canPromptInstall());
   useEffect(() => onInstallChange(() => setCanInstall(canPromptInstall())), []);
   const installed = isStandalone();
+  const [askDelete, setAskDelete] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [delError, setDelError] = useState<string | null>(null);
+
+  async function deleteAccount() {
+    setDeleting(true);
+    setDelError(null);
+    const { error } = await supabase.rpc('delete_account');
+    if (error) {
+      setDeleting(false);
+      setDelError("La suppression n'a pas marché. Réessaie dans un instant.");
+      return;
+    }
+    await signOut();
+  }
 
   function toggleVibration() {
     const next = !vibration;
@@ -51,7 +68,35 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
           <button className="btn btn-red btn-small" onClick={() => void signOut()}>
             Se déconnecter
           </button>
+          <p className="legend">
+            <a href="privacy.html" target="_blank" rel="noreferrer">
+              Politique de confidentialité
+            </a>
+          </p>
+          <button className="btn btn-grey btn-small" onClick={() => { setTyped(''); setDelError(null); setAskDelete(true); }}>
+            Supprimer mon compte
+          </button>
         </div>
+
+        {askDelete && (
+          <ConfirmModal
+            title="Supprimer ton compte ?"
+            confirmLabel="Supprimer pour toujours"
+            confirmDisabled={typed.trim().toUpperCase() !== 'SUPPRIMER'}
+            busy={deleting}
+            error={delError}
+            onConfirm={() => void deleteAccount()}
+            onClose={() => setAskDelete(false)}
+          >
+            <p>
+              Ton compte, tes personnages, tes soucoupes, tes gemmes, tes pièces et ta progression seront effacés définitivement. Tu ne pourras pas les récupérer.
+            </p>
+            <p>
+              Pour confirmer, écris <strong>SUPPRIMER</strong> :
+            </p>
+            <input className="room-code-input" style={{ width: '100%', letterSpacing: 2, fontSize: 18 }} value={typed} onChange={(e) => setTyped(e.target.value)} />
+          </ConfirmModal>
+        )}
 
         <div className="panel">
           <h2 className="panel-title">Installer le jeu</h2>
