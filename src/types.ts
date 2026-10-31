@@ -78,6 +78,8 @@ export type Screen =
   | 'level'
   | 'arena'
   | 'leaderboard'
+  | 'profile'
+  | 'trophyroad'
   | 'room'
   | 'settings';
 

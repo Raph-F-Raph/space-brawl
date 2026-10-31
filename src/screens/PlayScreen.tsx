@@ -40,11 +40,6 @@ export function PlayScreen({
             <span className="mode-tag">Solo · jouable hors ligne</span>
           </button>
         </div>
-        <div className="modes">
-          <button className="btn btn-blue" onClick={() => onNavigate('leaderboard')}>
-            🏆 Classement des pilotes
-          </button>
-        </div>
       </div>
     </div>
   );

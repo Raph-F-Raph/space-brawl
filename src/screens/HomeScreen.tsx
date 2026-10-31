@@ -20,7 +20,7 @@ export function HomeScreen({
   return (
     <div className="screen home">
       <header className="topbar">
-        <div className="player-pill">
+        <button className="player-pill" onClick={() => onNavigate('profile')} aria-label="Mon profil">
           <div className="avatar">{(profile?.username ?? '?').slice(0, 1).toUpperCase()}</div>
           <div>
             <div className="player-name">{profile?.username}</div>
@@ -28,7 +28,7 @@ export function HomeScreen({
               {done ? 'Tous les chapitres terminés ★' : `Chapitre ${chapter.id} · niveau ${Math.min(cleared + 1, 5)}/5`}
             </div>
           </div>
-        </div>
+        </button>
         <div className="spacer" />
         <Currency icon="🪙" value={profile?.coins ?? 0} />
         <Currency icon="💎" value={profile?.gems ?? 0} />

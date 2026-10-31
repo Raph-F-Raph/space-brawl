@@ -8,6 +8,8 @@ import { CollectionScreen } from './screens/CollectionScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { ChaptersScreen } from './screens/ChaptersScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
+import { ProfileScreen } from './screens/ProfileScreen';
+import { TrophyRoadScreen } from './screens/TrophyRoadScreen';
 import { ArenaScreen, type OnlineSession } from './screens/ArenaScreen';
 import { RoomScreen } from './screens/RoomScreen';
 import { LevelScreen } from './screens/LevelScreen';
@@ -146,7 +148,11 @@ function Shell() {
       />
     );
   } else if (screen === 'leaderboard') {
-    content = <LeaderboardScreen onBack={() => setScreen('play')} />;
+    content = <LeaderboardScreen onBack={() => setScreen('profile')} />;
+  } else if (screen === 'trophyroad') {
+    content = <TrophyRoadScreen onBack={() => setScreen('profile')} />;
+  } else if (screen === 'profile') {
+    content = <ProfileScreen onBack={() => setScreen('home')} onNavigate={setScreen} />;
   } else if (screen === 'characters') {
     content = <CollectionScreen kind="characters" onBack={() => setScreen('home')} />;
   } else if (screen === 'ships') {

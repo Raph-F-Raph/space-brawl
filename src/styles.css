@@ -1677,3 +1677,6 @@ button.mode-card:active {
 @keyframes chest-pop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .tile.broken .tile-art { filter: grayscale(0.9) brightness(0.7); }
 .tile.broken .tile-sub { color: #ff9f1c; }
+
+button.player-pill { font: inherit; color: inherit; text-align: left; cursor: pointer; }
+button.player-pill:active { transform: scale(0.97); }
