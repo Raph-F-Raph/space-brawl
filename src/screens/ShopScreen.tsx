@@ -49,9 +49,9 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
   }
 
   const CHESTS = [
-    { kind: 'bronze' as const, icon: '📦', name: 'Coffre Bronze', cost: 300, unit: '🪙', hint: 'Pièces, gemmes… et parfois un pilote rare !' },
-    { kind: 'argent' as const, icon: '🧰', name: 'Coffre Argent', cost: 8, unit: '💎', hint: 'Plus de pièces et de gemmes, jusqu\'à un pilote épique.' },
-    { kind: 'or' as const, icon: '🏆', name: 'Méga Coffre Or', cost: 20, unit: '💎', hint: 'Gros gains, skins et même un légendaire !' },
+    { kind: 'bronze' as const, icon: '📦', name: 'Coffre Bronze', cost: 300, unit: '🪙', hint: 'Pièces ou gemmes, avec une petite chance d\'avoir un pilote, une soucoupe ou un skin.' },
+    { kind: 'argent' as const, icon: '🧰', name: 'Coffre Argent', cost: 8, unit: '💎', hint: 'Plus de gains, et une chance d\'avoir un pilote, une soucoupe ou un skin (jusqu\'à épique).' },
+    { kind: 'or' as const, icon: '🏆', name: 'Méga Coffre Or', cost: 20, unit: '💎', hint: 'Gros gains, et la meilleure chance d\'avoir un pilote, une soucoupe ou un skin (jusqu\'à légendaire).' },
   ];
   const [opening, setOpening] = useState<string | null>(null);
   const [loot, setLoot] = useState<{ chest: string; icon: string; loot: ChestLoot } | null>(null);
@@ -266,7 +266,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
               );
             })}
           </div>
-          <p className="legend shop-note">Les objets que tu possèdes déjà ne sortent pas : tu ne perds rien.</p>
+          <p className="legend shop-note">Un objet n'est pas garanti : c'est une chance. Ceux que tu as déjà ne sortent pas.</p>
         </section>
 
         <section className="chapter">
