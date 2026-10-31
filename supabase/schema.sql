@@ -938,3 +938,18 @@ end;
 $$;
 revoke all on function public.delete_account() from public, anon;
 grant execute on function public.delete_account() to authenticated;
+
+-- Échange gemmes -> pièces (1 gemme = 100 pièces ; 1, 5 ou 20 gemmes à la fois)
+create or replace function public.exchange_gems(p_gems int) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_gems int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if p_gems not in (1, 5, 20) then raise exception 'Échange invalide'; end if;
+  select gems into v_gems from public.profiles where id = auth.uid() for update;
+  if v_gems is null or v_gems < p_gems then raise exception 'Pas assez de gemmes'; end if;
+  update public.profiles set gems = gems - p_gems, coins = coins + p_gems * 100 where id = auth.uid();
+end;
+$$;
+revoke all on function public.exchange_gems(int) from public, anon;
+grant execute on function public.exchange_gems(int) to authenticated;

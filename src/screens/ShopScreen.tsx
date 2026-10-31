@@ -48,6 +48,14 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
     buy.showToast(err ?? `Mission accomplie ! ${MISSIONS[i].reward}`);
   }
 
+  async function exchange(n: number) {
+    setBusy(true);
+    const err = await g.exchangeGems(n);
+    setBusy(false);
+    if (!err) sfx('coin');
+    buy.showToast(err ?? `Échange réussi : +${n * 100} 🪙`);
+  }
+
   async function claim() {
     setBusy(true);
     const err = await g.claimDailyGift();
@@ -214,23 +222,49 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           <p className="legend">Les pièces 🪙 servent à améliorer tes personnages et soucoupes (écrans Personnages et Soucoupes).</p>
         </section>
 
+        <section className="chapter">
+          <h2 className="chapter-title">
+            Échange <span>gemmes → pièces</span>
+          </h2>
+          <p className="legend shop-note">1 💎 = 100 🪙. Pratique pour améliorer vite tes pilotes.</p>
+          <div className="packs">
+            {[1, 5, 20].map((n) => (
+              <div className="pack" key={n}>
+                <span className="pack-icon">🪙</span>
+                <strong>{n * 100} 🪙</strong>
+                <button className={`btn btn-small ${gems >= n ? 'btn-yellow' : 'btn-grey'}`} disabled={busy || gems < n} onClick={() => void exchange(n)}>
+                  💎 {n}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="chapter chapter-locked">
           <h2 className="chapter-title">
             Packs <span>bientôt</span>
           </h2>
+          <p className="legend shop-note">Gemmes 💎</p>
           <div className="packs">
-            <div className="pack" aria-disabled="true">
-              <span className="pack-icon">💎</span>
-              <strong>Pochette de gemmes</strong>
-              <span className="badge">Bientôt</span>
-            </div>
-            <div className="pack" aria-disabled="true">
-              <span className="pack-icon">🪙</span>
-              <strong>Coffre de pièces</strong>
-              <span className="badge">Bientôt</span>
-            </div>
+            {[[20, '0,99 €'], [45, '1,99 €'], [120, '4,99 €'], [260, '9,99 €'], [560, '19,99 €']].map(([n, p]) => (
+              <div className="pack" key={n} aria-disabled="true">
+                <span className="pack-icon">💎</span>
+                <strong>{n}</strong>
+                <span className="badge">{p}</span>
+              </div>
+            ))}
           </div>
-          <p className="legend">Les achats avec de l'argent réel ne sont pas encore disponibles.</p>
+          <p className="legend shop-note">Pièces 🪙</p>
+          <div className="packs">
+            {[[600, '0,99 €'], [1500, '1,99 €'], [4000, '4,99 €']].map(([n, p]) => (
+              <div className="pack" key={n} aria-disabled="true">
+                <span className="pack-icon">🪙</span>
+                <strong>{n}</strong>
+                <span className="badge">{p}</span>
+              </div>
+            ))}
+          </div>
+          <p className="legend">Les achats avec de l'argent réel arriveront à la sortie sur le Play Store.</p>
         </section>
       </div>
 

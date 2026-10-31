@@ -42,6 +42,7 @@ interface GameState {
   claimDailyGift: () => Promise<string | null>;
   missions: { played: number; won: number; coins: number; claimed: number };
   claimMission: (index: number) => Promise<string | null>;
+  exchangeGems: (gems: number) => Promise<string | null>;
   // Skins
   skins: Skin[];
   ownedSkins: Set<string>;
@@ -275,6 +276,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [session, loadData]
   );
 
+  const exchangeGems = useCallback(
+    async (gems: number) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('exchange_gems', { p_gems: gems });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
   const clearedLevel = useCallback(
     (chapter: number) => progress.find((p) => p.chapter === chapter)?.cleared_level ?? 0,
     [progress]
@@ -360,6 +371,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     claimDailyGift,
     missions,
     claimMission,
+    exchangeGems,
     skins,
     ownedSkins,
     equippedSkin,
