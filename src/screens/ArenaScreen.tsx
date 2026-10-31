@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { useGame } from '../lib/GameContext';
 import { makeStats } from '../game/engine';
-import { ArenaEngine, type ArenaResult } from '../game/arena';
+import { ArenaEngine, type ArenaResult, type HumanSlot, type StartMsg } from '../game/arena';
+import type { Room } from '../lib/room';
+
+export interface OnlineSession {
+  room: Room;
+  role: 'host' | 'guest';
+  myId: number;
+  seed: number;
+  humans?: HumanSlot[]; // hôte : les vrais joueurs
+  ids?: Record<string, number>; // hôte : clé du joueur -> numéro de pilote
+  start?: StartMsg; // invité : reçu de l'hôte
+}
 
 const JOY_RADIUS = 60;
 const FIRE_RADIUS = 55;
@@ -9,6 +20,7 @@ const FIRE_RADIUS = 55;
 interface Props {
   onExit: () => void;
   onRetry: () => void;
+  online?: OnlineSession | null;
 }
 
 const TROPHY = (place: number) => [30, 20, 10, 5, 0, -3, -5, -8][place - 1] ?? 0;
@@ -16,7 +28,7 @@ const TROPHY = (place: number) => [30, 20, 10, 5, 0, -3, -5, -8][place - 1] ?? 0
 const REWARD = (place: number, kills: number) =>
   (place === 1 ? 120 : place === 2 ? 80 : place === 3 ? 60 : place === 4 ? 40 : 20) + 10 * Math.max(0, Math.min(kills, 7));
 
-export function ArenaScreen({ onExit, onRetry }: Props) {
+export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
   const { character, ship, charLevel, shipLevel, finishArena, profile } = useGame();
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -42,10 +54,11 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
   const [userPaused, setUserPaused] = useState(false);
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches);
   const [firing, setFiring] = useState(false);
+  const [hostLeft, setHostLeft] = useState(false);
   const [result, setResult] = useState<(ArenaResult & { coins: number }) | null>(null);
 
   const pausedRef = useRef(false);
-  pausedRef.current = userPaused || portrait;
+  pausedRef.current = (userPaused || portrait) && !online; // en ligne, la partie des autres ne s'arrête pas
 
   const handleEnd = useCallback(
     (r: ArenaResult) => {
@@ -61,10 +74,27 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap || !character || !ship) return;
+    const myStats = makeStats(character, ship, charLevel, shipLevel);
     const engine = new ArenaEngine(
       canvas,
-      makeStats(character, ship, charLevel, shipLevel),
-      profile?.username ?? 'Toi',
+      online
+        ? online.role === 'host'
+          ? {
+              mode: 'host',
+              myId: online.myId,
+              seed: online.seed,
+              humans: online.humans ?? [],
+              net: { sendState: (m) => online.room.sendState(m), sendInput: () => undefined, sendResult: (m) => online.room.sendResult(m) },
+            }
+          : {
+              mode: 'guest',
+              myId: online.myId,
+              seed: online.seed,
+              humans: [],
+              start: online.start,
+              net: { sendState: () => undefined, sendInput: (m) => online.room.sendInput(online.myId, m), sendResult: () => undefined },
+            }
+        : { mode: 'solo', myId: 0, seed: Math.floor(Math.random() * 1e9), humans: [{ id: 0, name: profile?.username ?? 'Toi', stats: myStats }] },
       (h) => {
         if (hpFill.current) hpFill.current.style.width = `${(h.hp / h.maxHp) * 100}%`;
         if (hpText.current) hpText.current.textContent = `${h.hp}`;
@@ -79,6 +109,16 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
     );
     engine.paused = pausedRef.current;
     engineRef.current = engine;
+    if (online) {
+      const room = online.room;
+      room.on('input', (id, m) => engine.applyInput(id, m));
+      room.on('state', (m) => engine.applyState(m));
+      room.on('result', (m) => engine.applyResult(m));
+      room.on('hostLeft', () => setHostLeft(true));
+      if (online.role === 'host') {
+        room.sendStart({ seed: online.seed, pilots: engine.describe(), ids: online.ids ?? {} });
+      }
+    }
     if (new URLSearchParams(location.search).has('debug')) (window as unknown as { __arena?: ArenaEngine }).__arena = engine;
     const fit = () => {
       const rect = wrap.getBoundingClientRect();
@@ -92,13 +132,14 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
       ro.disconnect();
       engine.destroy();
       engineRef.current = null;
+      if (online) void online.room.leave();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character?.id, ship?.id]);
 
   // --- Pause (bouton, écran en portrait, application en arrière-plan) ---
   useEffect(() => {
-    if (engineRef.current) engineRef.current.paused = userPaused || portrait;
+    if (engineRef.current) engineRef.current.paused = (userPaused || portrait) && !online;
   }, [userPaused, portrait]);
 
   useEffect(() => {
@@ -301,6 +342,20 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
         </div>
       )}
 
+      {hostLeft && !result && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2 className="title">Partie terminée</h2>
+            <p className="modal-body">L'hôte a quitté le salon.</p>
+            <div className="modal-actions">
+              <button className="btn btn-red" onClick={onExit}>
+                Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Résultat */}
       {result && (
         <div className="modal-overlay">
@@ -317,9 +372,11 @@ export function ArenaScreen({ onExit, onRetry }: Props) {
               {result.kills} {result.kills > 1 ? 'pilotes éliminés' : 'pilote éliminé'} · classé {result.place}/8
             </p>
             <div className="modal-actions">
-              <button className="btn btn-yellow" onClick={onRetry}>
-                Rejouer
-              </button>
+              {!online && (
+                <button className="btn btn-yellow" onClick={onRetry}>
+                  Rejouer
+                </button>
+              )}
               <button className="btn btn-red" onClick={onExit}>
                 Menu
               </button>

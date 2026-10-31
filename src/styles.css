@@ -1660,3 +1660,10 @@ button.mode-card:active {
 .board-rank { width: 40px; text-align: center; font-size: 20px; }
 .board-name { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board-score { color: #ffe08a; }
+
+.room-menu, .room-lobby { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0; }
+.room-join { display: flex; gap: 10px; align-items: center; }
+.room-code-input { width: 120px; text-align: center; font: 900 26px var(--font-body); letter-spacing: 6px; padding: 8px; border-radius: 14px; border: 3px solid #3a4fd0; background: #0b1030; color: #fff; text-transform: uppercase; }
+.room-code { font: 900 54px var(--font-title, var(--font-body)); letter-spacing: 12px; color: #ffd23f; text-shadow: 0 4px 0 #0b1030; background: #0b1030; border: 3px solid #ffd23f; border-radius: 18px; padding: 4px 22px 4px 34px; }
+.room-error { color: #ff8fa3; font: 800 15px var(--font-body); margin: 0; }
+.room-lobby .board { width: 100%; max-width: 420px; }

@@ -30,12 +30,70 @@ const BOT_COLORS: [string, string, string][] = [
 ];
 const KINDS: AttackKind[] = ['laser', 'burst', 'pierce', 'shockwave', 'spread'];
 
+export interface InputMsg {
+  jx: number;
+  jy: number;
+  fire: boolean;
+  ax: number | null;
+  ay: number | null;
+}
+export interface PilotInfo {
+  id: number;
+  name: string;
+  human: boolean;
+  charColor: string;
+  charAccent: string;
+  shipColor: string;
+  shipAccent: string;
+  maxHp: number;
+  kind: AttackKind;
+}
+export interface StartMsg {
+  seed: number;
+  pilots: PilotInfo[];
+}
+export interface StateMsg {
+  t: number;
+  z: number;
+  p: number[][]; // [id, x, y, hp, facing, vivant, éliminations, flash, invulnérable]
+  b: number[][]; // [x, y, vx, vy, rayon, propriétaire]
+  r: number[][]; // [x, y, portée, vie restante, propriétaire]
+}
+export interface ResultMsg {
+  id: number;
+  place: number;
+  kills: number;
+}
+export interface ArenaNet {
+  sendState(s: StateMsg): void; // hôte -> invités
+  sendInput(i: InputMsg): void; // invité -> hôte
+  sendResult(r: ResultMsg): void; // hôte -> invité éliminé
+}
+export interface HumanSlot {
+  id: number;
+  name: string;
+  stats: PlayerStats;
+}
+export interface ArenaOptions {
+  mode: 'solo' | 'host' | 'guest';
+  myId: number;
+  seed: number;
+  humans: HumanSlot[]; // solo / hôte : les vrais joueurs (ids 0, 1, 2…)
+  start?: StartMsg; // invité : description des 8 pilotes envoyée par l'hôte
+  net?: ArenaNet;
+}
+
 interface Pilot {
   id: number;
   name: string;
-  isPlayer: boolean;
+  isPlayer: boolean; // c'est moi (sur cet appareil)
+  human: boolean;
+  input: InputMsg | null;
+  inputAt: number;
   x: number;
   y: number;
+  tx: number;
+  ty: number;
   hp: number;
   maxHp: number;
   speed: number;
@@ -97,6 +155,16 @@ export interface ArenaResult {
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+function mulberry32(a: number) {
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export class ArenaEngine {
   keys = new Set<string>();
   joy = { x: 0, y: 0 };
@@ -111,40 +179,76 @@ export class ArenaEngine {
   private raf = 0;
   private last = 0;
   private running = false;
-  private ended = false;
+  private ended = false; // mon résultat est connu
+  private matchOver = false; // il ne reste qu'un pilote (hôte / solo)
+  private overT = 0;
   private time = 0;
   private pilots: Pilot[] = [];
   private bullets: Bullet[] = [];
   private rocks: Rock[] = [];
-  private rings: { x: number; y: number; max: number; life: number; color: string }[] = [];
+  private rings: { x: number; y: number; max: number; life: number; color: string; owner?: number }[] = [];
   private stars: { x: number; y: number; r: number }[] = [];
   private cam = { x: 0, y: 0 };
   private zoneR = ZONE_START;
   private dmgTick = 0;
-  private endTimer = 0;
+  private placed = new Set<number>();
+  private netT = 0;
+  private inputT = 0;
+  private lastFire = false;
+  private snapAt = 0;
+  private snapB: number[][] = [];
+  private snapR: number[][] = [];
+  private gotSnap = false;
+  private myId: number;
+  private mode: 'solo' | 'host' | 'guest';
+  private net?: ArenaNet;
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private stats: PlayerStats,
-    private playerName: string,
+    opts: ArenaOptions,
     private onHud: (h: ArenaHud) => void,
     private onEnd: (r: ArenaResult) => void
   ) {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas non supporté');
     this.ctx = ctx;
-    this.makeRocks();
+    this.mode = opts.mode;
+    this.myId = opts.myId;
+    this.net = opts.net;
+    const rnd = mulberry32(opts.seed);
+    this.makeRocks(rnd);
     for (let i = 0; i < 260; i++) this.stars.push({ x: Math.random() * WORLD, y: Math.random() * WORLD, r: 0.6 + Math.random() * 1.6 });
 
-    // Les 8 pilotes partent en cercle autour du centre
+    if (opts.mode === 'guest' && opts.start) {
+      // l'hôte décide de tout : on reçoit juste l'apparence des pilotes
+      for (const info of opts.start.pilots) {
+        const pl = this.makePilot(
+          info.id,
+          info.name,
+          info.id === this.myId,
+          WORLD / 2,
+          WORLD / 2,
+          { maxHp: info.maxHp, damage: 0, reduction: 0, speed: 0, attackKind: info.kind, charColor: info.charColor, charAccent: info.charAccent, shipColor: info.shipColor, shipAccent: info.shipAccent }
+        );
+        pl.human = info.human;
+        this.pilots.push(pl);
+      }
+      return;
+    }
+
+    // Les 8 pilotes partent en cercle autour du centre : les vrais joueurs d'abord, puis les robots
     const names = [...BOT_NAMES].sort(() => Math.random() - 0.5);
-    const start = Math.random() * TAU;
+    const start = rnd() * TAU;
+    const humans = opts.humans;
     for (let i = 0; i < COUNT; i++) {
       const a = start + (i / COUNT) * TAU;
       const px = WORLD / 2 + Math.cos(a) * 650;
       const py = WORLD / 2 + Math.sin(a) * 650;
-      if (i === 0) {
-        this.pilots.push(this.makePilot(0, playerName, true, px, py, stats));
+      const h = humans.find((x) => x.id === i);
+      if (h) {
+        const pl = this.makePilot(i, h.name, i === this.myId, px, py, h.stats);
+        pl.human = true;
+        this.pilots.push(pl);
       } else {
         const [cc, ca, sc] = BOT_COLORS[i % BOT_COLORS.length];
         const hpBase = 130 + Math.random() * 60;
@@ -165,13 +269,33 @@ export class ArenaEngine {
     }
   }
 
+  /** Description des pilotes à envoyer aux invités quand l'hôte lance la partie. */
+  describe(): PilotInfo[] {
+    return this.pilots.map((p) => ({
+      id: p.id,
+      name: p.name,
+      human: p.human,
+      charColor: p.charColor,
+      charAccent: p.charAccent,
+      shipColor: p.shipColor,
+      shipAccent: p.shipAccent,
+      maxHp: p.maxHp,
+      kind: p.kind,
+    }));
+  }
+
   private makePilot(id: number, name: string, isPlayer: boolean, x: number, y: number, s: PlayerStats): Pilot {
     return {
       id,
       name,
       isPlayer,
+      human: false,
+      input: null,
+      inputAt: 0,
       x,
       y,
+      tx: x,
+      ty: y,
       hp: s.maxHp,
       maxHp: s.maxHp,
       speed: s.speed,
@@ -195,16 +319,16 @@ export class ArenaEngine {
     };
   }
 
-  private makeRocks() {
+  private makeRocks(rnd: () => number) {
     let guard = 0;
     while (this.rocks.length < 16 && guard++ < 500) {
-      const r = 34 + Math.random() * 36;
-      const x = 150 + Math.random() * (WORLD - 300);
-      const y = 150 + Math.random() * (WORLD - 300);
+      const r = 34 + rnd() * 36;
+      const x = 150 + rnd() * (WORLD - 300);
+      const y = 150 + rnd() * (WORLD - 300);
       if (Math.hypot(x - WORLD / 2, y - WORLD / 2) > 800) continue;
       if (Math.hypot(x - WORLD / 2, y - WORLD / 2) < 140) continue;
       if (this.rocks.some((o) => Math.hypot(o.x - x, o.y - y) < o.r + r + 160)) continue;
-      this.rocks.push({ x, y, r, rot: Math.random() * TAU });
+      this.rocks.push({ x, y, r, rot: rnd() * TAU });
     }
   }
 
@@ -232,18 +356,29 @@ export class ArenaEngine {
     if (!this.running) return;
     const dt = Math.min(0.05, (t - this.last) / 1000);
     this.last = t;
-    if (!this.paused && !this.ended) this.update(dt);
+    if (!this.paused) {
+      if (this.mode === 'guest') this.guestStep(dt);
+      else if (!(this.mode === 'solo' && this.ended)) this.update(dt);
+    }
+    this.updateCamera();
     this.render();
     this.onHud(this.hud());
-    if (this.ended && this.endTimer <= 0) {
-      this.running = false;
-      return;
-    }
     this.raf = requestAnimationFrame(this.loop);
   };
 
+  private me(): Pilot {
+    return this.pilots.find((x) => x.id === this.myId) ?? this.pilots[0];
+  }
+
+  private updateCamera() {
+    const me = this.me();
+    if (!me) return;
+    this.cam.x = clamp(me.x - AW / 2, 0, WORLD - AW);
+    this.cam.y = clamp(me.y - AH * 0.5, 0, WORLD - AH);
+  }
+
   private hud(): ArenaHud {
-    const p = this.pilots[0];
+    const p = this.me();
     const out = this.outside(p);
     const wait = ZONE_WAIT - this.time;
     return {
@@ -258,6 +393,100 @@ export class ArenaEngine {
 
   private outside(p: Pilot) {
     return Math.hypot(p.x - WORLD / 2, p.y - WORLD / 2) > this.zoneR;
+  }
+
+  // ------------------------------------------------------------------
+  // Réseau : l'hôte calcule tout, les invités envoient leurs commandes et affichent ce que l'hôte leur envoie
+  // ------------------------------------------------------------------
+  /** (hôte) commande reçue d'un invité */
+  applyInput(id: number, input: InputMsg) {
+    const p = this.pilots.find((x) => x.id === id);
+    if (!p) return;
+    p.input = input;
+    p.inputAt = this.time;
+  }
+
+  /** (invité) photo de la partie envoyée par l'hôte */
+  applyState(m: StateMsg) {
+    const first = !this.gotSnap;
+    this.gotSnap = true;
+    this.snapAt = performance.now();
+    this.time = m.t;
+    this.zoneR = m.z;
+    for (const e of m.p) {
+      const p = this.pilots.find((x) => x.id === e[0]);
+      if (!p) continue;
+      if (p.isPlayer && e[3] < p.hp && p.alive) {
+        sfx('hurt');
+        vibrate(30);
+      }
+      p.tx = e[1];
+      p.ty = e[2];
+      if (first || (p.alive && !e[5])) {
+        p.x = e[1];
+        p.y = e[2];
+      }
+      p.hp = e[3];
+      p.facing = e[4];
+      p.alive = e[5] === 1;
+      p.kills = e[6];
+      p.flash = e[7] ? 0.1 : 0;
+      p.invuln = e[8] ? 0.1 : 0;
+    }
+    this.snapB = m.b;
+    this.snapR = m.r;
+  }
+
+  /** (invité) l'hôte m'annonce mon classement final */
+  applyResult(r: ResultMsg) {
+    if (r.id === this.myId) this.finishLocal(r.place, r.kills);
+  }
+
+  private guestStep(dt: number) {
+    for (const p of this.pilots) {
+      p.x += (p.tx - p.x) * Math.min(1, dt * 14);
+      p.y += (p.ty - p.y) * Math.min(1, dt * 14);
+    }
+    const age = (performance.now() - this.snapAt) / 1000;
+    this.bullets = this.snapB.map((b) => {
+      const owner = this.pilots.find((x) => x.id === b[5]);
+      return {
+        x: b[0] + b[2] * age,
+        y: b[1] + b[3] * age,
+        vx: b[2],
+        vy: b[3],
+        r: b[4],
+        dmg: 0,
+        life: 1,
+        owner: b[5],
+        pierce: false,
+        hit: new Set<number>(),
+        color: owner?.isPlayer ? '#7df9ff' : owner?.charAccent ?? '#fff',
+      };
+    });
+    this.rings = this.snapR.map((r) => {
+      const owner = this.pilots.find((x) => x.id === r[4]);
+      return { x: r[0], y: r[1], max: r[2], life: Math.max(0.001, r[3] - age), color: owner?.isPlayer ? '#7df9ff' : owner?.charAccent ?? '#fff' };
+    });
+    // j'envoie mes commandes à l'hôte (10 fois par seconde, et tout de suite quand j'appuie sur tirer)
+    this.inputT += dt;
+    const inp = this.localInput();
+    if (inp.fire !== this.lastFire || this.inputT >= 0.1) {
+      this.inputT = 0;
+      this.lastFire = inp.fire;
+      this.net?.sendInput(inp);
+    }
+  }
+
+  private sendSnapshot() {
+    const m: StateMsg = {
+      t: Math.round(this.time * 100) / 100,
+      z: Math.round(this.zoneR),
+      p: this.pilots.map((p) => [p.id, Math.round(p.x), Math.round(p.y), Math.round(p.hp), Math.round(p.facing * 100) / 100, p.alive ? 1 : 0, p.kills, p.flash > 0 ? 1 : 0, p.invuln > 0 ? 1 : 0]),
+      b: this.bullets.slice(0, 160).map((b) => [Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), b.r, b.owner]),
+      r: this.rings.map((r) => [Math.round(r.x), Math.round(r.y), r.max, Math.round(r.life * 100) / 100, r.owner ?? -1]),
+    };
+    this.net?.sendState(m);
   }
 
   // ------------------------------------------------------------------
@@ -276,8 +505,13 @@ export class ArenaEngine {
       p.invuln = Math.max(0, p.invuln - dt);
       p.flash = Math.max(0, p.flash - dt);
       p.cd = Math.max(0, p.cd - dt);
-      if (p.isPlayer) this.playerControl(p, dt);
-      else this.botControl(p, dt);
+      if (p.isPlayer) {
+        const li = this.localInput();
+        this.humanControl(p, li, dt);
+      } else if (p.human) {
+        const stale = !p.input || this.time - p.inputAt > 2;
+        this.humanControl(p, stale ? { jx: 0, jy: 0, fire: false, ax: null, ay: null } : (p.input as InputMsg), dt);
+      } else this.botControl(p, dt);
       // obstacles : on est repoussé
       for (const r of this.rocks) {
         const d = Math.hypot(p.x - r.x, p.y - r.y);
@@ -313,32 +547,46 @@ export class ArenaEngine {
     for (const rg of this.rings) rg.life -= dt;
     this.rings = this.rings.filter((r) => r.life > 0);
 
-    // fin de partie
+    // classements : chaque vrai joueur éliminé connaît sa place, le dernier en vie gagne
     const alive = this.pilots.filter((x) => x.alive);
-    const me = this.pilots[0];
-    if (!this.ended) {
-      if (!me.alive) {
-        this.finish(alive.length + 1);
-      } else if (alive.length === 1) {
-        this.finish(1);
+    for (const h of this.pilots) {
+      if (!h.human || this.placed.has(h.id)) continue;
+      if (!h.alive) this.place(h, alive.length + 1);
+      else if (alive.length === 1) this.place(h, 1);
+    }
+    if (alive.length <= 1 && !this.matchOver) this.matchOver = true;
+
+    // l'hôte envoie une photo de la partie 12 fois par seconde
+    if (this.mode === 'host') {
+      this.netT += dt;
+      if (this.netT >= 0.083 || (this.matchOver && this.overT === 0)) {
+        this.netT = 0;
+        this.sendSnapshot();
+      }
+      if (this.matchOver) {
+        this.overT += dt;
+        if (this.overT > 2) this.ended = true;
       }
     }
-
-    // caméra
-    this.cam.x = clamp(me.x - AW / 2, 0, WORLD - AW);
-    this.cam.y = clamp(me.y - AH * 0.5, 0, WORLD - AH);
   }
 
-  private finish(place: number) {
-    this.ended = true;
-    const me = this.pilots[0];
+  private place(h: Pilot, place: number) {
+    this.placed.add(h.id);
+    if (h.isPlayer) this.finishLocal(place, h.kills);
+    else this.net?.sendResult({ id: h.id, place, kills: h.kills });
+  }
+
+  private finishLocal(place: number, kills: number) {
+    if (this.ended && this.mode !== 'host') return;
+    if (this.mode !== 'host') this.ended = true;
     const won = place === 1;
     sfx(won ? 'win' : 'lose');
-    this.onEnd({ place, kills: me.kills, won });
+    this.onEnd({ place, kills, won });
   }
 
   // ------------------------------------------------------------------
-  private playerControl(p: Pilot, dt: number) {
+  /** Les commandes de l'appareil : joystick, clavier, bouton de tir. */
+  private localInput(): InputMsg {
     let mx = this.joy.x;
     let my = this.joy.y;
     const kx = (this.keys.has('d') || this.keys.has('arrowright') ? 1 : 0) - (this.keys.has('q') || this.keys.has('a') || this.keys.has('arrowleft') ? 1 : 0);
@@ -354,13 +602,26 @@ export class ArenaEngine {
         my /= jm;
       }
     }
+    return {
+      jx: Math.round(mx * 100) / 100,
+      jy: Math.round(my * 100) / 100,
+      fire: this.fireBtn || this.keys.has(' '),
+      ax: this.aim ? Math.round(this.aim.x * 100) / 100 : null,
+      ay: this.aim ? Math.round(this.aim.y * 100) / 100 : null,
+    };
+  }
+
+  /** Un vrai joueur (moi, ou un invité à distance) : mêmes règles pour tout le monde. */
+  private humanControl(p: Pilot, inp: InputMsg, dt: number) {
+    const mx = inp.jx;
+    const my = inp.jy;
     p.x += mx * p.speed * dt;
     p.y += my * p.speed * dt;
     const target = this.nearestEnemy(p, 560);
-    if (this.aim) p.facing = Math.atan2(this.aim.y, this.aim.x);
+    if (inp.ax !== null && inp.ay !== null) p.facing = Math.atan2(inp.ay, inp.ax);
     else if (target) p.facing = Math.atan2(target.y - p.y, target.x - p.x);
     else if (mx || my) p.facing = Math.atan2(my, mx);
-    if ((this.fireBtn || this.keys.has(' ')) && p.cd <= 0) this.attack(p);
+    if (inp.fire && p.cd <= 0) this.attack(p);
   }
 
   private botControl(p: Pilot, dt: number) {
@@ -476,7 +737,7 @@ export class ArenaEngine {
         break;
       case 'shockwave': {
         const range = 125;
-        this.rings.push({ x: p.x, y: p.y, max: range, life: 0.35, color: p.isPlayer ? '#7df9ff' : p.charAccent });
+        this.rings.push({ x: p.x, y: p.y, max: range, life: 0.35, color: p.isPlayer ? '#7df9ff' : p.charAccent, owner: p.id });
         for (const o of this.pilots) {
           if (!o.alive || o.id === p.id) continue;
           const dist = Math.hypot(o.x - p.x, o.y - p.y);
@@ -506,7 +767,7 @@ export class ArenaEngine {
     if (p.isPlayer) {
       sfx('hurt');
       vibrate(30);
-    } else if (by === 0) {
+    } else if (by === this.myId) {
       sfx('hit');
     }
     if (p.hp <= 0) {
@@ -514,7 +775,7 @@ export class ArenaEngine {
       p.hp = 0;
       const killer = this.pilots.find((x) => x.id === by);
       if (killer) killer.kills++;
-      if (by === 0) sfx('kill');
+      if (by === this.myId) sfx('kill');
     }
   }
 
@@ -637,7 +898,7 @@ export class ArenaEngine {
     c.restore();
 
     // flèche vers la zone quand on est dehors
-    const me = this.pilots[0];
+    const me = this.me();
     if (me.alive && this.outside(me)) {
       const a = Math.atan2(WORLD / 2 - me.y, WORLD / 2 - me.x);
       c.save();

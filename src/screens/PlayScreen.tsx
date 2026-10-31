@@ -24,6 +24,13 @@ export function PlayScreen({
             <span className="mode-tag">8 pilotes · contre des robots · 🏆 {profile?.trophies ?? 0}</span>
           </button>
 
+          <button className="mode-card mode-royale" onClick={() => onNavigate('room')}>
+            <div className="mode-icon">👥</div>
+            <h2 className="mode-title">Salon entre amis</h2>
+            <p className="mode-desc">Crée un salon, donne le code à tes amis et affrontez-vous en ligne dans le Battle Royale !</p>
+            <span className="mode-tag">En ligne · jusqu'à 4 amis</span>
+          </button>
+
           <button className="mode-card mode-story" onClick={() => onNavigate('chapters')}>
             <div className="mode-icon">🌌</div>
             <h2 className="mode-title">Chapitres</h2>

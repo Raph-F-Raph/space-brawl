@@ -8,7 +8,8 @@ import { CollectionScreen } from './screens/CollectionScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { ChaptersScreen } from './screens/ChaptersScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
-import { ArenaScreen } from './screens/ArenaScreen';
+import { ArenaScreen, type OnlineSession } from './screens/ArenaScreen';
+import { RoomScreen } from './screens/RoomScreen';
 import { LevelScreen } from './screens/LevelScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ClansScreen } from './screens/ClansScreen';
@@ -31,6 +32,7 @@ function Shell() {
   const [chapter, setChapter] = useState(1);
   const [level, setLevel] = useState(1);
   const [runKey, setRunKey] = useState(0);
+  const [online, setOnline] = useState<OnlineSession | null>(null);
   const [soon, setSoon] = useState<string | null>(null);
 
   // Son : le navigateur n'autorise le son qu'après un premier toucher ; petit clic sur chaque bouton
@@ -122,7 +124,27 @@ function Shell() {
       />
     );
   } else if (screen === 'arena') {
-    content = <ArenaScreen key={`arena-${runKey}`} onExit={() => setScreen('play')} onRetry={() => setRunKey((k) => k + 1)} />;
+    content = (
+      <ArenaScreen
+        key={`arena-${runKey}-${online?.room.code ?? 'solo'}`}
+        online={online}
+        onExit={() => {
+          setOnline(null);
+          setScreen('play');
+        }}
+        onRetry={() => setRunKey((k) => k + 1)}
+      />
+    );
+  } else if (screen === 'room') {
+    content = (
+      <RoomScreen
+        onBack={() => setScreen('play')}
+        onStart={(s) => {
+          setOnline(s);
+          setScreen('arena');
+        }}
+      />
+    );
   } else if (screen === 'leaderboard') {
     content = <LeaderboardScreen onBack={() => setScreen('play')} />;
   } else if (screen === 'characters') {
