@@ -211,7 +211,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     async (place: number, kills: number) => {
       if (!session) return;
       await supabase.rpc('complete_arena', { p_place: place, p_kills: kills });
-      if (place >= 5) await supabase.rpc('break_ship'); // éliminé dans la 2e moitié : la soucoupe casse
+      if (place >= 2) await supabase.rpc('break_ship'); // éliminé = plus de vie : la soucoupe casse
       await loadData(session.user.id);
     },
     [session, loadData]
