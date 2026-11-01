@@ -90,9 +90,13 @@ export class Room {
         if (status === 'SUBSCRIBED') {
           // un invité vérifie d'abord que le salon existe et n'est pas plein
           if (!this.isHost) {
-            await new Promise((r) => setTimeout(r, 1200));
-            const state = ch.presenceState() as Record<string, LobbyPlayer[]>;
-            const list = Object.values(state).flat();
+            // sur un vrai réseau la liste des présents met un peu de temps à arriver : on attend jusqu'à 7 s
+            let list: LobbyPlayer[] = [];
+            for (let i = 0; i < 28; i++) {
+              await new Promise((r) => setTimeout(r, 250));
+              list = Object.values(ch.presenceState() as Record<string, LobbyPlayer[]>).flat();
+              if (list.some((p) => p.host)) break;
+            }
             if (!list.some((p) => p.host)) {
               finish('Salon introuvable. Vérifie le code.');
               void this.leave();
