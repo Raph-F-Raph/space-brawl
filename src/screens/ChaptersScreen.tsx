@@ -1,4 +1,5 @@
 import { useGame } from '../lib/GameContext';
+import { rich } from '../components/Icon';
 import { TopBar } from '../components/Ui';
 import { CHAPTERS } from '../game/levels';
 
