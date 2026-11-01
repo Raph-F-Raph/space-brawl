@@ -1,4 +1,5 @@
 import { TopBar } from '../components/Ui';
+import { Icon, rich } from '../components/Icon';
 import { useGame } from '../lib/GameContext';
 import type { Screen } from '../types';
 
@@ -15,15 +16,15 @@ export function ProfileScreen({ onBack, onNavigate }: { onBack: () => void; onNa
           </p>
           <p className="row">
             <span>Trophées</span>
-            <strong>🏆 {profile?.trophies ?? 0}</strong>
+            <strong><Icon n="trophy" /> {profile?.trophies ?? 0}</strong>
           </p>
         </div>
         <div className="modes">
           <button className="btn btn-yellow" onClick={() => onNavigate('trophyroad')}>
-            🏆 Route des trophées
+            <Icon n="trophy" /> Route des trophées
           </button>
           <button className="btn btn-blue" onClick={() => onNavigate('leaderboard')}>
-            📊 Classement des pilotes
+            <Icon n="chart" /> Classement des pilotes
           </button>
         </div>
       </div>

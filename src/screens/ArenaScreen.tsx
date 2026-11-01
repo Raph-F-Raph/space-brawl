@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { useGame } from '../lib/GameContext';
 import { makeStats } from '../game/engine';
 import { ArenaEngine, type ArenaResult, type HumanSlot, type StartMsg } from '../game/arena';
@@ -270,7 +271,7 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
         </div>
         <div className="hud-center">
           <span className="hud-level">
-            🧑‍🚀 <span ref={aliveText}>8</span> en vie · ⚔ <span ref={killText}>0</span>
+            <Icon n="pilot" /> <span ref={aliveText}>8</span> en vie · ⚔ <span ref={killText}>0</span>
           </span>
           <span className="hud-wave" ref={zoneText}>
             Zone dans 25 s
@@ -305,10 +306,10 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
         onContextMenu={(e) => e.preventDefault()}
         aria-label="Attaquer : pose le doigt pour tirer, glisse pour viser"
       >
-        <div className={`fire-hint ${firing ? 'hidden' : ''}`}>💥</div>
+        <div className={`fire-hint ${firing ? 'hidden' : ''}`}><Icon n="boom" /></div>
         <div className="fire-base" ref={fireBase} style={{ display: 'none' }}>
           <div className="fire-knob" ref={fireKnob}>
-            💥
+            <Icon n="boom" />
           </div>
         </div>
       </div>
@@ -333,7 +334,7 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
       {/* Demande de tourner le téléphone */}
       {portrait && !result && (
         <div className="rotate-hint">
-          <div className="rotate-icon">📱</div>
+          <div className="rotate-icon"><Icon n="phone" /></div>
           <h2 className="title">Tourne ton téléphone</h2>
           <p>Space Brawl se joue en mode paysage.</p>
           <button className="btn btn-red btn-small" onClick={onExit}>
@@ -362,16 +363,16 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
           <div className="modal result">
             <h2 className={`title ${result.won ? 'win' : 'lose'}`}>{result.won ? 'VICTOIRE ROYALE !' : `${result.place}e place`}</h2>
             <p className="reward">
-              +{result.coins} <span>🪙</span>
+              +{result.coins} <span><Icon n="coin" /></span>
             </p>
             <p className="reward">
               {TROPHY(result.place) >= 0 ? '+' : ''}
-              {TROPHY(result.place)} <span>🏆</span>
+              {TROPHY(result.place)} <span><Icon n="trophy" /></span>
             </p>
             <p className="modal-body">
               {result.kills} {result.kills > 1 ? 'pilotes éliminés' : 'pilote éliminé'} · classé {result.place}/8
             </p>
-            {result.broke && <p className="modal-body">🔧 Ta soucoupe est cassée ! Répare-la dans l'écran Soucoupes.</p>}
+            {result.broke && <p className="modal-body"><Icon n="wrench" /> Ta soucoupe est cassée ! Répare-la dans l'écran Soucoupes.</p>}
             <div className="modal-actions">
               {!online && (
                 <button className="btn btn-yellow" onClick={onRetry}>

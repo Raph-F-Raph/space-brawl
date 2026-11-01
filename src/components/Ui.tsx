@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { Icon, rich } from './Icon';
 import { CHAPTERS } from '../game/levels';
 import { useGame } from '../lib/GameContext';
 
@@ -25,7 +26,7 @@ export function Backdrop({ theme }: { theme: number }) {
 export function Currency({ icon, value }: { icon: string; value: number }) {
   return (
     <div className="currency">
-      <span className="currency-icon">{icon}</span>
+      <span className="currency-icon">{rich(icon)}</span>
       <span className="currency-value">{value.toLocaleString('fr-FR')}</span>
     </div>
   );
@@ -134,7 +135,7 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={busy || confirmDisabled}
           >
-            {busy ? '…' : confirmLabel}
+            {busy ? '…' : rich(confirmLabel)}
           </button>
         </div>
       </div>
@@ -146,7 +147,7 @@ export function ComingSoon({ what, onClose }: { what: string; onClose: () => voi
   return (
     <Modal title="Bientôt disponible" onClose={onClose}>
       <p>
-        <strong>{what}</strong> arrive dans une prochaine mise à jour. 🚀
+        <strong>{what}</strong> arrive dans une prochaine mise à jour. <Icon n="rocket" />
       </p>
     </Modal>
   );

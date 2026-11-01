@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { TopBar } from '../components/Ui';
 import { useGame } from '../lib/GameContext';
 import { TROPHY_ROAD } from '../game/progress';
@@ -21,7 +22,7 @@ export function TrophyRoadScreen({ onBack }: { onBack: () => void }) {
     <div className="screen">
       <TopBar title="Route des trophées" onBack={onBack} />
       <div className="scroll">
-        <p className="legend">Tes trophées : 🏆 {trophies}. Gagne des trophées en Battle Royale pour débloquer des récompenses.</p>
+        <p className="legend">Tes trophées : <Icon n="trophy" /> {trophies}. Gagne des trophées en Battle Royale pour débloquer des récompenses.</p>
         {msg && <p className="legend">{msg}</p>}
         <ul className="missions">
           {TROPHY_ROAD.map((s, i) => {
@@ -30,7 +31,7 @@ export function TrophyRoadScreen({ onBack }: { onBack: () => void }) {
             return (
               <li key={s.need} className="mission">
                 <div className="mission-info">
-                  <strong>🏆 {s.need}</strong>
+                  <strong><Icon n="trophy" /> {s.need}</strong>
                   <div className="mission-bar">
                     <div style={{ width: `${Math.min(100, (trophies / s.need) * 100)}%` }} />
                   </div>
@@ -40,7 +41,7 @@ export function TrophyRoadScreen({ onBack }: { onBack: () => void }) {
                   disabled={busy || !ready || taken}
                   onClick={() => void claim(i + 1)}
                 >
-                  {taken ? '✓ Reçu' : s.coins ? `+${s.coins} 🪙` : `+${s.gems} 💎`}
+                  {rich(taken ? '✓ Reçu' : s.coins ? `+${s.coins} 🪙` : `+${s.gems} 💎`)}
                 </button>
               </li>
             );

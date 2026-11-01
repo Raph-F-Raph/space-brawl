@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { useGame } from '../lib/GameContext';
 import { ConfirmModal, TopBar } from '../components/Ui';
 import { supabase } from '../lib/supabase';
@@ -106,7 +107,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
             <>
               <p className="legend">Ajoute le jeu sur ton écran d'accueil : il s'ouvre en plein écran, comme une vraie appli.</p>
               <button className="btn btn-yellow btn-small" onClick={() => void promptInstall()}>
-                📲 Installer
+                <Icon n="install" /> Installer
               </button>
             </>
           ) : isIos() ? (
@@ -147,7 +148,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
               <span className="toggle-knob" />
             </button>
           </div>
-          <p className="legend">Space Brawl · version 0.1 · mise à jour 27</p>
+          <p className="legend">Space Brawl · version 0.1 · mise à jour 28</p>
         </div>
       </div>
     </div>

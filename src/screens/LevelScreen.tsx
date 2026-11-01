@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { useGame } from '../lib/GameContext';
 import { Engine, makeStats } from '../game/engine';
 import { CHAPTERS, getChapter, getLevel } from '../game/levels';
@@ -241,7 +242,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         </div>
         <div className="hud-right">
           <div className="currency small">
-            <span className="currency-icon">🪙</span>
+            <span className="currency-icon"><Icon n="coin" /></span>
             <span className="currency-value" ref={coinText}>
               0
             </span>
@@ -252,7 +253,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         </div>
       </div>
       <div className="boss-bar" ref={bossBar} style={{ display: 'none' }}>
-        <span className="boss-name">👹 {getChapter(chapter).theme.bossName}</span>
+        <span className="boss-name"><Icon n="monster" /> {getChapter(chapter).theme.bossName}</span>
         <div className="boss-track">
           <div className="boss-fill" ref={bossFill} />
         </div>
@@ -280,10 +281,10 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         onContextMenu={(e) => e.preventDefault()}
         aria-label="Attaquer : pose le doigt pour tirer, glisse pour viser"
       >
-        <div className={`fire-hint ${firing ? 'hidden' : ''}`}>💥</div>
+        <div className={`fire-hint ${firing ? 'hidden' : ''}`}><Icon n="boom" /></div>
         <div className="fire-base" ref={fireBase} style={{ display: 'none' }}>
           <div className="fire-knob" ref={fireKnob}>
-            💥
+            <Icon n="boom" />
           </div>
         </div>
       </div>
@@ -308,7 +309,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
       {/* Demande de tourner le téléphone */}
       {portrait && !result && (
         <div className="rotate-hint">
-          <div className="rotate-icon">📱</div>
+          <div className="rotate-icon"><Icon n="phone" /></div>
           <h2 className="title">Tourne ton téléphone</h2>
           <p>Space Brawl se joue en mode paysage.</p>
           <button className="btn btn-red btn-small" onClick={onExit}>
@@ -323,13 +324,13 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
           <div className="modal result">
             <h2 className={`title ${result.won ? 'win' : 'lose'}`}>{result.won ? 'VICTOIRE !' : 'DÉFAITE…'}</h2>
             <p className="reward">
-              +{result.coins} <span>🪙</span>
+              +{result.coins} <span><Icon n="coin" /></span>
             </p>
             {result.won && isLast && (
-              <p className="modal-body">Chapitre terminé ! Ton écran d'accueil change de style ✨</p>
+              <p className="modal-body">Chapitre terminé ! Ton écran d'accueil change de style <Icon n="sparkle" /></p>
             )}
             {!result.won && <p className="modal-body">Tu gardes la moitié des pièces ramassées.</p>}
-            {result.broke && <p className="modal-body">🔧 Ta soucoupe est cassée ! Répare-la dans l'écran Soucoupes. Ta soucoupe de départ est de retour.</p>}
+            {result.broke && <p className="modal-body"><Icon n="wrench" /> Ta soucoupe est cassée ! Répare-la dans l'écran Soucoupes. Ta soucoupe de départ est de retour.</p>}
             <div className="modal-actions">
               {result.won && !isLast && (
                 <button className="btn btn-yellow" onClick={() => onNext(level + 1)}>

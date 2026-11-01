@@ -1680,3 +1680,9 @@ button.mode-card:active {
 
 button.player-pill { font: inherit; color: inherit; text-align: left; cursor: pointer; }
 button.player-pill:active { transform: scale(0.97); }
+
+/* Icônes dessinées (remplacent les emoji) */
+.ic { display: inline-block; vertical-align: -0.2em; flex: none; }
+.legend a { color: #ffd23f; font-weight: 700; }
+.pack-icon .ic { width: 2.2em; height: 2.2em; }
+.currency-icon .ic { width: 1.5em; height: 1.5em; }

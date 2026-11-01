@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { Icon, rich } from './Icon';
 import { ConfirmModal } from './Ui';
 import { sfx } from '../lib/audio';
 import { useGame } from '../lib/GameContext';
@@ -145,16 +146,16 @@ export function ItemSheet({
                 disabled={selected || broken}
                 onClick={() => (isChars ? g.selectCharacter(id) : g.selectShip(id))}
               >
-                {selected ? '✓ Sélectionné' : broken ? '🔧 Cassée' : 'Choisir'}
+                {rich(selected ? '✓ Sélectionné' : broken ? '🔧 Cassée' : 'Choisir')}
               </button>
               {broken && (
                 <button className={`btn ${coins >= repairCost ? 'btn-yellow' : 'btn-grey'}`} disabled={busy} onClick={() => void repair()}>
-                  Réparer 🪙 {repairCost}
+                  Réparer <Icon n="coin" /> {repairCost}
                 </button>
               )}
               {next ? (
                 <button className={`btn ${coins >= cost ? 'btn-yellow' : 'btn-grey'}`} disabled={busy} onClick={() => void upgrade()}>
-                  Améliorer 🪙 {cost}
+                  Améliorer <Icon n="coin" /> {cost}
                 </button>
               ) : (
                 <span className="maxed">Niveau max ★</span>
@@ -168,13 +169,13 @@ export function ItemSheet({
                 onBuy(kind, item);
               }}
             >
-              Débloquer 💎 {item.price.toLocaleString('fr-FR')}
+              Débloquer <Icon n="gem" /> {item.price.toLocaleString('fr-FR')}
             </button>
           )}
         </div>
         {isChars && owned && charSkins.length > 0 && (
           <div className="skins">
-            <h3 className="skins-title">🎨 Skins + soucoupe assortie</h3>
+            <h3 className="skins-title"><Icon n="palette" /> Skins + soucoupe assortie</h3>
             <div className="skin-row">
               <button
                 className={`skin-chip ${previewSkin === null ? 'on' : ''}`}
@@ -192,7 +193,7 @@ export function ItemSheet({
                 >
                   <span className="swatch" style={{ background: s.color, borderColor: s.accent }} />
                   <span>{s.name}</span>
-                  {equippedId === s.id ? <em>✓</em> : !g.ownedSkins.has(s.id) && <em>💎{s.price}</em>}
+                  {equippedId === s.id ? <em>✓</em> : !g.ownedSkins.has(s.id) && <em><Icon n="gem" />{s.price}</em>}
                 </button>
               ))}
             </div>
@@ -212,7 +213,7 @@ export function ItemSheet({
                   setSkinBuy(true);
                 }}
               >
-                Débloquer 💎 {shownSkin?.price}
+                Débloquer <Icon n="gem" /> {shownSkin?.price}
               </button>
             )}
           </div>
@@ -231,12 +232,12 @@ export function ItemSheet({
               <strong>
                 {item.name} {shownSkin.name}
               </strong>{' '}
-              pour 💎 {shownSkin.price} gemmes.
+              pour <Icon n="gem" /> {shownSkin.price} gemmes.
             </p>
             {gems < shownSkin.price ? (
-              <p>Il te manque 💎 {shownSkin.price - gems} gemmes.</p>
+              <p>Il te manque <Icon n="gem" /> {shownSkin.price - gems} gemmes.</p>
             ) : (
-              <p>Il te restera 💎 {gems - shownSkin.price} gemmes.</p>
+              <p>Il te restera <Icon n="gem" /> {gems - shownSkin.price} gemmes.</p>
             )}
           </ConfirmModal>
         )}

@@ -35,7 +35,7 @@ export function ChaptersScreen({
                         onClick={() => onStart(ch.id, lv.level)}
                         aria-label={`Niveau ${lv.level} : ${lv.name}`}
                       >
-                        {state === 'locked' ? '🔒' : lv.isBoss ? '👹' : lv.level}
+                        {rich(state === 'locked' ? '🔒' : lv.isBoss ? '👹' : lv.level)}
                         {state === 'done' && <span className="check">✓</span>}
                       </button>
                       <span className="node-name">{lv.isBoss ? 'BOSS' : `Niveau ${lv.level}`}</span>

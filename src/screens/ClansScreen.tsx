@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 import { useGame } from '../lib/GameContext';
 import { ConfirmModal, TopBar } from '../components/Ui';
@@ -135,7 +136,7 @@ function NoClan({ onJoined }: { onJoined: (m: string) => void }) {
           >
             <input className="input" value={q} maxLength={20} placeholder="Chercher un clan…" onChange={(e) => setQ(e.target.value)} />
             <button className="btn btn-small btn-blue" type="submit">
-              🔍
+              <Icon n="search" />
             </button>
           </form>
           {list.length === 0 ? (
@@ -256,7 +257,7 @@ function MyClan({ clan, myId, onLeft }: { clan: ClanInfo; myId: string; onLeft: 
         <ul className="clan-list">
           {members.map((m) => (
             <li key={m.username} className={`clan-row ${m.is_me ? 'me' : ''}`}>
-              <span className="clan-badge">{m.role === 'chef' ? '👑' : '🧑‍🚀'}</span>
+              <span className="clan-badge">{rich(m.role === 'chef' ? '👑' : '🧑‍🚀')}</span>
               <div className="clan-info">
                 <strong>
                   {m.username}

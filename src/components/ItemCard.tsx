@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { Icon, rich } from './Icon';
 import { CharacterArt, ShipArt } from './Art';
 import { StatBar } from './Ui';
 import { MAX_LEVEL, scaled } from '../game/progress';
@@ -32,7 +33,7 @@ export function ItemCard({
         ) : (
           <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={180} />
         )}
-        {!owned && <div className="lock">🔒</div>}
+        {!owned && <div className="lock"><Icon n="lock" /></div>}
       </div>
       <h2 className="card-name">{item.name}</h2>
       <div className="card-tags">
@@ -87,11 +88,11 @@ export function ItemTile({
         ) : (
           <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={92} />
         )}
-        {!owned && <span className="tile-lock">🔒</span>}
+        {!owned && <span className="tile-lock"><Icon n="lock" /></span>}
         {selected && <span className="tile-check">✓</span>}
       </div>
       <span className="tile-name">{item.name}</span>
-      <span className="tile-sub">{owned ? `Niv. ${level}` : `💎 ${item.price}`}</span>
+      <span className="tile-sub">{rich(owned ? `Niv. ${level}` : `💎 ${item.price}`)}</span>
     </button>
   );
 }

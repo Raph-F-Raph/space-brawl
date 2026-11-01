@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { useGame } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
 import { ItemSheet } from '../components/ItemSheet';
@@ -27,7 +28,7 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
             <section key={r} className="rarity-group">
               <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
                 {RARITY_LABEL[r]}
-                {group[0].price > 0 ? <span> · {group[0].price + 0} 💎</span> : null}
+                {group[0].price > 0 ? <span> · {group[0].price + 0} <Icon n="gem" /></span> : null}
               </h3>
         <div className="tiles">
           {group.map((it) => (
@@ -48,7 +49,7 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
         })}
         <p className="legend">
           Touche une vignette pour voir les détails et l'améliorer. Le personnage et la soucoupe s'additionnent !
-          Chaque niveau ajoute 8 % aux statistiques. Pièces 🪙 = améliorer, gemmes 💎 = débloquer.
+          Chaque niveau ajoute 8 % aux statistiques. Pièces <Icon n="coin" /> = améliorer, gemmes <Icon n="gem" /> = débloquer.
         </p>
       </div>
 

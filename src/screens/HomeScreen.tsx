@@ -1,4 +1,5 @@
 import { useGame } from '../lib/GameContext';
+import { Icon, rich } from '../components/Icon';
 import { ShipWithPilot } from '../components/Art';
 import { Currency } from '../components/Ui';
 import { CHAPTERS } from '../game/levels';
@@ -47,23 +48,23 @@ export function HomeScreen({
       <footer className="home-footer">
         <nav className="menu-row">
           <button className="nav-btn" onClick={() => onNavigate('shop')}>
-            <span className="nav-icon">🛒</span>
+            <span className="nav-icon"><Icon n="cart" /></span>
             Boutique
           </button>
           <button className="nav-btn" onClick={() => onNavigate('ships')}>
-            <span className="nav-icon">🛸</span>
+            <span className="nav-icon"><Icon n="ufo" /></span>
             Soucoupes
           </button>
           <button className="nav-btn" onClick={() => onNavigate('characters')}>
-            <span className="nav-icon">🧑‍🚀</span>
+            <span className="nav-icon"><Icon n="pilot" /></span>
             Personnages
           </button>
           <button className="nav-btn" onClick={() => onNavigate('clans')}>
-            <span className="nav-icon">🛡️</span>
+            <span className="nav-icon"><Icon n="shield" /></span>
             Clans
           </button>
           <button className="nav-btn" onClick={() => onNavigate('settings')}>
-            <span className="nav-icon">⚙️</span>
+            <span className="nav-icon"><Icon n="gear" /></span>
             Réglages
           </button>
         </nav>

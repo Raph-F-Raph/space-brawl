@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { Icon, rich } from './Icon';
 import { CharacterArt, ShipArt } from './Art';
 import { StatBar } from './Ui';
 import type { Kind } from './ItemCard';
@@ -83,13 +84,13 @@ export function ItemDetail({
                 <span className="maxed">Niveau max ★</span>
               ) : (
                 <button className={`btn ${coins >= cost ? 'btn-yellow' : 'btn-grey'}`} disabled={busy} onClick={onUpgrade}>
-                  Améliorer 🪙 {cost}
+                  Améliorer <Icon n="coin" /> {cost}
                 </button>
               )}
             </>
           ) : (
             <button className={`btn ${gems >= item.price ? 'btn-yellow' : 'btn-grey'}`} onClick={onBuy}>
-              Débloquer 💎 {item.price.toLocaleString('fr-FR')}
+              Débloquer <Icon n="gem" /> {item.price.toLocaleString('fr-FR')}
             </button>
           )}
         </div>
@@ -98,8 +99,8 @@ export function ItemDetail({
           <span className="skins-title">Skins</span>
           <div className="skins-row">
             <span className="skin-slot on">Classique</span>
-            <span className="skin-slot">🔒</span>
-            <span className="skin-slot">🔒</span>
+            <span className="skin-slot"><Icon n="lock" /></span>
+            <span className="skin-slot"><Icon n="lock" /></span>
           </div>
           <span className="skins-soon">Bientôt : de nouveaux looks pour {item.name} !</span>
         </div>

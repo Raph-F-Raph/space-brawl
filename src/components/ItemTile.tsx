@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { Icon, rich } from './Icon';
 import { CharacterArt, ShipArt } from './Art';
 import { MAX_LEVEL } from '../game/progress';
 import { RARITY_COLOR, type Character, type Ship } from '../types';
@@ -32,13 +33,13 @@ export function ItemTile({
         ) : (
           <ShipArt color={item.color} accent={item.accent} variant={item.sort_order} size={92} />
         )}
-        {!owned && <span className="tile-lock">🔒</span>}
+        {!owned && <span className="tile-lock"><Icon n="lock" /></span>}
       </div>
       <span className="tile-name">{item.name}</span>
       {owned ? (
-        <span className="tile-sub">{broken ? '🔧 Cassée' : `${selected ? '✓ ' : ''}Niv. ${level}/${MAX_LEVEL}`}</span>
+        <span className="tile-sub">{rich(broken ? '🔧 Cassée' : `${selected ? '✓ ' : ''}Niv. ${level}/${MAX_LEVEL}`)}</span>
       ) : (
-        <span className="tile-sub tile-price">💎 {item.price.toLocaleString('fr-FR')}</span>
+        <span className="tile-sub tile-price"><Icon n="gem" /> {item.price.toLocaleString('fr-FR')}</span>
       )}
     </button>
   );

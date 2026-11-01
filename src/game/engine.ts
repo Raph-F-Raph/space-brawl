@@ -910,9 +910,21 @@ export class Engine {
         c.stroke();
       }
     } else {
-      c.font = '36px sans-serif';
-      c.textAlign = 'center';
-      c.fillText('🔒', 0, 12);
+      // petit cadenas dessiné
+      c.fillStyle = '#ffc933';
+      c.strokeStyle = '#0b1030';
+      c.lineWidth = 4;
+      c.beginPath();
+      c.roundRect(-13, -2, 26, 20, 4);
+      c.fill();
+      c.stroke();
+      c.beginPath();
+      c.arc(0, -3, 8, Math.PI, 0);
+      c.stroke();
+      c.fillStyle = '#0b1030';
+      c.beginPath();
+      c.arc(0, 8, 3, 0, TAU);
+      c.fill();
     }
     c.restore();
   }

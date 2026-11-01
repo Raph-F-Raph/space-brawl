@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon, rich } from './Icon';
 import { useGame } from '../lib/GameContext';
 import { ConfirmModal } from './Ui';
 import { sfx } from '../lib/audio';
@@ -48,7 +49,7 @@ export function useBuyFlow() {
       {target && (
         <ConfirmModal
           title="Débloquer ?"
-          confirmLabel={`💎 ${target.item.price.toLocaleString('fr-FR')}`}
+          confirmLabel={`<Icon n="gem" /> ${target.item.price.toLocaleString('fr-FR')}`}
           confirmDisabled={missing > 0}
           busy={busy}
           error={error}
@@ -56,21 +57,21 @@ export function useBuyFlow() {
           onClose={() => setTarget(null)}
         >
           <p>
-            <strong>{target.item.name}</strong> pour 💎 {target.item.price.toLocaleString('fr-FR')} gemmes.
+            <strong>{target.item.name}</strong> pour <Icon n="gem" /> {target.item.price.toLocaleString('fr-FR')} gemmes.
           </p>
           {missing > 0 ? (
             <p>
-              Il te manque 💎 {missing.toLocaleString('fr-FR')} gemmes. Gagne-en en battant un méga boss pour la
+              Il te manque <Icon n="gem" /> {missing.toLocaleString('fr-FR')} gemmes. Gagne-en en battant un méga boss pour la
               première fois, ou avec le cadeau du jour dans la boutique.
             </p>
           ) : (
-            <p>Il te restera 💎 {(gems - target.item.price).toLocaleString('fr-FR')} gemmes.</p>
+            <p>Il te restera <Icon n="gem" /> {(gems - target.item.price).toLocaleString('fr-FR')} gemmes.</p>
           )}
         </ConfirmModal>
       )}
       {toast && (
         <div className="toast" role="status">
-          {toast}
+          {rich(toast)}
         </div>
       )}
     </>

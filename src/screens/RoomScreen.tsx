@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { TopBar } from '../components/Ui';
 import { useGame } from '../lib/GameContext';
 import { makeStats } from '../game/engine';
@@ -109,7 +110,7 @@ export function RoomScreen({ onBack, onStart }: { onBack: () => void; onStart: (
             <ul className="board">
               {players.map((p, i) => (
                 <li key={p.key} className={`board-row ${p.key === room.key ? 'me' : ''}`}>
-                  <span className="board-rank">{p.host ? '👑' : `${i + 1}`}</span>
+                  <span className="board-rank">{rich(p.host ? '👑' : `${i + 1}`)}</span>
                   <span className="board-name">{p.name}</span>
                   <span className="board-score">{p.key === room.key ? 'Toi' : ''}</span>
                 </li>

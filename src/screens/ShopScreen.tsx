@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon, rich } from '../components/Icon';
 import { useGame, type ChestLoot } from '../lib/GameContext';
 import { useBuyFlow } from '../components/BuyFlow';
 import { CharacterArt, ShipArt } from '../components/Art';
@@ -49,9 +50,9 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
   }
 
   const CHESTS = [
-    { kind: 'bronze' as const, icon: '📦', name: 'Coffre Bronze', cost: 300, unit: '🪙', hint: 'Pièces ou gemmes, avec une petite chance d\'avoir un pilote, une soucoupe ou un skin.' },
-    { kind: 'argent' as const, icon: '🧰', name: 'Coffre Argent', cost: 8, unit: '💎', hint: 'Plus de gains, et une chance d\'avoir un pilote, une soucoupe ou un skin (jusqu\'à épique).' },
-    { kind: 'or' as const, icon: '🏆', name: 'Méga Coffre Or', cost: 20, unit: '💎', hint: 'Gros gains, et la meilleure chance d\'avoir un pilote, une soucoupe ou un skin (jusqu\'à légendaire).' },
+    { kind: 'bronze' as const, icon: 'chestB', name: 'Coffre Bronze', cost: 300, unit: '🪙', hint: 'Pièces ou gemmes, avec une petite chance d\'avoir un pilote, une soucoupe ou un skin.' },
+    { kind: 'argent' as const, icon: 'chestS', name: 'Coffre Argent', cost: 8, unit: '💎', hint: 'Plus de gains, et une chance d\'avoir un pilote, une soucoupe ou un skin (jusqu\'à épique).' },
+    { kind: 'or' as const, icon: 'chestG', name: 'Méga Coffre Or', cost: 20, unit: '💎', hint: 'Gros gains, et la meilleure chance d\'avoir un pilote, une soucoupe ou un skin (jusqu\'à légendaire).' },
   ];
   const [opening, setOpening] = useState<string | null>(null);
   const [loot, setLoot] = useState<{ chest: string; icon: string; loot: ChestLoot } | null>(null);
@@ -99,11 +100,11 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
             Cadeau <span>du jour</span>
           </h2>
           <p className="legend shop-note">
-            Chaque jour : {GEMS_DAILY} 💎 et {COINS_DAILY} 🪙 offerts.
+            Chaque jour : {GEMS_DAILY} <Icon n="gem" /> et {COINS_DAILY} <Icon n="coin" /> offerts.
           </p>
           <div className="exchange">
             <button className="btn btn-yellow" disabled={busy || giftTaken} onClick={() => void claim()}>
-              {giftTaken ? 'Reviens demain !' : `🎁 Récupérer`}
+              {giftTaken ? 'Reviens demain !' : rich('🎁 Récupérer')}
             </button>
           </div>
         </section>
@@ -132,7 +133,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
                     disabled={busy || !done || taken}
                     onClick={() => void claimMission(i)}
                   >
-                    {taken ? '✓ Reçu' : m.reward}
+                    {rich(taken ? '✓ Reçu' : m.reward)}
                   </button>
                 </li>
               );
@@ -167,7 +168,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
                       disabled={packBusy === b.id}
                       onClick={() => void buyPack(b.id, b.name)}
                     >
-                      💎 {b.price} <s className="old-price">{full}</s>
+                      <Icon n="gem" /> {b.price} <s className="old-price">{full}</s>
                     </button>
                   </div>
                 );
@@ -190,7 +191,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
                 return (
                   <div key={r} className="rarity-group">
                     <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
-                      {RARITY_LABEL[r]} <span>· {grp[0].price} 💎</span>
+                      {RARITY_LABEL[r]} <span>· {grp[0].price} <Icon n="gem" /></span>
                     </h3>
                     <div className="tiles">
                       {grp.map((c) => (
@@ -218,7 +219,7 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
                 return (
                   <div key={r} className="rarity-group">
                     <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
-                      {RARITY_LABEL[r]} <span>· {grp[0].price} 💎</span>
+                      {RARITY_LABEL[r]} <span>· {grp[0].price} <Icon n="gem" /></span>
                     </h3>
                     <div className="tiles">
                       {grp.map((c) => (
@@ -238,13 +239,13 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           </h2>
           <ul className="earn">
             <li>
-              <strong>+{GEMS_BOSS_FIRST_CLEAR} 💎</strong> la première fois que tu bats un méga boss
+              <strong>+{GEMS_BOSS_FIRST_CLEAR} <Icon n="gem" /></strong> la première fois que tu bats un méga boss
             </li>
             <li>
-              <strong>+{GEMS_DAILY} 💎</strong> chaque jour avec le cadeau du jour
+              <strong>+{GEMS_DAILY} <Icon n="gem" /></strong> chaque jour avec le cadeau du jour
             </li>
           </ul>
-          <p className="legend">Les pièces 🪙 servent à améliorer tes personnages et soucoupes (écrans Personnages et Soucoupes).</p>
+          <p className="legend">Les pièces <Icon n="coin" /> servent à améliorer tes personnages et soucoupes (écrans Personnages et Soucoupes).</p>
         </section>
 
         <section className="chapter">
@@ -256,11 +257,11 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
               const have = c.unit === '🪙' ? (g.profile?.coins ?? 0) : gems;
               return (
                 <div className={`pack chest ${opening === c.kind ? 'shaking' : ''}`} key={c.kind}>
-                  <span className="pack-icon">{c.icon}</span>
+                  <span className="pack-icon"><Icon n={c.icon} size="1.1em" /></span>
                   <strong>{c.name}</strong>
                   <small className="legend">{c.hint}</small>
                   <button className={`btn btn-small ${have >= c.cost ? 'btn-yellow' : 'btn-grey'}`} disabled={opening !== null || have < c.cost} onClick={() => void openChest(c)}>
-                    {c.unit} {c.cost}
+                    {rich(c.unit)} {c.cost}
                   </button>
                 </div>
               );
@@ -273,14 +274,14 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           <h2 className="chapter-title">
             Échange <span>gemmes → pièces</span>
           </h2>
-          <p className="legend shop-note">1 💎 = 100 🪙. Pratique pour améliorer vite tes pilotes.</p>
+          <p className="legend shop-note">1 <Icon n="gem" /> = 100 <Icon n="coin" />. Pratique pour améliorer vite tes pilotes.</p>
           <div className="packs">
             {[1, 5, 20].map((n) => (
               <div className="pack" key={n}>
-                <span className="pack-icon">🪙</span>
-                <strong>{n * 100} 🪙</strong>
+                <span className="pack-icon"><Icon n="coin" /></span>
+                <strong>{n * 100} <Icon n="coin" /></strong>
                 <button className={`btn btn-small ${gems >= n ? 'btn-yellow' : 'btn-grey'}`} disabled={busy || gems < n} onClick={() => void exchange(n)}>
-                  💎 {n}
+                  <Icon n="gem" /> {n}
                 </button>
               </div>
             ))}
@@ -291,21 +292,21 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
           <h2 className="chapter-title">
             Packs <span>bientôt</span>
           </h2>
-          <p className="legend shop-note">Gemmes 💎</p>
+          <p className="legend shop-note">Gemmes <Icon n="gem" /></p>
           <div className="packs">
             {[[20, '0,99 €'], [45, '1,99 €'], [120, '4,99 €'], [260, '9,99 €'], [560, '19,99 €']].map(([n, p]) => (
               <div className="pack" key={n} aria-disabled="true">
-                <span className="pack-icon">💎</span>
+                <span className="pack-icon"><Icon n="gem" /></span>
                 <strong>{n}</strong>
                 <span className="badge">{p}</span>
               </div>
             ))}
           </div>
-          <p className="legend shop-note">Pièces 🪙</p>
+          <p className="legend shop-note">Pièces <Icon n="coin" /></p>
           <div className="packs">
             {[[600, '0,99 €'], [1500, '1,99 €'], [4000, '4,99 €']].map(([n, p]) => (
               <div className="pack" key={n} aria-disabled="true">
-                <span className="pack-icon">🪙</span>
+                <span className="pack-icon"><Icon n="coin" /></span>
                 <strong>{n}</strong>
                 <span className="badge">{p}</span>
               </div>
@@ -321,8 +322,8 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
       {loot && (
         <Modal title={loot.chest} onClose={() => setLoot(null)}>
           <p className="chest-loot">
-            <span className="chest-open">{loot.icon}</span>
-            <strong>{lootText(loot.loot)}</strong>
+            <span className="chest-open"><Icon n={loot.icon} size="1em" /></span>
+            <strong>{rich(lootText(loot.loot))}</strong>
           </p>
         </Modal>
       )}
