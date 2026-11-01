@@ -50,7 +50,7 @@ export class Room {
     private me: { name: string; stats: PlayerStats }
   ) {
     this.channel = supabase.channel(`salon-${code}`, {
-      config: { broadcast: { self: false, ack: false }, presence: { key: this.key } },
+      config: { private: true, broadcast: { self: false, ack: false }, presence: { key: this.key } },
     });
   }
 
@@ -84,7 +84,9 @@ export class Room {
       });
       ch.on('broadcast', { event: 'state' }, ({ payload }) => this.handlers.state?.(payload as StateMsg));
       ch.on('broadcast', { event: 'result' }, ({ payload }) => this.handlers.result?.(payload as ResultMsg));
-      ch.subscribe(async (status) => {
+      let lastStatus = 'aucun';
+      ch.subscribe(async (status, err) => {
+        lastStatus = status;
         if (status === 'SUBSCRIBED') {
           // un invité vérifie d'abord que le salon existe et n'est pas plein
           if (!this.isHost) {
@@ -105,10 +107,10 @@ export class Room {
           await ch.track({ key: this.key, name: this.me.name, host: this.isHost, joinedAt: Date.now(), stats: this.me.stats } satisfies LobbyPlayer);
           finish(null);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          finish('Connexion impossible pour le moment. Réessaie.');
+          finish(`Connexion impossible pour le moment. Réessaie. (${status}${err?.message ? ' : ' + err.message : ''})`);
         }
       });
-      setTimeout(() => finish('Connexion trop longue. Vérifie ton réseau.'), 12000);
+      setTimeout(() => finish(`Connexion trop longue. Vérifie ton réseau. (${lastStatus})`), 12000);
     });
   }
 
