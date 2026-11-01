@@ -85,7 +85,16 @@ export class Room {
       ch.on('broadcast', { event: 'state' }, ({ payload }) => this.handlers.state?.(payload as StateMsg));
       ch.on('broadcast', { event: 'result' }, ({ payload }) => this.handlers.result?.(payload as ResultMsg));
       let lastStatus = 'aucun';
-      ch.subscribe(async (status, err) => {
+      void (async () => {
+        // les canaux privés demandent le jeton de connexion du joueur (pas seulement la clé publique)
+        try {
+          await supabase.realtime.setAuth();
+        } catch {
+          /* on essaie quand même */
+        }
+        subscribe();
+      })();
+      const subscribe = () => ch.subscribe(async (status, err) => {
         lastStatus = status;
         if (status === 'SUBSCRIBED') {
           // un invité vérifie d'abord que le salon existe et n'est pas plein
@@ -98,7 +107,7 @@ export class Room {
               if (list.some((p) => p.host)) break;
             }
             if (!list.some((p) => p.host)) {
-              finish('Salon introuvable. Vérifie le code.');
+              finish(`Salon introuvable. Vérifie le code. (code ${this.code}, ${lastStatus}, ${list.length} présent)`);
               void this.leave();
               return;
             }
