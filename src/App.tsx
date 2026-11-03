@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { IconDefs } from './components/Icon';
 import { GameProvider, useGame } from './lib/GameContext';
 import { isConfigured } from './lib/supabase';
 import { Backdrop, ComingSoon } from './components/Ui';
@@ -173,6 +174,7 @@ function Shell() {
 
   return (
     <div className="app">
+      <IconDefs />
       <Backdrop theme={theme} />
       {content}
       {soon && <ComingSoon what={soon} onClose={() => setSoon(null)} />}
