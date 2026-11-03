@@ -3,6 +3,8 @@ import { Icon, rich } from '../components/Icon';
 import type { Screen } from '../types';
 import { useGame } from '../lib/GameContext';
 
+const SHOW_ROOMS = false;
+
 export function PlayScreen({
   onBack,
   onNavigate,
@@ -20,17 +22,20 @@ export function PlayScreen({
             <div className="mode-icon"><Icon n="boom" /></div>
             <h2 className="mode-title">Battle Royale</h2>
             <p className="mode-desc">
-              8 pilotes, une zone qui se referme… Le dernier en vie gagne ! Tu affrontes 7 robots pour l'instant, de vrais joueurs arriveront plus tard.
+              8 pilotes, une zone qui se referme… Le dernier en vie gagne ! Tu affrontes 7 robots. Les vrais joueurs arriveront dans une prochaine mise à jour.
             </p>
             <span className="mode-tag">8 pilotes · contre des robots · <Icon n="trophy" /> {profile?.trophies ?? 0}</span>
           </button>
 
+          {/* Salon entre amis : désactivé pour l'instant, il reviendra dans une mise à jour (SHOW_ROOMS) */}
+          {SHOW_ROOMS && (
           <button className="mode-card mode-royale" onClick={() => onNavigate('room')}>
             <div className="mode-icon"><Icon n="users" /></div>
             <h2 className="mode-title">Salon entre amis</h2>
             <p className="mode-desc">Crée un salon, donne le code à tes amis et affrontez-vous en ligne dans le Battle Royale !</p>
             <span className="mode-tag">En ligne · jusqu'à 4 amis</span>
           </button>
+          )}
 
           <button className="mode-card mode-story" onClick={() => onNavigate('chapters')}>
             <div className="mode-icon"><Icon n="galaxy" /></div>
