@@ -28,7 +28,7 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
             <section key={r} className="rarity-group">
               <h3 className="rarity-title" style={{ color: RARITY_COLOR[r] }}>
                 {RARITY_LABEL[r]}
-                {group[0].price > 0 ? <span> · {group[0].price + 0} <Icon n="gem" /></span> : null}
+                {group.some((x) => x.price > 0) ? <span> · {group.find((x) => x.price > 0)!.price} <Icon n="gem" /></span> : null}
               </h3>
         <div className="tiles">
           {group.map((it) => (

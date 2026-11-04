@@ -1089,3 +1089,6 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 -- complete_level accepte p_chapter de 1 à 15, même corps qu'avant)
 -- Zéphyr, Golem (rares) · Phénix, Sentinelle (super rares) · Banshee, Rhino (épiques) · Dragon, Oracle (mythiques) · Galaxion, Aurore (légendaires)
 -- Soucoupes : Alizé, Granit, Phare, Sonar, Fantôme, Bélier, Léviathan, Pulsar, Supernova, Aurore boréale
+
+-- Contenu : 3 personnages communs (Astro, Gizmo, Moussaillon) + 3 soucoupes communes (Scarabée, Libellule, Tortue),
+-- et 2 skins pour chaque personnage qui n'en avait pas (migration "contenu_communs_et_skins_manquants")
