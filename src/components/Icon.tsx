@@ -205,6 +205,55 @@ export const ICONS: Record<string, ReactNode> = {
       <circle cx="12" cy="20" r="0.9" fill={O} />
     </>
   ),
+  star: (
+    <>
+      <path d="M12 1.8l2.9 6.5 7.1.7-5.3 4.8 1.5 7-6.2-3.6-6.2 3.6 1.5-7L2 9l7.1-.7z" fill="url(#gGold)" {...S} />
+      <path d="M12 6l1.3 3.3 3.2.4-2.4 2.2.7 3.2L12 13.4z" fill="#fffdf0" opacity=".8" />
+    </>
+  ),
+  alien: (
+    <>
+      <path d="M7 4L5 1.5M17 4l2-2.5" stroke={O} strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="5" cy="1.8" r="1.2" fill="#ff5d8f" stroke={O} strokeWidth="1" />
+      <circle cx="19" cy="1.8" r="1.2" fill="#ff5d8f" stroke={O} strokeWidth="1" />
+      <path d="M12 3.5c5 0 8.5 3.6 8.5 8 0 5-3.6 9-8.5 9s-8.5-4-8.5-9c0-4.400 3.500-8 8.500-8z" fill="url(#gGreen)" {...S} />
+      <ellipse cx="8.3" cy="11" rx="2.4" ry="3.2" fill="#0b1030" transform="rotate(-18 8.3 11)" />
+      <ellipse cx="15.7" cy="11" rx="2.4" ry="3.2" fill="#0b1030" transform="rotate(18 15.7 11)" />
+      <circle cx="7.6" cy="10" r=".8" fill="#fff" />
+      <circle cx="15" cy="10" r=".8" fill="#fff" />
+      <path d="M10 17.2q2 1.200 4 0" stroke={O} strokeWidth="1.2" fill="none" strokeLinecap="round" />
+    </>
+  ),
+  moon: (
+    <>
+      <path d="M16.500 2.500A10 10 0 1 0 21.500 16 8 8 0 0 1 16.500 2.500z" fill="url(#gGold)" {...S} />
+      <circle cx="9" cy="12" r="1.500" fill="#e0a21a" opacity=".7" />
+      <circle cx="11.500" cy="17" r="1" fill="#e0a21a" opacity=".7" />
+      <circle cx="8" cy="7.500" r=".9" fill="#e0a21a" opacity=".7" />
+    </>
+  ),
+  comet: (
+    <>
+      <path d="M15 9L2.500 3.500l5 8-5 7L13 15z" fill="url(#gBlue)" {...S} opacity=".9" />
+      <circle cx="16" cy="14" r="6.500" fill="url(#gOrange)" {...S} />
+      <circle cx="14" cy="12" r="2" fill="#fff3b0" opacity=".8" />
+    </>
+  ),
+  planet: (
+    <>
+      <circle cx="12" cy="12" r="7" fill="url(#gOrange)" {...S} />
+      <path d="M7 9q5-2 10 1M6 14q6 2 12-1" stroke="#a1182a" strokeWidth="1.200" fill="none" opacity=".55" />
+      <ellipse cx="12" cy="12.500" rx="11" ry="3.200" fill="none" stroke={O} strokeWidth="3.400" transform="rotate(-18 12 12.500)" />
+      <ellipse cx="12" cy="12.500" rx="11" ry="3.200" fill="none" stroke="#cfd6e6" strokeWidth="1.600" transform="rotate(-18 12 12.500)" />
+      <path d="M8 6.500q2-1.500 4.500-1.200" stroke="#fff3b0" strokeWidth="1.400" fill="none" strokeLinecap="round" />
+    </>
+  ),
+  flame: (
+    <>
+      <path d="M12 1.500c1 4 6.500 6.500 6.500 12.500a6.500 6.500 0 0 1-13 0c0-3 1.800-4.500 3-6.500.500 1.800 1.500 2.500 2.500 2.800C11 7.500 11 4.500 12 1.500z" fill="url(#gRed)" {...S} />
+      <path d="M12 11c.8 2.500 3.500 3.500 3.500 6.200a3.500 3.500 0 0 1-7 0c0-1.800 1.500-2.800 2-4.200.500.800 1 1 1.500 1z" fill="url(#gGold)" />
+    </>
+  ),
   sparkle: (
     <>
       <path d="M12 1.5l2.4 8.1 8.1 2.4-8.1 2.4L12 22.5l-2.4-8.1L1.5 12l8.1-2.4z" fill="url(#gGold)" {...S} />
@@ -315,7 +364,7 @@ export function IconDefs() {
 /** Texte -> icônes : les petits emoji du jeu sont remplacés par nos dessins. */
 const MAP: Record<string, string> = {
   '🪙': 'coin', '💎': 'gem', '🏆': 'trophy', '🔒': 'lock', '🔧': 'wrench', '👑': 'crown', '💥': 'boom', '🎁': 'gift',
-  '📦': 'chestB', '🧰': 'chestS', '🛒': 'cart', '🛡️': 'shield', '🛡': 'shield', '⚙️': 'gear', '⚙': 'gear', '🛸': 'ufo',
+  '📦': 'chestB', '🧰': 'chestS', '🛒': 'cart', '🛡️': 'shield', '🛡': 'shield', '⚙️': 'gear', '⚙': 'gear', '🛸': 'ufo', '⭐': 'star', '👾': 'alien', '🌙': 'moon', '☄️': 'comet', '☄': 'comet', '🪐': 'planet', '🔥': 'flame',
   '🧑‍🚀': 'pilot', '🧑': 'pilot', '🚀': 'rocket', '👹': 'monster', '📱': 'phone', '✨': 'sparkle', '👥': 'users', '🌌': 'galaxy',
   '🎨': 'palette', '🔍': 'search', '📲': 'install', '📊': 'chart', '🥇': 'medal1', '🥈': 'medal2', '🥉': 'medal3',
 };
@@ -336,12 +385,14 @@ export function Icon({ n, size }: { n: string; size?: number | string }) {
   );
 }
 
+const FE = /\uFE0F/g;
+for (const k of Object.keys(MAP)) { const c = k.replace(FE, ''); if (c !== k) MAP[c] = MAP[k]; }
 const RE = new RegExp(`(${Object.keys(MAP).sort((a, b) => b.length - a.length).join('|')})`, 'g');
 
 /** Remplace les emoji d'un texte par nos icônes (les autres valeurs passent telles quelles). */
 export function rich(v: unknown): ReactNode {
   if (typeof v !== 'string') return v as ReactNode;
-  const parts = v.split(RE);
+  const parts = v.replace(FE, '').split(RE);
   if (parts.length === 1) return v;
   return parts.map((p, i) => (MAP[p] ? <Icon key={i} n={MAP[p]} /> : p));
 }

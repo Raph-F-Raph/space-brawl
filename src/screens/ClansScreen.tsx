@@ -145,7 +145,7 @@ function NoClan({ onJoined }: { onJoined: (m: string) => void }) {
             <ul className="clan-list">
               {list.map((c) => (
                 <li key={c.id} className="clan-row">
-                  <span className="clan-badge">{c.badge}</span>
+                  <span className="clan-badge">{rich(c.badge)}</span>
                   <div className="clan-info">
                     <strong>{c.name}</strong>
                     <small>
@@ -176,7 +176,7 @@ function NoClan({ onJoined }: { onJoined: (m: string) => void }) {
               <div className="badge-row">
                 {BADGES.map((b) => (
                   <button key={b} type="button" className={`badge-pick ${badge === b ? 'on' : ''}`} onClick={() => setBadge(b)}>
-                    {b}
+                    {rich(b)}
                   </button>
                 ))}
               </div>
@@ -244,7 +244,7 @@ function MyClan({ clan, myId, onLeft }: { clan: ClanInfo; myId: string; onLeft: 
     <div className="clan-view">
       <div className="clan-left">
       <section className="chapter clan-head">
-        <span className="clan-badge big">{clan.badge}</span>
+        <span className="clan-badge big">{rich(clan.badge)}</span>
         <div>
           <h2 className="chapter-title">{clan.name}</h2>
           {clan.description && <p className="legend">{clan.description}</p>}

@@ -1769,3 +1769,34 @@ button.player-pill:active { transform: scale(0.97); }
   .sheet .skin-chip em { font-size: 10px; }
   .sheet > .card-actions { margin: 0; }
 }
+
+/* Écrans très bas (téléphone avec barres du navigateur) */
+.clan-view .chapter-title { flex: none; line-height: 1.2; }
+.clan-head { flex: none; }
+@media (orientation: landscape) and (max-height: 440px) {
+  .sheet { padding: 4px 12px; row-gap: 2px; max-height: 98vh; }
+  .sheet > .sheet-art svg { height: min(96px, 28vh); }
+  .sheet > .card-name { font-size: 18px; }
+  .sheet > .card-tags { transform: scale(0.85); margin: -4px 0; }
+  .sheet .stat, .sheet .sheet-stat { font-size: 13px; }
+  .sheet > .stats { gap: 1px; }
+  .sheet > .attack { font-size: 12px; }
+  .sheet .btn { font-size: 14px; padding: 2px 12px; border-width: 3px; border-radius: 12px; }
+  .sheet .btn-small { font-size: 12px; padding: 2px 8px; }
+  .sheet > .skins { gap: 0 8px; }
+  .sheet > .skins .skins-title { font-size: 12px; }
+  .sheet .skin-chip { padding: 1px 5px; font-size: 10px; }
+  .sheet-close { width: 26px; height: 26px; font-size: 13px; }
+  .collection .tile { width: 82px; }
+  .collection .tile-art { height: 52px; }
+  .collection .tile-art svg { max-height: 52px; }
+  .collection .tile-name { font-size: 12px; }
+  .clan-view .chapter-title { font-size: 15px; }
+  .clan-row { padding: 2px 8px; }
+  .clan-info strong { font-size: 14px; }
+  .clan-info small { font-size: 11px; }
+  .clan-badge { font-size: 22px; width: 32px; }
+  .clan-badge .ic { width: 1.2em; height: 1.2em; }
+  .clan-leave { transform: scale(0.85); }
+  .chat { padding: 4px; }
+}
