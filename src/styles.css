@@ -1810,3 +1810,5 @@ button.player-pill:active { transform: scale(0.97); }
 .clan-head .chapter-title { overflow-wrap: anywhere; font-size: 22px; line-height: 1.15; }
 .clan-head .legend { margin: 2px 0 0; text-align: left; overflow-wrap: anywhere; }
 .clan-info strong { white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
+.clan-row.me { outline: none; box-shadow: inset 0 0 0 3px var(--yellow); }
+.clan-list { padding: 2px; }
