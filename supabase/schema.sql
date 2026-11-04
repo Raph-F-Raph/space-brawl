@@ -1073,3 +1073,14 @@ create policy "trophy_claims: lecture de ses propres paliers" on public.trophy_c
 -- Salons en ligne : canaux Realtime privés "salon-XXXX" (migration "realtime_salons_prives")
 create policy "salon: lecture" on realtime.messages for select to authenticated using (realtime.topic() like 'salon-%');
 create policy "salon: ecriture" on realtime.messages for insert to authenticated with check (realtime.topic() like 'salon-%');
+
+-- Contenu : Comète (rare), Hibou (épique), Kraken (mythique), soucoupes Brasier, Astrolabe, Abysse, 6 skins, 3 packs duo (migration "contenu_comete_hibou_kraken")
+insert into public.characters (name, rarity, hp, strength, resistance, attack_type, attack_kind, color, accent, price, sort_order) values
+('Comète','rare',85,13,4,'Rafale enflammée','burst','#ff7b54','#ffd93d',30,12),
+('Hibou','epic',105,13,7,'Rayon stellaire','laser','#6a4c93','#ffca3a',90,13),
+('Kraken','mythic',140,10,10,'Raz-de-marée','shockwave','#118ab2','#06d6a0',120,14);
+insert into public.ships (name, rarity, hp, strength, resistance, speed, color, accent, price, sort_order) values
+('Brasier','rare',110,8,5,7,'#ff9e5e','#e63946',50,12),
+('Astrolabe','epic',100,11,6,7,'#8d6cc4','#ffd166',110,13),
+('Abysse','mythic',125,10,9,6,'#0b6e99','#06d6a0',140,14);
+-- skins (Braise, Givre, Nuit, Sage, Corail, Perle) et packs duo : voir la migration du projet Supabase
