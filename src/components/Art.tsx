@@ -118,6 +118,89 @@ export function CharacterArt({
           {!headOnly && <ellipse cx="50" cy="132" rx="32" ry="14" fill={accent} opacity="0.25" />}
         </>
       )}
+      {variant === 15 && (
+        <>
+          <path d="M20 40 Q4 36 6 52 Q12 60 24 54" stroke={accent} strokeWidth="5" fill="none" strokeLinecap="round" />
+          <path d="M80 40 Q96 36 94 52 Q88 60 76 54" stroke={accent} strokeWidth="5" fill="none" strokeLinecap="round" />
+          <path d="M22 62 Q8 66 10 78" stroke="#fff" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.8" />
+          <path d="M78 62 Q92 66 90 78" stroke="#fff" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.8" />
+        </>
+      )}
+      {variant === 16 && (
+        <>
+          <polygon points="14,40 6,26 22,22 28,36" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <polygon points="86,40 94,26 78,22 72,36" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <polygon points="30,24 38,8 50,18 62,6 70,24" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 17 && (
+        <>
+          <path d="M20 54 Q-10 40 -4 8 Q14 24 30 30 Z" fill={color} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <path d="M80 54 Q110 40 104 8 Q86 24 70 30 Z" fill={color} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <path d="M14 38 Q6 24 6 14 M86 38 Q94 24 94 14" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
+          {!headOnly && <ellipse cx="50" cy="132" rx="30" ry="14" fill={accent} opacity="0.3" />}
+        </>
+      )}
+      {variant === 18 && (
+        <>
+          <line x1="68" y1="22" x2="80" y2="2" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+          <ellipse cx="82" cy="4" rx="9" ry="5" transform="rotate(-30 82 4)" fill={accent} stroke={INK} strokeWidth="3.5" />
+          <rect x="8" y="38" width="12" height="22" rx="4" fill={accent} stroke={INK} strokeWidth="3.5" />
+          <rect x="80" y="38" width="12" height="22" rx="4" fill={accent} stroke={INK} strokeWidth="3.5" />
+        </>
+      )}
+      {variant === 19 && (
+        <>
+          <path d="M22 40 Q-4 60 8 96 Q14 84 22 88 Q18 70 30 58 Z" fill="#fff" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" opacity="0.92" />
+          <path d="M78 40 Q104 60 92 96 Q86 84 78 88 Q82 70 70 58 Z" fill="#fff" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" opacity="0.92" />
+          {!headOnly && <ellipse cx="50" cy="132" rx="28" ry="12" fill={accent} opacity="0.3" />}
+        </>
+      )}
+      {variant === 20 && (
+        <>
+          <circle cx="18" cy="26" r="11" fill={color} stroke={INK} strokeWidth="4" />
+          <circle cx="82" cy="26" r="11" fill={color} stroke={INK} strokeWidth="4" />
+          <circle cx="18" cy="26" r="5" fill={accent} />
+          <circle cx="82" cy="26" r="5" fill={accent} />
+        </>
+      )}
+      {variant === 21 && (
+        <>
+          <path d="M26 34 Q8 14 14 -4 Q28 8 40 18 Z" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <path d="M74 34 Q92 14 86 -4 Q72 8 60 18 Z" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          {!headOnly && (
+            <>
+              <path d="M22 84 Q-14 70 -10 108 Q8 100 26 100 Z" fill={color} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+              <path d="M78 84 Q114 70 110 108 Q92 100 74 100 Z" fill={color} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+            </>
+          )}
+        </>
+      )}
+      {variant === 22 && (
+        <>
+          <ellipse cx="50" cy="42" rx="46" ry="42" fill="none" stroke={accent} strokeWidth="5" opacity="0.9" />
+          <ellipse cx="50" cy="42" rx="46" ry="42" fill="none" stroke={INK} strokeWidth="1.5" opacity="0.5" />
+          <circle cx="50" cy="0" r="4" fill="#fff" stroke={INK} strokeWidth="2" />
+          <circle cx="4" cy="42" r="3.2" fill="#fff" stroke={INK} strokeWidth="2" />
+          <circle cx="96" cy="42" r="3.2" fill="#fff" stroke={INK} strokeWidth="2" />
+        </>
+      )}
+      {variant === 23 && (
+        <>
+          <circle cx="50" cy="44" r="52" fill={accent} opacity="0.16" />
+          <ellipse cx="50" cy="44" rx="50" ry="14" fill="none" stroke={accent} strokeWidth="3.5" transform="rotate(-18 50 44)" />
+          <circle cx="2" cy="56" r="5" fill="#ffd166" stroke={INK} strokeWidth="2.5" />
+          <circle cx="98" cy="32" r="4" fill="#fff" stroke={INK} strokeWidth="2.5" />
+          {!headOnly && <ellipse cx="50" cy="132" rx="32" ry="14" fill={accent} opacity="0.25" />}
+        </>
+      )}
+      {variant === 24 && (
+        <>
+          <path d="M20 40 Q-6 52 4 80 Q10 100 -2 118" stroke={accent} strokeWidth="7" fill="none" strokeLinecap="round" opacity="0.85" />
+          <path d="M80 40 Q106 52 96 80 Q90 100 102 118" stroke={color} strokeWidth="7" fill="none" strokeLinecap="round" opacity="0.85" />
+          <path d="M20 40 Q-6 52 4 80 Q10 100 -2 118 M80 40 Q106 52 96 80 Q90 100 102 118" stroke={INK} strokeWidth="1.6" fill="none" opacity="0.4" />
+        </>
+      )}
       {variant === 4 && (
         <>
           <polygon points="28,30 20,6 42,22" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
@@ -271,6 +354,65 @@ export function CharacterArt({
               <path d="M36 86 Q43 80 50 86 Q57 92 64 86" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
               <path d="M36 96 Q43 90 50 96 Q57 102 64 96" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
             </>
+          )}
+          {variant === 15 && (
+            <path d="M38 88 Q44 80 50 86 Q56 92 62 84 M38 96 Q44 90 50 95 Q56 100 62 94" stroke={accent} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          )}
+          {variant === 16 && (
+            <>
+              <path d="M36 80 L44 90 L40 100 M62 80 L56 92 L64 102" stroke={accent} strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              <polygon points="50,82 56,90 50,98 44,90" fill={accent} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+            </>
+          )}
+          {variant === 17 && (
+            <path d="M50 78 Q62 88 54 102 Q50 96 46 102 Q38 88 50 78 Z M50 86 Q55 92 51 98 Q47 92 50 86 Z" fill={accent} stroke={INK} strokeWidth="2.4" strokeLinejoin="round" fillRule="evenodd" />
+          )}
+          {variant === 18 && (
+            <>
+              <path d="M32 82 L50 94 L68 82" stroke={accent} strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="50" cy="100" r="3.2" fill="#fff" stroke={INK} strokeWidth="2" />
+            </>
+          )}
+          {variant === 19 && (
+            <>
+              <path d="M36 82 Q43 76 50 82 Q57 88 64 82 L62 100 Q56 94 50 100 Q44 94 38 100 Z" fill="#fff" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+              <circle cx="45" cy="88" r="2" fill={INK} />
+              <circle cx="55" cy="88" r="2" fill={INK} />
+            </>
+          )}
+          {variant === 20 && (
+            <>
+              <rect x="30" y="82" width="40" height="16" rx="5" fill={accent} stroke={INK} strokeWidth="2.5" />
+              {[36, 46, 56, 64].map((x) => (
+                <circle key={x} cx={x} cy="90" r="2" fill="#fff" stroke={INK} strokeWidth="1.2" />
+              ))}
+            </>
+          )}
+          {variant === 21 && (
+            <>
+              {[36, 46, 56].map((x) => (
+                <path key={x} d={`M${x - 8} 94 Q${x} 82 ${x + 8} 94`} fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round" />
+              ))}
+              {[41, 51].map((x) => (
+                <path key={x} d={`M${x - 8} 102 Q${x} 90 ${x + 8} 102`} fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round" />
+              ))}
+            </>
+          )}
+          {variant === 22 && (
+            <>
+              <path d="M32 90 Q50 76 68 90 Q50 104 32 90 Z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+              <circle cx="50" cy="90" r="6" fill={accent} stroke={INK} strokeWidth="2.4" />
+              <circle cx="50" cy="90" r="2.4" fill={INK} />
+            </>
+          )}
+          {variant === 23 && (
+            <>
+              <circle cx="50" cy="90" r="9" fill={accent} stroke={INK} strokeWidth="2.8" />
+              <ellipse cx="50" cy="90" rx="17" ry="4.5" fill="none" stroke="#fff" strokeWidth="3" transform="rotate(-20 50 90)" />
+            </>
+          )}
+          {variant === 24 && (
+            <path d="M32 84 Q41 76 50 84 Q59 92 68 84 M32 92 Q41 84 50 92 Q59 100 68 92" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
           )}
           {variant === 6 && (
             <>
@@ -448,6 +590,78 @@ export function CharacterArt({
           <circle cx="82" cy="52" r="2.2" fill="#fff" stroke={INK} strokeWidth="1.6" />
         </>
       )}
+      {variant === 15 && (
+        <>
+          <path d="M20 40 Q8 34 10 46 Q14 52 22 48 Z M80 40 Q92 34 90 46 Q86 52 78 48 Z" fill="#fff" stroke={INK} strokeWidth="2.8" strokeLinejoin="round" />
+          <path d="M84 18 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#fff" stroke={accent} strokeWidth="1.2" />
+        </>
+      )}
+      {variant === 16 && (
+        <>
+          <path d="M18 42 Q50 24 82 42 L82 34 Q50 14 18 34 Z" fill={accent} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <path d="M30 66 L36 72 L32 78 M68 66 L64 72 L68 78" stroke={INK} strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 17 && (
+        <>
+          <path d="M36 22 Q38 6 50 0 Q48 12 56 16 Q60 8 64 22 Q50 16 36 22 Z" fill="#ffd23f" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <path d="M44 20 Q50 8 56 20 Z" fill={color} />
+          <path d="M16 56 L8 62 M84 56 L92 62" stroke={accent} strokeWidth="4" strokeLinecap="round" />
+        </>
+      )}
+      {variant === 18 && (
+        <>
+          <rect x="20" y="40" width="60" height="14" rx="7" fill={accent} opacity="0.9" stroke={INK} strokeWidth="2.6" />
+          <path d="M26 47 H74" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="6 5" />
+          <circle cx="50" cy="22" r="3.5" fill="#ffd166" stroke={INK} strokeWidth="2" />
+        </>
+      )}
+      {variant === 19 && (
+        <>
+          <path d="M16 38 Q50 20 84 38 L84 46 Q50 28 16 46 Z" fill={accent} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <path d="M84 42 Q96 38 98 52 Q92 46 86 50 Z" fill={accent} stroke={INK} strokeWidth="2.6" strokeLinejoin="round" />
+          <path d="M26 68 Q50 78 74 68" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.8" />
+        </>
+      )}
+      {variant === 20 && (
+        <>
+          <path d="M42 30 Q40 14 52 4 Q56 16 58 30 Z" fill="#f1f1f1" stroke={INK} strokeWidth="3.2" strokeLinejoin="round" />
+          <path d="M20 54 L12 60 M80 54 L88 60" stroke={accent} strokeWidth="4" strokeLinecap="round" />
+          <rect x="24" y="30" width="52" height="7" rx="3.5" fill={accent} stroke={INK} strokeWidth="2.6" />
+        </>
+      )}
+      {variant === 21 && (
+        <>
+          {[28, 38, 50, 62, 72].map((x, i) => (
+            <polygon key={x} points={`${x - 5},30 ${x},${i === 2 ? 6 : 14} ${x + 5},30`} fill={accent} stroke={INK} strokeWidth="2.6" strokeLinejoin="round" />
+          ))}
+          <circle cx="40" cy="70" r="1.8" fill={INK} />
+          <circle cx="60" cy="70" r="1.8" fill={INK} />
+        </>
+      )}
+      {variant === 22 && (
+        <>
+          <path d="M30 26 Q50 6 70 26 Q50 18 30 26 Z" fill={color} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <polygon points="50,12 55,20 50,28 45,20" fill={accent} stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
+          <path d="M84 24 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z M10 30 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" fill="#fff" stroke={accent} strokeWidth="1.2" />
+        </>
+      )}
+      {variant === 23 && (
+        <>
+          <path d="M22 34 Q50 8 78 34 Q50 24 22 34 Z" fill={color} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <path d="M50 4 l2.4 5.6 5.8.6 -4.3 3.9 1.3 5.8 -5.2 -3 -5.2 3 1.3 -5.8 -4.3 -3.9 5.8 -.6z" fill="#ffd166" stroke={INK} strokeWidth="1.8" strokeLinejoin="round" />
+          <circle cx="24" cy="22" r="2.4" fill="#fff" />
+          <circle cx="78" cy="16" r="2" fill="#fff" />
+          <circle cx="88" cy="44" r="2.2" fill="#fff" />
+        </>
+      )}
+      {variant === 24 && (
+        <>
+          <polygon points="28,28 32,10 40,22 50,6 60,22 68,10 72,28" fill={accent} stroke={INK} strokeWidth="3.2" strokeLinejoin="round" />
+          <circle cx="50" cy="22" r="3.4" fill="#fff" stroke={INK} strokeWidth="2" />
+          <path d="M84 40 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#fff" stroke={accent} strokeWidth="1.2" />
+        </>
+      )}
       {variant === 6 && (
         <>
           <path d="M44 22 L50 14 L56 22 L50 30 Z" fill="#ffd166" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
@@ -597,6 +811,76 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
           <ellipse cx="80" cy="66" rx="82" ry="30" fill={accent} opacity="0.18" />
         </>
       )}
+      {variant === 15 && (
+        <>
+          <path d="M10 60 Q-18 56 -20 30 Q4 30 22 48 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M150 60 Q178 56 180 30 Q156 30 138 48 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M-6 76 Q-16 84 -4 92 M166 76 Q176 84 164 92" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.8" />
+        </>
+      )}
+      {variant === 16 && (
+        <>
+          <polygon points="14,58 -20,46 -12,70 -22,84 18,76" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <polygon points="146,58 180,46 172,70 182,84 142,76" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <polygon points="56,38 66,20 74,32 82,14 92,34 104,24 108,40" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 17 && (
+        <>
+          <polygon points="46,92 114,92 140,100 20,100" fill="#fff3b0" opacity="0.55" />
+          <path d="M14 62 Q-14 62 -16 82 Q10 82 24 72 Z M146 62 Q174 62 176 82 Q150 82 136 72 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 18 && (
+        <>
+          <path d="M-18 40 Q-26 64 -18 88 M-6 46 Q-12 64 -6 82" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
+          <path d="M178 40 Q186 64 178 88 M166 46 Q172 64 166 82" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
+          <line x1="80" y1="14" x2="80" y2="-2" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+        </>
+      )}
+      {variant === 19 && (
+        <>
+          <path d="M6 66 Q-20 70 -18 96 Q-8 88 -2 98 Q6 86 14 94 Q22 84 30 92 L130 92 Q138 84 146 94 Q154 86 162 98 Q168 88 178 96 Q180 70 154 66 Z" fill="#fff" opacity="0.88" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 20 && (
+        <>
+          <path d="M12 54 Q-24 40 -18 8 Q-6 30 22 42 Z" fill="#f1f1f1" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M148 54 Q184 40 178 8 Q166 30 138 42 Z" fill="#f1f1f1" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <polygon points="14,62 -26,68 14,76" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 21 && (
+        <>
+          <path d="M14 66 Q-20 62 -22 90 Q-6 80 10 84 Z M146 66 Q180 62 182 90 Q166 80 150 84 Z" fill={accent} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          {[44, 62, 80, 98, 116].map((x, i) => (
+            <polygon key={x} points={`${x - 7},36 ${x},${i === 2 ? 4 : 14} ${x + 7},36`} fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          ))}
+        </>
+      )}
+      {variant === 22 && (
+        <>
+          <ellipse cx="80" cy="56" rx="80" ry="50" fill={accent} opacity="0.14" />
+          {[-90, -45, 0, 45].map((a) => (
+            <polygon key={a} points="80,56 76,2 84,2" fill="#fff" opacity="0.8" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" transform={`rotate(${a} 80 56)`} />
+          ))}
+          <polygon points="80,56 76,2 84,2" fill="#fff" opacity="0.8" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" transform="rotate(135 80 56)" />
+        </>
+      )}
+      {variant === 23 && (
+        <>
+          <ellipse cx="80" cy="56" rx="84" ry="50" fill={accent} opacity="0.16" />
+          {[-72, -36, 0, 36, 72, 108, 144, 180, 216, 252].map((a) => (
+            <polygon key={a} points="80,56 75,2 85,2" fill={a % 72 === 0 ? '#ffd166' : accent} stroke={INK} strokeWidth="2.6" strokeLinejoin="round" transform={`rotate(${a} 80 56)`} />
+          ))}
+        </>
+      )}
+      {variant === 24 && (
+        <>
+          <path d="M-16 74 Q10 40 40 52 Q60 24 80 36 Q100 24 120 52 Q150 40 176 74" stroke={accent} strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.8" />
+          <path d="M-16 74 Q10 40 40 52 Q60 24 80 36 Q100 24 120 52 Q150 40 176 74" stroke={color} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.9" />
+        </>
+      )}
       {variant === 6 && (
         <>
           <ellipse cx="80" cy="64" rx="86" ry="34" fill="#fff3b0" opacity="0.22" />
@@ -722,6 +1006,78 @@ export function ShipArt({ color, accent, variant, size = 200 }: ArtProps) {
             <circle key={x} cx={x} cy="64" r="7" fill="#0b2545" stroke={accent} strokeWidth="3" />
           ))}
           <path d="M14 84 q8 -8 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" stroke={accent} strokeWidth="3" fill="none" strokeLinecap="round" />
+        </>
+      )}
+      {variant === 15 && (
+        <>
+          <path d="M16 64 Q44 52 80 64 Q116 76 144 64" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" />
+          <path d="M60 30 Q80 8 100 30" stroke="#fff" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.8" />
+        </>
+      )}
+      {variant === 16 && (
+        <>
+          <path d="M30 56 L44 68 L36 80 M120 54 L112 68 L124 80" stroke={accent} strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M70 52 L84 66 L74 78" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+        </>
+      )}
+      {variant === 17 && (
+        <>
+          <rect x="70" y="10" width="20" height="18" rx="4" fill="#ffd23f" stroke={INK} strokeWidth="3.5" />
+          <rect x="74" y="14" width="12" height="10" rx="2" fill="#fff3b0" />
+          <path d="M70 10 L80 0 L90 10 Z" fill={accent} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 18 && (
+        <>
+          <circle cx="80" cy="-2" r="6" fill={accent} stroke={INK} strokeWidth="3.5" />
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke={accent} strokeWidth="3" />
+          <ellipse cx="80" cy="64" rx="52" ry="15" fill="none" stroke={accent} strokeWidth="3" opacity="0.7" />
+        </>
+      )}
+      {variant === 19 && (
+        <>
+          <circle cx="66" cy="38" r="4" fill={INK} />
+          <circle cx="94" cy="38" r="4" fill={INK} />
+          <path d="M70 50 Q80 58 90 50" stroke={INK} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          <path d="M20 64 Q50 56 80 64 Q110 72 140 64" stroke={accent} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        </>
+      )}
+      {variant === 20 && (
+        <>
+          <path d="M18 62 H142" stroke={accent} strokeWidth="5" strokeLinecap="round" />
+          {[34, 56, 104, 126].map((x) => (
+            <circle key={x} cx={x} cy="64" r="3.2" fill="#fff" stroke={INK} strokeWidth="2" />
+          ))}
+          <path d="M72 30 L80 14 L88 30" stroke="#f1f1f1" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 21 && (
+        <>
+          {[26, 50, 74, 98, 122].map((x) => (
+            <path key={x} d={`M${x} 72 q8 -14 16 0`} stroke={accent} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          ))}
+          <circle cx="62" cy="38" r="3" fill={INK} />
+          <circle cx="98" cy="38" r="3" fill={INK} />
+        </>
+      )}
+      {variant === 22 && (
+        <>
+          <circle cx="80" cy="64" r="11" fill="#fff" stroke={INK} strokeWidth="3" />
+          <circle cx="80" cy="64" r="5" fill={accent} />
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke={accent} strokeWidth="3" strokeDasharray="3 6" strokeLinecap="round" />
+        </>
+      )}
+      {variant === 23 && (
+        <>
+          <ellipse cx="80" cy="64" rx="74" ry="24" fill="none" stroke="#ffd166" strokeWidth="3.5" strokeDasharray="2 5" strokeLinecap="round" />
+          <path d="M80 44 l3.4 8 8.6.8 -6.5 5.7 2 8.5 -7.5 -4.5 -7.5 4.5 2 -8.5 -6.5 -5.7 8.6 -.8z" fill="#ffd166" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
+        </>
+      )}
+      {variant === 24 && (
+        <>
+          <path d="M10 62 Q30 50 50 62 T90 62 T130 62 T150 62" stroke={accent} strokeWidth="5" fill="none" strokeLinecap="round" />
+          <path d="M20 74 Q40 64 60 74 T100 74 T140 74" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.8" />
+          <path d="M60 24 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#fff" stroke={accent} strokeWidth="1.2" />
         </>
       )}
       {variant === 6 && (

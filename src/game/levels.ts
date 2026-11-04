@@ -216,6 +216,62 @@ const SEEDS: ChapterSeed[] = [
     bg2: '#b5179e',
     enemy: { grunt: '#ffd166', fast: '#ff4d6d', tank: '#7209b7', minion: '#ffe5ec', boss: '#ffd700' },
   },
+  {
+    name: 'Le désert de cristal',
+    bossName: 'Cristalor',
+    levelNames: ['Dunes étincelantes', 'Tempête de sable', 'Canyon des échos', 'Palais de cristal'],
+    bg1: '#2a1a05',
+    bg2: '#c98a2b',
+    enemy: { grunt: '#f4d35e', fast: '#ee964b', tank: '#8d5a2b', minion: '#fff1c1', boss: '#f95738' },
+  },
+  {
+    name: "L'océan d'étoiles",
+    bossName: 'Abyssor',
+    levelNames: ['Vagues cosmiques', 'Récif lumineux', 'Courants noirs', 'Fosse des géants'],
+    bg1: '#02101f',
+    bg2: '#0a5c8a',
+    enemy: { grunt: '#48cae4', fast: '#90e0ef', tank: '#023e8a', minion: '#caf0f8', boss: '#00b4d8' },
+  },
+  {
+    name: 'La forêt fantôme',
+    bossName: 'Hantaxe',
+    levelNames: ['Sentier brumeux', 'Arbres murmurants', 'Clairière hantée', 'Racine ancestrale'],
+    bg1: '#0b1a14',
+    bg2: '#3a7d6e',
+    enemy: { grunt: '#b8f2e6', fast: '#e0fbfc', tank: '#5e8c61', minion: '#d8f3dc', boss: '#80ed99' },
+  },
+  {
+    name: "L'orage cosmique",
+    bossName: 'Foudrax',
+    levelNames: ['Nuages électriques', 'Éclairs en chaîne', 'Œil du cyclone', 'Colonne de foudre'],
+    bg1: '#10122e',
+    bg2: '#4a4fd1',
+    enemy: { grunt: '#a2d2ff', fast: '#ffe66d', tank: '#3a0ca3', minion: '#e0e1ff', boss: '#ffe66d' },
+  },
+  {
+    name: 'Le vaisseau-mère',
+    bossName: 'Armadax',
+    levelNames: ['Hangar ennemi', 'Couloirs blindés', 'Salle des canons', 'Pont de commandement'],
+    bg1: '#14141c',
+    bg2: '#6b6f80',
+    enemy: { grunt: '#ced4da', fast: '#ff6b6b', tank: '#495057', minion: '#dee2e6', boss: '#adb5bd' },
+  },
+  {
+    name: 'La dimension miroir',
+    bossName: 'Reflétor',
+    levelNames: ['Salle des reflets', 'Doubles maléfiques', 'Labyrinthe de verre', 'Le grand miroir'],
+    bg1: '#1b1030',
+    bg2: '#a98bd8',
+    enemy: { grunt: '#e0c3fc', fast: '#ffffff', tank: '#7b6fd1', minion: '#f1e4ff', boss: '#d9c2ff' },
+  },
+  {
+    name: "La fin de l'univers",
+    bossName: 'Omégax',
+    levelNames: ['Étoiles éteintes', 'Dernière lumière', 'Le grand silence', 'Le trône du néant'],
+    bg1: '#000000',
+    bg2: '#7a0e3a',
+    enemy: { grunt: '#ff758f', fast: '#ffb3c1', tank: '#590d22', minion: '#ffccd5', boss: '#ff4d6d' },
+  },
 ];
 
 function scaleWaves(waves: WaveEntry[][], factor: number): WaveEntry[][] {
@@ -233,7 +289,7 @@ function addNewMonsters(waves: WaveEntry[][], chapter: number, levelIndex: numbe
 
 function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
   const base = CHAPTERS[0].levels; // on réutilise la forme des vagues du chapitre 1
-  const factor = 1 + 0.18 * (id - 1);
+  const factor = id <= 8 ? 1 + 0.18 * (id - 1) : 2.26 + 0.1 * (id - 8); // ensuite la croissance ralentit
   const levels: LevelDef[] = base.map((b, i) => {
     if (b.isBoss) {
       return {
@@ -242,7 +298,7 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
         name: `MÉGA BOSS : ${seed.bossName}`,
         isBoss: true,
         bonus: Math.round(b.bonus * (1 + 0.25 * (id - 1))),
-        waves: [[{ kind: 'minion', count: 6 + 2 * (id - 1) }], [{ kind: 'boss', count: 1 }]],
+        waves: [[{ kind: 'minion', count: Math.min(6 + 2 * (id - 1), 20) }], [{ kind: 'boss', count: 1 }]],
       };
     }
     return {
@@ -262,8 +318,8 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
       bg2: seed.bg2,
       enemy: { shooter: '#ffd166', bomber: '#ef476f', ...seed.enemy },
       bossName: seed.bossName,
-      hpMult: 1 + 0.4 * (id - 1),
-      dmgMult: 1 + 0.15 * (id - 1),
+      hpMult: id <= 8 ? 1 + 0.4 * (id - 1) : 3.8 + 0.3 * (id - 8),
+      dmgMult: id <= 8 ? 1 + 0.15 * (id - 1) : 2.05 + 0.1 * (id - 8),
     },
     levels,
   };

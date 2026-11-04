@@ -1084,3 +1084,8 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 ('Astrolabe','epic',100,11,6,7,'#8d6cc4','#ffd166',110,13),
 ('Abysse','mythic',125,10,9,6,'#0b6e99','#06d6a0',140,14);
 -- skins (Braise, Givre, Nuit, Sage, Corail, Perle) et packs duo : voir la migration du projet Supabase
+
+-- Contenu : 10 personnages + 10 soucoupes (sort_order 15 à 24), 4 packs duo, chapitres jusqu'à 15 (migration "contenu_10_et_chapitres_15" ;
+-- complete_level accepte p_chapter de 1 à 15, même corps qu'avant)
+-- Zéphyr, Golem (rares) · Phénix, Sentinelle (super rares) · Banshee, Rhino (épiques) · Dragon, Oracle (mythiques) · Galaxion, Aurore (légendaires)
+-- Soucoupes : Alizé, Granit, Phare, Sonar, Fantôme, Bélier, Léviathan, Pulsar, Supernova, Aurore boréale

@@ -672,6 +672,20 @@ export class Engine {
         const k = e.pattern % 4;
         if (k === 3) { fan(phase2 ? 9 : 7, 0.18); wait = 1.2; }
         else { ring(4, 230, this.time * 1.3); ring(4, 170, this.time * 1.3 + 0.4); wait = phase2 ? 0.45 : 0.65; }
+      } else if (ch >= 9) {
+        // chapitres 9 à 15 : cinq tirs qui s'enchaînent, de plus en plus rapides et denses
+        const t = ch - 8; // 1 à 7
+        const k = e.pattern % 5;
+        if (k === 0) { ring((phase2 ? 20 : 14) + t, 175, this.time); ring((phase2 ? 20 : 14) + t, 235, this.time + 0.25); }
+        else if (k === 1) fan((phase2 ? 9 : 7) + Math.floor(t / 2), 0.16);
+        else if (k === 2) { spiral(); wait = Math.max(0.25, 0.4 - t * 0.02); }
+        else if (k === 3) { ring(6 + t, 250, toPlayer); wait = 0.8; }
+        else {
+          // pluie : des tirs qui tombent du haut vers le bas
+          for (let i = 0; i < 6 + t; i++) fire(Math.PI / 2 + (i / (5 + t) - 0.5) * 1.5, 215);
+          wait = 1;
+        }
+        wait = Math.max(0.3, wait - 0.05 * t);
       } else {
         // chapitre 8 (dernier boss) : anneau double, éventail visé et spirale
         const k = e.pattern % 4;
@@ -1030,11 +1044,11 @@ export class Engine {
         const chp = this.level.chapter;
         if (chp >= 2) {
           c.save();
-          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : chp === 7 ? '#90e0ef' : '#ffd23f';
-          if (chp === 2 || chp === 6 || chp === 8) {
-            const n = chp === 8 ? 5 : 3;
+          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : chp === 7 ? '#90e0ef' : chp >= 9 ? ['#f4d35e', '#4cc9f0', '#80ed99', '#ffe66d', '#adb5bd', '#d9c2ff', '#ff4d6d'][chp - 9] : '#ffd23f';
+          if (chp === 2 || chp === 6 || chp === 8 || (chp >= 9 && chp % 2 === 1)) {
+            const n = chp === 8 ? 5 : chp >= 9 ? 4 + ((chp - 9) >> 1) : 3;
             for (let k = 0; k < n; k++) {
-              const a2 = this.time * (chp === 6 || chp === 8 ? 2.4 : 1.4) + (k / n) * TAU;
+              const a2 = this.time * (chp === 6 || chp === 8 || chp >= 9 ? 2.4 : 1.4) + (k / n) * TAU;
               c.beginPath();
               c.arc(Math.cos(a2) * r * 1.35, Math.sin(a2) * r * 1.35, r * 0.17, 0, TAU);
               c.fill();
