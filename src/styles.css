@@ -1800,3 +1800,13 @@ button.player-pill:active { transform: scale(0.97); }
   .clan-leave { transform: scale(0.85); }
   .chat { padding: 4px; }
 }
+
+/* Fiches : jamais coupées en bas */
+@media (orientation: landscape) and (max-height: 560px) {
+  .sheet { overflow: visible; box-sizing: border-box; padding-bottom: 8px; height: auto; border: 5px solid var(--rarity); border-radius: 22px; }
+  .modal-overlay { padding: 6px; }
+}
+.clan-head > div { min-width: 0; flex: 1; text-align: left; }
+.clan-head .chapter-title { overflow-wrap: anywhere; font-size: 22px; line-height: 1.15; }
+.clan-head .legend { margin: 2px 0 0; text-align: left; overflow-wrap: anywhere; }
+.clan-info strong { white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
