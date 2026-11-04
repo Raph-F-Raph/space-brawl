@@ -17,7 +17,7 @@ export function CollectionScreen({ kind, onBack }: { kind: Kind; onBack: () => v
   const items: (Character | Ship)[] = isChars ? g.characters : g.ships;
 
   return (
-    <div className="screen">
+    <div className="screen collection">
       <TopBar title={isChars ? 'Personnages' : 'Soucoupes'} onBack={onBack} />
 
       <div className="scroll">

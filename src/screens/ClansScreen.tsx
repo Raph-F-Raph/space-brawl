@@ -241,7 +241,8 @@ function MyClan({ clan, myId, onLeft }: { clan: ClanInfo; myId: string; onLeft: 
   }
 
   return (
-    <>
+    <div className="clan-view">
+      <div className="clan-left">
       <section className="chapter clan-head">
         <span className="clan-badge big">{clan.badge}</span>
         <div>
@@ -270,6 +271,12 @@ function MyClan({ clan, myId, onLeft }: { clan: ClanInfo; myId: string; onLeft: 
         </ul>
       </section>
 
+      <button className="btn btn-small btn-red clan-leave" onClick={() => setLeaving(true)}>
+        Quitter le clan
+      </button>
+      </div>
+
+      <div className="clan-right">
       <section className="chapter">
         <h2 className="chapter-title">
           Discussion <span>du clan</span>
@@ -299,15 +306,12 @@ function MyClan({ clan, myId, onLeft }: { clan: ClanInfo; myId: string; onLeft: 
         </form>
         <p className="legend">Reste gentil : pas d'insultes ni de liens.</p>
       </section>
-
-      <button className="btn btn-small btn-red clan-leave" onClick={() => setLeaving(true)}>
-        Quitter le clan
-      </button>
+      </div>
       {leaving && (
         <ConfirmModal title="Quitter le clan ?" confirmLabel="Quitter" busy={busy} onConfirm={() => void leave()} onClose={() => setLeaving(false)}>
           <p>Tu pourras en rejoindre un autre ou en créer un nouveau.</p>
         </ConfirmModal>
       )}
-    </>
+    </div>
   );
 }

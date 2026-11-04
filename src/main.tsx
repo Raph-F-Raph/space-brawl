@@ -17,3 +17,15 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     });
   });
 }
+
+// Essaie de verrouiller le paysage (marche dans l'app installée / plein écran).
+try {
+  const lock = () => {
+    const o = screen.orientation as ScreenOrientation & { lock?: (t: string) => Promise<void> };
+    o?.lock?.('landscape').catch(() => {});
+  };
+  lock();
+  window.addEventListener('pointerdown', lock, { once: true });
+} catch {
+  /* ignoré */
+}
