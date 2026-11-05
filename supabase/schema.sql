@@ -1092,3 +1092,6 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 
 -- Contenu : 3 personnages communs (Astro, Gizmo, Moussaillon) + 3 soucoupes communes (Scarabée, Libellule, Tortue),
 -- et 2 skins pour chaque personnage qui n'en avait pas (migration "contenu_communs_et_skins_manquants")
+
+-- Contenu : 5 personnages et 5 soucoupes par rareté — Lutin (commun), Cyclone (super rare), Zénith (légendaire) et soucoupes Bulle, Tempête, Empyrée, avec 2 skins chacun
+-- (migration "contenu_cinq_par_rarete")
