@@ -366,58 +366,6 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
   };
 }
 
-// ---- Chapitres 16 à 50 : générés (couleurs calculées à partir du numéro du chapitre) ----
-function hsl(h: number, sat: number, lig: number): string {
-  const a = (sat / 100) * Math.min(lig / 100, 1 - lig / 100);
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const c = lig / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-    return Math.round(255 * c).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
-}
-
-const LEVEL_NAME_SETS: [string, string, string, string][] = [
-  ['Entrée hostile', 'Zone sauvage', 'Cœur du danger', 'Dernier rempart'],
-  ['Premiers combats', 'Terrain piégé', 'Pluie de tirs', 'Porte du boss'],
-  ['Avant-poste', 'Passage dangereux', 'Zone interdite', 'Antichambre'],
-  ['Approche', 'Embuscade', 'Tempête de monstres', 'Salle du trône'],
-];
-
-const LATE_CHAPTERS: [string, string][] = [
-  ['La mer de lave', 'Magmaron'], ['Les glaces éternelles', 'Cryolos'], ['Le jardin des spores', 'Sporax'],
-  ['La station abandonnée', 'Épaveur'], ["La pluie d'étoiles filantes", 'Météorax'], ['Le temple oublié', 'Pharaxor'],
-  ['La jungle de néon', 'Néonix'], ["L'archipel flottant", 'Aéroval'], ['Le labyrinthe quantique', 'Quantor'],
-  ['La cité des nuages', 'Nimbus'], ['Le champ de gravité', 'Gravitar'], ['La forge des étoiles', 'Stellaforge'],
-  ["L'abysse sans fond", 'Profondax'], ['Le royaume des cristaux', 'Prismor'], ['La tempête solaire', 'Héliax'],
-  ['La nébuleuse écarlate', 'Pourpréon'], ['Le cimetière de vaisseaux', 'Ferrailleur'], ['La planète vivante', 'Gaïaxor'],
-  ['Les anneaux brisés', 'Anneloth'], ['La galerie des géants', 'Colossor'], ['Le trou de ver', 'Vortexus'],
-  ["La horde de l'ombre", 'Ténébrax'], ['Le palais des glaces noires', 'Glaciar'], ['La mécanique céleste', 'Horlogeon'],
-  ["L'œil du chaos", 'Chaotor'], ['Le désert de verre', 'Vitrion'], ["La marée d'étoiles", 'Marexor'],
-  ['Les tours de lumière', 'Lumiaron'], ['Le volcan céleste', 'Pyrogor'], ['La dimension inversée', 'Inversor'],
-  ['Le trône des dieux', 'Divinor'], ['Le dernier rempart', 'Rempartor'], ["L'armada galactique", 'Amiralox'],
-  ['Le cœur du néant', 'Néantor'], ["Le maître de l'univers", 'Omnimax'],
-];
-
-LATE_CHAPTERS.forEach(([name, bossName], i) => {
-  const id = 16 + i;
-  const h = (id * 47 + 20) % 360;
-  SEEDS.push({
-    name,
-    bossName,
-    levelNames: LEVEL_NAME_SETS[i % LEVEL_NAME_SETS.length],
-    bg1: hsl(h, 55, 8),
-    bg2: hsl(h, 60, 38),
-    enemy: {
-      grunt: hsl((h + 20) % 360, 70, 65),
-      fast: hsl((h + 60) % 360, 80, 72),
-      tank: hsl(h, 50, 32),
-      minion: hsl((h + 30) % 360, 60, 86),
-      boss: hsl((h + 340) % 360, 85, 60),
-    },
-  });
-});
-
 SEEDS.forEach((seed, i) => CHAPTERS.push(buildChapter(i + 2, seed)));
 
 export function getChapter(chapter: number): ChapterDef {
