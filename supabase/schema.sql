@@ -1095,3 +1095,7 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 
 -- Contenu : 5 personnages et 5 soucoupes par rareté — Lutin (commun), Cyclone (super rare), Zénith (légendaire) et soucoupes Bulle, Tempête, Empyrée, avec 2 skins chacun
 -- (migration "contenu_cinq_par_rarete")
+
+-- Chapitres 16 à 50 : complete_level accepte p_chapter de 1 à 50 (migration "chapitres_jusqua_50", même corps que les versions précédentes)
+
+-- Chapitres jusqu'à 50 : complete_level accepte p_chapter de 1 à 50, même corps qu'avant (migration "chapitres_jusqu_a_50")

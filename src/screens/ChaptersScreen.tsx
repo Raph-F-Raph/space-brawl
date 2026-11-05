@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useGame } from '../lib/GameContext';
 import { rich } from '../components/Icon';
 import { TopBar } from '../components/Ui';
@@ -11,6 +12,12 @@ export function ChaptersScreen({
   onStart: (chapter: number, level: number) => void;
 }) {
   const { clearedLevel } = useGame();
+  // à l'ouverture, on descend jusqu'au chapitre en cours
+  const current = (CHAPTERS.find((c) => clearedLevel(c.id) < c.levels.length) ?? CHAPTERS[CHAPTERS.length - 1]).id;
+  useEffect(() => {
+    document.getElementById(`chap-${current}`)?.scrollIntoView({ block: 'center' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="screen">
@@ -21,7 +28,7 @@ export function ChaptersScreen({
           const prev = CHAPTERS.find((c) => c.id === ch.id - 1);
           const open = !prev || clearedLevel(prev.id) >= prev.levels.length; // chapitre précédent terminé ?
           return (
-            <section className={`chapter ${open ? '' : 'chapter-locked'}`} key={ch.id}>
+            <section id={`chap-${ch.id}`} className={`chapter ${open ? '' : 'chapter-locked'}`} key={ch.id}>
               <h2 className="chapter-title">
                 Chapitre {ch.id} <span>— {ch.name}</span>
               </h2>

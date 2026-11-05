@@ -274,6 +274,47 @@ const SEEDS: ChapterSeed[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Chapitres 16 à 50 : thèmes et boss générés ; couleurs calculées à partir d'une teinte.
+// ---------------------------------------------------------------------------
+const FAR: [string, string][] = [
+  ['Les ruines stellaires', 'Archonte'], ['Le jardin lunaire', 'Sélénor'], ['La mer de plasma', 'Plasmor'],
+  ['Les montagnes flottantes', 'Aéroliss'], ['La station abandonnée', 'Vorax-9'], ['La nébuleuse écarlate', 'Pourprax'],
+  ['Le marais d\'étoiles', 'Bourbos'], ['Le canyon gravitationnel', 'Gravitor'], ['La cité de cristal noir', 'Obsidor'],
+  ['Le désert d\'antimatière', 'Antimax'], ['La forêt de néons', 'Néonox'], ['Le labyrinthe temporel', 'Chronox'],
+  ['Les glaciers sombres', 'Glaciax'], ['La fournaise éternelle', 'Pyrox'], ['Le sanctuaire des anciens', 'Ancestrax'],
+  ['La tempête magnétique', 'Magnétor'], ['Le cimetière des géants', 'Titanox'], ['L\'archipel des comètes', 'Cométor'],
+  ['La dimension inversée', 'Inversor'], ['La forge cosmique', 'Forgax'], ['Les jardins suspendus', 'Floralix'],
+  ['La citadelle fantôme', 'Spectrion'], ['Le puits sans fond', 'Abyssal'], ['Le royaume des miroirs brisés', 'Fractalor'],
+  ['La galaxie rebelle', 'Rebelor'], ['L\'horloge du cosmos', 'Horlogax'], ['Le volcan stellaire', 'Éruptor'],
+  ['La bibliothèque infinie', 'Savantor'], ['Le colisée des étoiles', 'Colossax'], ['L\'ombre du créateur', 'Ombrax'],
+  ['Le dragon des galaxies', 'Draconox'], ['La porte de l\'infini', 'Infinitor'], ['Le conseil des boss', 'Tribunax'],
+  ['Le dernier rempart', 'Rempartor'], ['Le trône de l\'univers', 'Cosmocrator'],
+];
+const FAR_LEVELS: [string, string, string, string][] = [
+  ['Premiers pas', 'Terrain piégé', 'Cœur du danger', 'Dernier rempart'],
+  ['Zone d\'approche', 'Embuscade', 'Tempête de tirs', 'La porte du boss'],
+  ['Territoire hostile', 'Pluie de monstres', 'Siège final', 'L\'antre du boss'],
+];
+FAR.forEach(([name, bossName], i) => {
+  const id = 16 + i;
+  const h = (id * 47) % 360;
+  SEEDS.push({
+    name,
+    bossName,
+    levelNames: FAR_LEVELS[i % 3],
+    bg1: `hsl(${h}, 60%, 7%)`,
+    bg2: `hsl(${h}, 55%, 34%)`,
+    enemy: {
+      grunt: `hsl(${(h + 40) % 360}, 70%, 72%)`,
+      fast: `hsl(${(h + 120) % 360}, 90%, 65%)`,
+      tank: `hsl(${(h + 200) % 360}, 55%, 45%)`,
+      minion: `hsl(${(h + 20) % 360}, 80%, 88%)`,
+      boss: `hsl(${(h + 160) % 360}, 90%, 62%)`,
+    },
+  });
+});
+
 function scaleWaves(waves: WaveEntry[][], factor: number): WaveEntry[][] {
   return waves.map((w) => w.map((e) => ({ kind: e.kind, count: Math.max(1, Math.round(e.count * factor)) })));
 }
@@ -289,7 +330,7 @@ function addNewMonsters(waves: WaveEntry[][], chapter: number, levelIndex: numbe
 
 function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
   const base = CHAPTERS[0].levels; // on réutilise la forme des vagues du chapitre 1
-  const factor = id <= 8 ? 1 + 0.18 * (id - 1) : 2.26 + 0.1 * (id - 8); // ensuite la croissance ralentit
+  const factor = id <= 8 ? 1 + 0.18 * (id - 1) : id <= 15 ? 2.26 + 0.1 * (id - 8) : Math.min(2.96 + 0.03 * (id - 15), 4); // ensuite la croissance ralentit
   const levels: LevelDef[] = base.map((b, i) => {
     if (b.isBoss) {
       return {
@@ -297,7 +338,7 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
         level: b.level,
         name: `MÉGA BOSS : ${seed.bossName}`,
         isBoss: true,
-        bonus: Math.round(b.bonus * (1 + 0.25 * (id - 1))),
+        bonus: Math.min(Math.round(b.bonus * (1 + 0.25 * (id - 1))), 220),
         waves: [[{ kind: 'minion', count: Math.min(6 + 2 * (id - 1), 20) }], [{ kind: 'boss', count: 1 }]],
       };
     }
@@ -306,7 +347,7 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
       level: b.level,
       name: seed.levelNames[i],
       isBoss: false,
-      bonus: Math.round(b.bonus * (1 + 0.25 * (id - 1))),
+      bonus: Math.min(Math.round(b.bonus * (1 + 0.25 * (id - 1))), 220),
       waves: addNewMonsters(scaleWaves(b.waves, factor), id, i),
     };
   });
@@ -318,12 +359,64 @@ function buildChapter(id: number, seed: ChapterSeed): ChapterDef {
       bg2: seed.bg2,
       enemy: { shooter: '#ffd166', bomber: '#ef476f', ...seed.enemy },
       bossName: seed.bossName,
-      hpMult: id <= 8 ? 1 + 0.4 * (id - 1) : 3.8 + 0.3 * (id - 8),
-      dmgMult: id <= 8 ? 1 + 0.15 * (id - 1) : 2.05 + 0.1 * (id - 8),
+      hpMult: id <= 8 ? 1 + 0.4 * (id - 1) : id <= 15 ? 3.8 + 0.3 * (id - 8) : 5.9 + 0.17 * (id - 15),
+      dmgMult: id <= 8 ? 1 + 0.15 * (id - 1) : id <= 15 ? 2.05 + 0.1 * (id - 8) : 2.75 + 0.05 * (id - 15),
     },
     levels,
   };
 }
+
+// ---- Chapitres 16 à 50 : générés (couleurs calculées à partir du numéro du chapitre) ----
+function hsl(h: number, sat: number, lig: number): string {
+  const a = (sat / 100) * Math.min(lig / 100, 1 - lig / 100);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = lig / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+const LEVEL_NAME_SETS: [string, string, string, string][] = [
+  ['Entrée hostile', 'Zone sauvage', 'Cœur du danger', 'Dernier rempart'],
+  ['Premiers combats', 'Terrain piégé', 'Pluie de tirs', 'Porte du boss'],
+  ['Avant-poste', 'Passage dangereux', 'Zone interdite', 'Antichambre'],
+  ['Approche', 'Embuscade', 'Tempête de monstres', 'Salle du trône'],
+];
+
+const LATE_CHAPTERS: [string, string][] = [
+  ['La mer de lave', 'Magmaron'], ['Les glaces éternelles', 'Cryolos'], ['Le jardin des spores', 'Sporax'],
+  ['La station abandonnée', 'Épaveur'], ["La pluie d'étoiles filantes", 'Météorax'], ['Le temple oublié', 'Pharaxor'],
+  ['La jungle de néon', 'Néonix'], ["L'archipel flottant", 'Aéroval'], ['Le labyrinthe quantique', 'Quantor'],
+  ['La cité des nuages', 'Nimbus'], ['Le champ de gravité', 'Gravitar'], ['La forge des étoiles', 'Stellaforge'],
+  ["L'abysse sans fond", 'Profondax'], ['Le royaume des cristaux', 'Prismor'], ['La tempête solaire', 'Héliax'],
+  ['La nébuleuse écarlate', 'Pourpréon'], ['Le cimetière de vaisseaux', 'Ferrailleur'], ['La planète vivante', 'Gaïaxor'],
+  ['Les anneaux brisés', 'Anneloth'], ['La galerie des géants', 'Colossor'], ['Le trou de ver', 'Vortexus'],
+  ["La horde de l'ombre", 'Ténébrax'], ['Le palais des glaces noires', 'Glaciar'], ['La mécanique céleste', 'Horlogeon'],
+  ["L'œil du chaos", 'Chaotor'], ['Le désert de verre', 'Vitrion'], ["La marée d'étoiles", 'Marexor'],
+  ['Les tours de lumière', 'Lumiaron'], ['Le volcan céleste', 'Pyrogor'], ['La dimension inversée', 'Inversor'],
+  ['Le trône des dieux', 'Divinor'], ['Le dernier rempart', 'Rempartor'], ["L'armada galactique", 'Amiralox'],
+  ['Le cœur du néant', 'Néantor'], ["Le maître de l'univers", 'Omnimax'],
+];
+
+LATE_CHAPTERS.forEach(([name, bossName], i) => {
+  const id = 16 + i;
+  const h = (id * 47 + 20) % 360;
+  SEEDS.push({
+    name,
+    bossName,
+    levelNames: LEVEL_NAME_SETS[i % LEVEL_NAME_SETS.length],
+    bg1: hsl(h, 55, 8),
+    bg2: hsl(h, 60, 38),
+    enemy: {
+      grunt: hsl((h + 20) % 360, 70, 65),
+      fast: hsl((h + 60) % 360, 80, 72),
+      tank: hsl(h, 50, 32),
+      minion: hsl((h + 30) % 360, 60, 86),
+      boss: hsl((h + 340) % 360, 85, 60),
+    },
+  });
+});
 
 SEEDS.forEach((seed, i) => CHAPTERS.push(buildChapter(i + 2, seed)));
 

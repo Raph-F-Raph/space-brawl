@@ -640,7 +640,7 @@ export class Engine {
     e.shootT -= dt;
     if (e.shootT <= 0 && e.charging <= 0) {
       const ch = this.level.chapter;
-      const dmg = phase2 ? 18 : 15;
+      const dmg = Math.round((phase2 ? 18 : 15) * (1 + 0.025 * Math.max(0, ch - 8))); // les tirs du boss font plus mal après le chapitre 8
       const fire = (a: number, sp: number, r = 7) =>
         this.bullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r, dmg, life: 6, friendly: false, pierce: false, hit: new Set() });
       const ring = (n: number, sp: number, off: number) => {
@@ -674,15 +674,16 @@ export class Engine {
         else { ring(4, 230, this.time * 1.3); ring(4, 170, this.time * 1.3 + 0.4); wait = phase2 ? 0.45 : 0.65; }
       } else if (ch >= 9) {
         // chapitres 9 à 15 : cinq tirs qui s'enchaînent, de plus en plus rapides et denses
-        const t = ch - 8; // 1 à 7
-        const k = e.pattern % 5;
-        if (k === 0) { ring((phase2 ? 20 : 14) + t, 175, this.time); ring((phase2 ? 20 : 14) + t, 235, this.time + 0.25); }
+        const t = Math.min(ch - 8, 12); // 1 à 12 (plafonné : sinon l'écran serait rempli de tirs)
+        const k = (e.pattern + ch) % 5;
+        const sp = 1 + Math.min(0.25, Math.max(0, ch - 15) * 0.007); // après le chapitre 15, les tirs accélèrent doucement
+        if (k === 0) { ring((phase2 ? 20 : 14) + t, 175 * sp, this.time); ring((phase2 ? 20 : 14) + t, 235 * sp, this.time + 0.25); }
         else if (k === 1) fan((phase2 ? 9 : 7) + Math.floor(t / 2), 0.16);
         else if (k === 2) { spiral(); wait = Math.max(0.25, 0.4 - t * 0.02); }
-        else if (k === 3) { ring(6 + t, 250, toPlayer); wait = 0.8; }
+        else if (k === 3) { ring(6 + t, 250 * sp, toPlayer); wait = 0.8; }
         else {
           // pluie : des tirs qui tombent du haut vers le bas
-          for (let i = 0; i < 6 + t; i++) fire(Math.PI / 2 + (i / (5 + t) - 0.5) * 1.5, 215);
+          for (let i = 0; i < 6 + t; i++) fire(Math.PI / 2 + (i / (5 + t) - 0.5) * 1.5, 215 * sp);
           wait = 1;
         }
         wait = Math.max(0.3, wait - 0.05 * t);
@@ -1044,9 +1045,9 @@ export class Engine {
         const chp = this.level.chapter;
         if (chp >= 2) {
           c.save();
-          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : chp === 7 ? '#90e0ef' : chp >= 9 ? ['#f4d35e', '#4cc9f0', '#80ed99', '#ffe66d', '#adb5bd', '#d9c2ff', '#ff4d6d'][chp - 9] : '#ffd23f';
+          c.fillStyle = e.flash > 0 ? '#fff' : chp === 3 ? '#e0fbfc' : chp === 4 ? '#ff9f1c' : chp === 5 ? '#52b788' : chp === 7 ? '#90e0ef' : chp >= 9 ? ['#f4d35e', '#4cc9f0', '#80ed99', '#ffe66d', '#adb5bd', '#d9c2ff', '#ff4d6d'][(chp - 9) % 7] : '#ffd23f';
           if (chp === 2 || chp === 6 || chp === 8 || (chp >= 9 && chp % 2 === 1)) {
-            const n = chp === 8 ? 5 : chp >= 9 ? 4 + ((chp - 9) >> 1) : 3;
+            const n = chp === 8 ? 5 : chp >= 9 ? Math.min(4 + ((chp - 9) >> 1), 9) : 3;
             for (let k = 0; k < n; k++) {
               const a2 = this.time * (chp === 6 || chp === 8 || chp >= 9 ? 2.4 : 1.4) + (k / n) * TAU;
               c.beginPath();
