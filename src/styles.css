@@ -1812,3 +1812,15 @@ button.player-pill:active { transform: scale(0.97); }
 .clan-info strong { white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
 .clan-row.me { outline: none; box-shadow: inset 0 0 0 3px var(--yellow); }
 .clan-list { padding: 2px; }
+
+/* Tutoriel du premier niveau */
+.tuto { max-width: 640px; text-align: center; }
+.tuto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0 12px; }
+.tuto-grid div { background: rgba(255, 255, 255, 0.07); border-radius: 14px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.tuto-grid b { font-size: 16px; }
+.tuto-grid span { font-size: 13px; line-height: 1.25; opacity: 0.9; }
+@media (orientation: landscape) and (max-height: 440px) {
+  .tuto .title { font-size: 20px; margin: 0; }
+  .tuto-grid { margin: 4px 0 6px; gap: 6px; }
+  .tuto-grid span { font-size: 11px; }
+}

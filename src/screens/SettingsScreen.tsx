@@ -148,7 +148,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
               <span className="toggle-knob" />
             </button>
           </div>
-          <p className="legend">Space Brawl · version 0.1 · mise à jour 41</p>
+          <p className="legend">Space Brawl · version 0.1 · mise à jour 42</p>
         </div>
       </div>
     </div>
