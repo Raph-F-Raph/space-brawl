@@ -41,22 +41,13 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
   const joyPointer = useRef<number | null>(null);
   const joyOrigin = useRef({ x: 0, y: 0 });
 
-  // petit tutoriel affiché une seule fois, au tout premier niveau
-  const [tuto, setTuto] = useState(() => {
-    if (chapter !== 1 || level !== 1) return false;
-    try { return !localStorage.getItem('space-brawl-tuto'); } catch { return false; }
-  });
-  const closeTuto = () => {
-    setTuto(false);
-    try { localStorage.setItem('space-brawl-tuto', '1'); } catch { /* ignoré */ }
-  };
   const [userPaused, setUserPaused] = useState(false);
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches);
   const [firing, setFiring] = useState(false);
   const [result, setResult] = useState<{ won: boolean; coins: number; broke: boolean } | null>(null);
 
   const pausedRef = useRef(false);
-  pausedRef.current = userPaused || portrait || tuto;
+  pausedRef.current = userPaused || portrait;
 
   const handleEnd = useCallback(
     (r: { won: boolean; coins: number }) => {
@@ -112,8 +103,8 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
 
   // --- Pause (bouton, écran en portrait, application en arrière-plan) ---
   useEffect(() => {
-    if (engineRef.current) engineRef.current.paused = userPaused || portrait || tuto;
-  }, [userPaused, portrait, tuto]);
+    if (engineRef.current) engineRef.current.paused = userPaused || portrait;
+  }, [userPaused, portrait]);
 
   useEffect(() => {
     const mq = window.matchMedia('(orientation: portrait)');
@@ -297,21 +288,6 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
           </div>
         </div>
       </div>
-
-      {/* Tutoriel du premier niveau */}
-      {tuto && !portrait && !result && (
-        <div className="modal-overlay">
-          <div className="modal tuto">
-            <h2 className="title">Comment jouer</h2>
-            <div className="tuto-grid">
-              <div><b>Avancer</b><span>Pose ton pouce à gauche et glisse pour te déplacer.</span></div>
-              <div><b>Tirer</b><span>Tiens ton pouce à droite : tu tires tout seul. Glisse pour viser à la main.</span></div>
-              <div><b>Objectif</b><span>Avance vers le haut jusqu'au portail et évite les tirs !</span></div>
-            </div>
-            <button className="btn btn-green" onClick={closeTuto}>C'est parti !</button>
-          </div>
-        </div>
-      )}
 
       {/* Pause */}
       {userPaused && !result && (

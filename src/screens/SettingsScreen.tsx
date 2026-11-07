@@ -16,6 +16,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
   useEffect(() => onInstallChange(() => setCanInstall(canPromptInstall())), []);
   const installed = isStandalone();
   const [askDelete, setAskDelete] = useState(false);
+  const [howTo, setHowTo] = useState(false);
   const [typed, setTyped] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [delError, setDelError] = useState<string | null>(null);
@@ -124,6 +125,28 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="panel">
+          <h2 className="panel-title">Comment jouer</h2>
+          <p className="legend">Un rappel des commandes et du but du jeu.</p>
+          <button className="btn btn-yellow btn-small" onClick={() => setHowTo(true)}>
+            Voir comment jouer
+          </button>
+        </div>
+
+        {howTo && (
+          <div className="modal-overlay" onClick={() => setHowTo(false)}>
+            <div className="modal tuto" onClick={(e) => e.stopPropagation()}>
+              <h2 className="title">Comment jouer</h2>
+              <div className="tuto-grid">
+                <div><b>Avancer</b><span>Pose ton pouce à gauche et glisse pour te déplacer.</span></div>
+                <div><b>Tirer</b><span>Tiens ton pouce à droite : tu tires tout seul. Glisse pour viser à la main.</span></div>
+                <div><b>Objectif</b><span>Avance vers le haut jusqu'au portail et évite les tirs !</span></div>
+              </div>
+              <button className="btn btn-green" onClick={() => setHowTo(false)}>J'ai compris</button>
+            </div>
+          </div>
+        )}
+
+        <div className="panel">
           <h2 className="panel-title">Jeu</h2>
           <div className="row">
             <span>Bruitages</span>
@@ -148,7 +171,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
               <span className="toggle-knob" />
             </button>
           </div>
-          <p className="legend">Space Brawl · version 0.1 · mise à jour 42</p>
+          <p className="legend">Space Brawl · version 0.1 · mise à jour 43</p>
         </div>
       </div>
     </div>
