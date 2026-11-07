@@ -1099,3 +1099,6 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 -- Chapitres 16 à 50 : complete_level accepte p_chapter de 1 à 50 (migration "chapitres_jusqua_50", même corps que les versions précédentes)
 
 -- Chapitres jusqu'à 50 : complete_level accepte p_chapter de 1 à 50, même corps qu'avant (migration "chapitres_jusqu_a_50")
+
+-- Succès (migration "succes_recompenses") : table achievement_claims (lecture de ses propres lignes) + claim_achievement(p_step) (1 à 21,
+-- vérifie l'objectif côté base : niveaux réussis, chapitres terminés, personnages, soucoupes, skins, trophées ; ajoute pièces/gemmes)

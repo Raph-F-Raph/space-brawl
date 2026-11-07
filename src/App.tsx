@@ -10,6 +10,7 @@ import { PlayScreen } from './screens/PlayScreen';
 import { ChaptersScreen } from './screens/ChaptersScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
+import { AchievementsScreen } from './screens/AchievementsScreen';
 import { TrophyRoadScreen } from './screens/TrophyRoadScreen';
 import { ArenaScreen, type OnlineSession } from './screens/ArenaScreen';
 import { RoomScreen } from './screens/RoomScreen';
@@ -152,6 +153,8 @@ function Shell() {
     content = <LeaderboardScreen onBack={() => setScreen('profile')} />;
   } else if (screen === 'trophyroad') {
     content = <TrophyRoadScreen onBack={() => setScreen('profile')} />;
+  } else if (screen === 'achievements') {
+    content = <AchievementsScreen onBack={() => setScreen('profile')} />;
   } else if (screen === 'profile') {
     content = <ProfileScreen onBack={() => setScreen('home')} onNavigate={setScreen} />;
   } else if (screen === 'characters') {

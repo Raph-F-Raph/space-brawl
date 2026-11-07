@@ -23,6 +23,9 @@ export function ProfileScreen({ onBack, onNavigate }: { onBack: () => void; onNa
           <button className="btn btn-yellow" onClick={() => onNavigate('trophyroad')}>
             <Icon n="trophy" /> Route des trophées
           </button>
+          <button className="btn btn-green" onClick={() => onNavigate('achievements')}>
+            <Icon n="star" /> Succès
+          </button>
           <button className="btn btn-blue" onClick={() => onNavigate('leaderboard')}>
             <Icon n="chart" /> Classement des pilotes
           </button>

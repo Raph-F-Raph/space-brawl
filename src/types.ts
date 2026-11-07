@@ -80,6 +80,7 @@ export type Screen =
   | 'leaderboard'
   | 'profile'
   | 'trophyroad'
+  | 'achievements'
   | 'room'
   | 'settings';
 

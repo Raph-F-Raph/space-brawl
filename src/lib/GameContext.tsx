@@ -45,6 +45,8 @@ interface GameState {
   brokenShips: Set<string>;
   trophyClaims: Set<number>;
   claimTrophy: (step: number) => Promise<string | null>;
+  achClaims: Set<number>;
+  claimAchievement: (step: number) => Promise<string | null>;
   repairShip: (id: string) => Promise<string | null>;
   openChest: (kind: 'bronze' | 'argent' | 'or') => Promise<{ error: string | null; loot: ChestLoot | null }>;
   exchangeGems: (gems: number) => Promise<string | null>;
@@ -95,6 +97,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [ownedShips, setOwnedShips] = useState<Set<string>>(new Set());
   const [brokenShips, setBrokenShips] = useState<Set<string>>(new Set());
   const [trophyClaims, setTrophyClaims] = useState<Set<number>>(new Set());
+  const [achClaims, setAchClaims] = useState<Set<number>>(new Set());
   const [characterLevels, setCharacterLevels] = useState<Record<string, number>>({});
   const [shipLevels, setShipLevels] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState<Progress[]>([]);
@@ -106,7 +109,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const loadData = useCallback(async (userId: string) => {
     const today = new Date().toISOString().slice(0, 10);
-    const [p, ch, sh, pc, ps, pr, sk, psk, bu, mi, tc] = await Promise.all([
+    const [p, ch, sh, pc, ps, pr, sk, psk, bu, mi, tc, ac] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('characters').select('*').order('sort_order'),
       supabase.from('ships').select('*').order('sort_order'),
@@ -118,9 +121,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       supabase.from('bundles').select('*').order('sort_order'),
       supabase.from('daily_missions').select('played, won, coins, claimed').eq('user_id', userId).eq('day', today).maybeSingle(),
       supabase.from('trophy_claims').select('step').eq('user_id', userId),
+      supabase.from('achievement_claims').select('step').eq('user_id', userId),
     ]);
     setMissions((mi.data as { played: number; won: number; coins: number; claimed: number } | null) ?? { played: 0, won: 0, coins: 0, claimed: 0 });
     setTrophyClaims(new Set(((tc.data ?? []) as { step: number }[]).map((r) => r.step)));
+    setAchClaims(new Set(((ac.data ?? []) as { step: number }[]).map((r) => r.step)));
     setProfile((p.data as Profile | null) ?? null);
     setCharacters((ch.data as Character[] | null) ?? []);
     setShips((sh.data as Ship[] | null) ?? []);
@@ -325,6 +330,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [session, loadData]
   );
 
+  const claimAchievement = useCallback(
+    async (step: number) => {
+      if (!session) return 'Connexion requise';
+      const { error } = await supabase.rpc('claim_achievement', { p_step: step });
+      await loadData(session.user.id);
+      return error ? frenchError(error.message) : null;
+    },
+    [session, loadData]
+  );
+
   const exchangeGems = useCallback(
     async (gems: number) => {
       if (!session) return 'Connexion requise';
@@ -424,6 +439,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     brokenShips,
     trophyClaims,
     claimTrophy,
+    achClaims,
+    claimAchievement,
     repairShip,
     openChest,
     skins,
