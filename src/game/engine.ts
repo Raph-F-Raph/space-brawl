@@ -197,6 +197,17 @@ export class Engine {
     this.player.y = this.worldH - 90;
     this.encounters = this.buildEncounters();
     this.makeAsteroids();
+    // Un bonus par niveau, à partir du chapitre 5, jamais dans le niveau du boss
+    if (level.chapter >= 5 && !level.isBoss) {
+      for (let guard = 0; guard < 60; guard++) {
+        const x = 90 + Math.random() * (W - 180);
+        const y = this.worldH * (0.4 + Math.random() * 0.25);
+        if (this.asteroids.some((r) => Math.hypot(r.x - x, r.y - y) < r.r + 40)) continue;
+        const k = Math.random();
+        this.pickups.push({ x, y, kind: k < 0.4 ? 'heal' : k < 0.7 ? 'rapid' : 'shield', life: Infinity });
+        break;
+      }
+    }
     for (let i = 0; i < 200; i++) {
       this.stars.push({ x: Math.random() * W, y: Math.random() * this.worldH, r: 0.6 + Math.random() * 1.6, p: Math.random() * TAU });
     }
@@ -842,11 +853,6 @@ export class Engine {
       sfx('kill');
       sfx('coin');
       this.pops.push({ x: e.x, y: e.y, text: `+${c}`, life: 0.8 });
-      // Les monstres laissent parfois un bonus (jamais le boss)
-      if (e.kind !== 'boss' && Math.random() < 0.13) {
-        const r = Math.random();
-        this.pickups.push({ x: e.x, y: e.y, kind: r < 0.5 ? 'heal' : r < 0.78 ? 'rapid' : 'shield', life: 12 });
-      }
     }
     this.enemies = alive;
   }

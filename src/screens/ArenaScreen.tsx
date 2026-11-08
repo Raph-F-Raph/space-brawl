@@ -362,13 +362,15 @@ export function ArenaScreen({ onExit, onRetry, online = null }: Props) {
         <div className="modal-overlay">
           <div className="modal result">
             <h2 className={`title ${result.won ? 'win' : 'lose'}`}>{result.won ? 'VICTOIRE ROYALE !' : `${result.place}e place`}</h2>
-            <p className="reward">
-              +{result.coins} <span><Icon n="coin" /></span>
-            </p>
-            <p className="reward">
-              {TROPHY(result.place) >= 0 ? '+' : ''}
-              {TROPHY(result.place)} <span><Icon n="trophy" /></span>
-            </p>
+            <div className="reward-row">
+              <p className="reward">
+                +{result.coins} <span><Icon n="coin" /></span>
+              </p>
+              <p className="reward">
+                {TROPHY(result.place) >= 0 ? '+' : ''}
+                {TROPHY(result.place)} <span><Icon n="trophy" /></span>
+              </p>
+            </div>
             <p className="modal-body">
               {result.kills} {result.kills > 1 ? 'pilotes éliminés' : 'pilote éliminé'} · classé {result.place}/8
             </p>

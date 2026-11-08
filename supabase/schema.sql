@@ -1107,3 +1107,5 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 
 -- Codes secrets (migration "codes_secrets") : tables redeem_codes / code_redemptions (aucun accès direct), colonne profiles.unlimited,
 -- trigger keep_unlimited (solde remis au maximum), RPC redeem_code(p_code). Les codes eux-mêmes ne sont PAS dans ce fichier : ils vivent dans la table redeem_codes.
+
+-- Le code de déblocage monte aussi tous les personnages et soucoupes au niveau 10 (migration "code_tout_au_max")

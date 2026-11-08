@@ -47,13 +47,11 @@ export function ChaptersScreen({
                         {rich(state === 'locked' ? '🔒' : lv.isBoss ? '👹' : lv.level)}
                         {state === 'done' && <span className="check">✓</span>}
                       </button>
-                      {state === 'done' && (
-                        <span className="rate">
-                          {[1, 2, 3].map((i) => (
-                            <span key={i} className={i <= getStars(ch.id, lv.level) ? 'on' : ''}>★</span>
-                          ))}
-                        </span>
-                      )}
+                      <span className="rate" style={{ visibility: state === 'done' ? 'visible' : 'hidden' }}>
+                        {[1, 2, 3].map((i) => (
+                          <span key={i} className={i <= getStars(ch.id, lv.level) ? 'on' : ''}>★</span>
+                        ))}
+                      </span>
                       <span className="node-name">{lv.isBoss ? 'BOSS' : `Niveau ${lv.level}`}</span>
                       <span className="node-sub">{lv.name}</span>
                     </div>

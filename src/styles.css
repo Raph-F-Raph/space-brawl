@@ -1845,3 +1845,20 @@ button.player-pill:active { transform: scale(0.97); }
 .code-msg { margin: 8px 0 0; font-family: 'Lilita One', sans-serif; }
 .code-msg.ok { color: #7dff9a; }
 .code-msg.ko { color: #ff6b81; }
+
+/* Étoiles sous les niveaux : rangée réservée, bien séparée du bouton */
+.node-wrap .rate { font-size: 17px; gap: 3px; margin-top: 12px; height: 18px; }
+.node-wrap .node-name { margin-top: 2px; }
+
+/* Résultat de partie : compact, jamais coupé */
+.reward-row { display: flex; gap: 22px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.modal.result { gap: 8px; padding: 14px 22px; max-height: calc(100vh - 16px); overflow: auto; box-sizing: border-box; }
+.modal.result .title { margin: 0; }
+.modal.result .reward { margin: 0; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .modal.result .title { font-size: 26px; }
+  .modal.result .reward { font-size: 30px; }
+  .modal.result .modal-body { font-size: 14px; }
+  .modal.result .rate.big { font-size: 28px; margin: 0; }
+  .modal.result .btn { padding-top: 6px; padding-bottom: 6px; }
+}
