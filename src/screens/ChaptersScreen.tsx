@@ -3,6 +3,7 @@ import { useGame } from '../lib/GameContext';
 import { rich } from '../components/Icon';
 import { TopBar } from '../components/Ui';
 import { CHAPTERS } from '../game/levels';
+import { getStars } from '../lib/stars';
 
 export function ChaptersScreen({
   onBack,
@@ -46,6 +47,13 @@ export function ChaptersScreen({
                         {rich(state === 'locked' ? '🔒' : lv.isBoss ? '👹' : lv.level)}
                         {state === 'done' && <span className="check">✓</span>}
                       </button>
+                      {state === 'done' && (
+                        <span className="rate">
+                          {[1, 2, 3].map((i) => (
+                            <span key={i} className={i <= getStars(ch.id, lv.level) ? 'on' : ''}>★</span>
+                          ))}
+                        </span>
+                      )}
                       <span className="node-name">{lv.isBoss ? 'BOSS' : `Niveau ${lv.level}`}</span>
                       <span className="node-sub">{lv.name}</span>
                     </div>

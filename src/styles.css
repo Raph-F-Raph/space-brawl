@@ -1824,3 +1824,16 @@ button.player-pill:active { transform: scale(0.97); }
   .tuto-grid { margin: 4px 0 6px; gap: 6px; }
   .tuto-grid span { font-size: 11px; }
 }
+
+/* Bonus actif en niveau */
+.hud-buff { display: none; font-family: 'Lilita One', sans-serif; font-size: 13px; color: #0b1030; background: #ffd23f; border: 2px solid #0b1030; border-radius: 10px; padding: 1px 8px; margin-bottom: 2px; }
+
+/* Étoiles */
+.rate { display: flex; justify-content: center; gap: 1px; font-size: 12px; line-height: 1; color: #3a3f6b; }
+.rate .on { color: #ffd23f; text-shadow: 0 1px 0 #0b1030; }
+.rate.big { font-size: 38px; gap: 6px; margin: 2px 0 6px; }
+.rate.big span { -webkit-text-stroke: 2px #0b1030; paint-order: stroke fill; }
+.rate.big .on { animation: starpop 0.5s ease-out backwards; }
+.rate.big span:nth-child(2) { animation-delay: 0.15s; }
+.rate.big span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes starpop { from { transform: scale(0) rotate(-90deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }

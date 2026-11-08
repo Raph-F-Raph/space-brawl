@@ -47,11 +47,12 @@ export interface Hud {
   portalOpen: boolean;
   coins: number;
   boss: { hp: number; max: number } | null;
+  buff: string; // bonus actif (texte court) ou vide
 }
 
 export interface EngineCallbacks {
   onHud: (h: Hud) => void;
-  onEnd: (r: { won: boolean; coins: number }) => void;
+  onEnd: (r: { won: boolean; coins: number; hpFrac: number }) => void;
 }
 
 // Caractéristiques des monstres
@@ -123,6 +124,14 @@ interface Pop {
   y: number;
   text: string;
   life: number;
+  red?: boolean;
+}
+
+interface Pickup {
+  x: number;
+  y: number;
+  kind: 'heal' | 'shield' | 'rapid';
+  life: number;
 }
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -150,6 +159,10 @@ export class Engine {
   private bullets: Bullet[] = [];
   private rings: Ring[] = [];
   private pops: Pop[] = [];
+  private pickups: Pickup[] = [];
+  private shieldT = 0; // bouclier : aucun dégât
+  private rapidT = 0; // tir rapide
+  private shake = 0; // secousse d'écran
   private stars: { x: number; y: number; r: number; p: number }[] = [];
 
   private queue: EnemyKind[] = [];
@@ -235,6 +248,7 @@ export class Engine {
       portalOpen: this.portalOpen,
       coins: this.coins,
       boss: boss ? { hp: Math.max(0, boss.hp), max: boss.maxHp } : null,
+      buff: this.shieldT > 0 ? `Bouclier ${Math.ceil(this.shieldT)}` : this.rapidT > 0 ? `Tir rapide ${Math.ceil(this.rapidT)}` : '',
     };
   }
 
@@ -363,6 +377,10 @@ export class Engine {
     this.pushOutOfAsteroids(p, PLAYER_R);
     this.camY = this.arenaLocked ? 0 : clamp(p.y - H * 0.62, 0, this.worldH - H); // le joueur reste dans le bas de l'écran : on voit devant
     for (const a of this.asteroids) a.rot += a.spin * dt;
+    this.shieldT = Math.max(0, this.shieldT - dt);
+    this.rapidT = Math.max(0, this.rapidT - dt);
+    this.shake = Math.max(0, this.shake - dt * 2.5);
+    this.updatePickups(dt);
     this.tryFire(dt);
     this.updateSpawning(dt);
     this.updateEnemies(dt);
@@ -441,7 +459,7 @@ export class Engine {
   }
 
   private tryFire(dt: number) {
-    this.fireCd = Math.max(0, this.fireCd - dt);
+    this.fireCd = Math.max(0, this.fireCd - dt * (this.rapidT > 0 ? 1.8 : 1));
     const p = this.player;
     const target = this.nearest(620);
     if (this.aim) p.facing = Math.atan2(this.aim.y, this.aim.x); // visée manuelle
@@ -501,6 +519,8 @@ export class Engine {
       if (enc.kinds.includes('boss')) {
         this.arenaLocked = true;
         sfx('boss');
+        this.shake = 1;
+        this.pops.push({ x: W / 2, y: H * 0.38, text: '⚠ BOSS ⚠', life: 2.2, red: true });
         this.queue.sort((a, b) => (a === 'boss' ? 1 : 0) - (b === 'boss' ? 1 : 0)); // le boss sort en premier
       }
       this.spawnT = 0.4;
@@ -528,10 +548,12 @@ export class Engine {
 
   private hurtPlayer(base: number, flat = false) {
     const p = this.player;
-    if (p.invuln > 0) return;
+    if (p.invuln > 0 || this.shieldT > 0) return;
     const dmg = flat ? base : Math.max(1, Math.round(base - this.stats.reduction));
     p.hp -= dmg;
     p.invuln = 0.7;
+    this.shake = Math.min(1, 0.35 + dmg / Math.max(1, this.stats.maxHp) * 2);
+    this.pops.push({ x: p.x, y: p.y - 30, text: `-${dmg}`, life: 0.7, red: true });
     sfx('hurt');
     vibrate(40);
   }
@@ -740,6 +762,74 @@ export class Engine {
     this.bullets = this.bullets.filter((b) => b.life > 0);
   }
 
+  private updatePickups(dt: number) {
+    const p = this.player;
+    for (const k of this.pickups) {
+      k.life -= dt;
+      if (Math.hypot(p.x - k.x, p.y - k.y) < PLAYER_R + 22) {
+        k.life = 0;
+        sfx('coin');
+        if (k.kind === 'heal') {
+          const gain = Math.round(this.stats.maxHp * 0.25);
+          p.hp = Math.min(this.stats.maxHp, p.hp + gain);
+          this.pops.push({ x: p.x, y: p.y - 40, text: `+${gain} PV`, life: 0.9 });
+        } else if (k.kind === 'shield') {
+          this.shieldT = 5;
+          this.pops.push({ x: p.x, y: p.y - 40, text: 'Bouclier !', life: 0.9 });
+        } else {
+          this.rapidT = 8;
+          this.pops.push({ x: p.x, y: p.y - 40, text: 'Tir rapide !', life: 0.9 });
+        }
+      }
+    }
+    this.pickups = this.pickups.filter((k) => k.life > 0);
+  }
+
+  private drawPickups() {
+    const c = this.ctx;
+    for (const k of this.pickups) {
+      if (k.life < 3 && Math.floor(k.life * 6) % 2 === 0) continue; // clignote avant de disparaître
+      const bob = Math.sin(this.time * 4 + k.x) * 3;
+      c.save();
+      c.translate(k.x, k.y + bob);
+      const col = k.kind === 'heal' ? '#ff4d6d' : k.kind === 'shield' ? '#4cc9f0' : '#ffd23f';
+      c.shadowColor = col;
+      c.shadowBlur = 14;
+      c.fillStyle = col;
+      c.strokeStyle = '#0b1030';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.arc(0, 0, 15, 0, TAU);
+      c.fill();
+      c.stroke();
+      c.shadowBlur = 0;
+      c.fillStyle = '#fff';
+      c.beginPath();
+      if (k.kind === 'heal') {
+        c.rect(-3, -9, 6, 18);
+        c.rect(-9, -3, 18, 6);
+      } else if (k.kind === 'shield') {
+        c.moveTo(0, -9);
+        c.lineTo(8, -5);
+        c.lineTo(6, 5);
+        c.lineTo(0, 10);
+        c.lineTo(-6, 5);
+        c.lineTo(-8, -5);
+        c.closePath();
+      } else {
+        c.moveTo(2, -10);
+        c.lineTo(-6, 2);
+        c.lineTo(0, 2);
+        c.lineTo(-2, 10);
+        c.lineTo(6, -2);
+        c.lineTo(0, -2);
+        c.closePath();
+      }
+      c.fill();
+      c.restore();
+    }
+  }
+
   private collectDead() {
     const alive: Enemy[] = [];
     for (const e of this.enemies) {
@@ -752,6 +842,11 @@ export class Engine {
       sfx('kill');
       sfx('coin');
       this.pops.push({ x: e.x, y: e.y, text: `+${c}`, life: 0.8 });
+      // Les monstres laissent parfois un bonus (jamais le boss)
+      if (e.kind !== 'boss' && Math.random() < 0.13) {
+        const r = Math.random();
+        this.pickups.push({ x: e.x, y: e.y, kind: r < 0.5 ? 'heal' : r < 0.78 ? 'rapid' : 'shield', life: 12 });
+      }
     }
     this.enemies = alive;
   }
@@ -761,7 +856,7 @@ export class Engine {
     this.ended = true;
     sfx(won ? 'win' : 'lose');
     if (won) this.coins += this.level.bonus;
-    this.cb.onEnd({ won, coins: this.coins });
+    this.cb.onEnd({ won, coins: this.coins, hpFrac: Math.max(0, this.player.hp) / this.stats.maxHp });
   }
 
   // ------------------------------------------------------------------
@@ -793,7 +888,9 @@ export class Engine {
 
     // tout ce qui suit est dessiné dans le terrain (décalé par la caméra)
     c.save();
-    c.translate(0, -this.camY);
+    const shx = this.shake > 0 ? (Math.random() - 0.5) * 10 * this.shake : 0;
+    const shy = this.shake > 0 ? (Math.random() - 0.5) * 10 * this.shake : 0;
+    c.translate(shx, -this.camY + shy);
 
     c.strokeStyle = 'rgba(255,255,255,0.05)';
     c.lineWidth = 1;
@@ -842,7 +939,20 @@ export class Engine {
       c.stroke();
     }
 
+    this.drawPickups();
     this.drawPlayer();
+    if (this.shieldT > 0) {
+      c.save();
+      c.globalAlpha = this.shieldT < 1.5 ? 0.3 + 0.3 * Math.sin(this.time * 20) : 0.6;
+      c.strokeStyle = '#4cc9f0';
+      c.fillStyle = 'rgba(76,201,240,0.18)';
+      c.lineWidth = 4;
+      c.beginPath();
+      c.arc(this.player.x, this.player.y, PLAYER_R + 12, 0, TAU);
+      c.fill();
+      c.stroke();
+      c.restore();
+    }
 
     c.font = "bold 18px 'Lilita One', 'Arial Black', sans-serif";
     c.textAlign = 'center';
@@ -851,7 +961,7 @@ export class Engine {
       c.lineWidth = 4;
       c.strokeStyle = '#0b1030';
       c.strokeText(o.text, o.x, o.y);
-      c.fillStyle = '#ffd23f';
+      c.fillStyle = o.red ? '#ff6b81' : '#ffd23f';
       c.fillText(o.text, o.x, o.y);
     }
     c.globalAlpha = 1;

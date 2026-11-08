@@ -3,6 +3,7 @@ import { Icon, rich } from '../components/Icon';
 import { useGame } from '../lib/GameContext';
 import { Engine, makeStats } from '../game/engine';
 import { CHAPTERS, getChapter, getLevel } from '../game/levels';
+import { saveStars, starsFor } from '../lib/stars';
 
 const JOY_RADIUS = 60;
 const FIRE_RADIUS = 55;
@@ -29,6 +30,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
   const hpText = useRef<HTMLSpanElement>(null);
   const waveText = useRef<HTMLSpanElement>(null);
   const coinText = useRef<HTMLSpanElement>(null);
+  const buffText = useRef<HTMLSpanElement>(null);
   const bossBar = useRef<HTMLDivElement>(null);
   const bossFill = useRef<HTMLDivElement>(null);
   const joyBase = useRef<HTMLDivElement>(null);
@@ -44,16 +46,18 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
   const [userPaused, setUserPaused] = useState(false);
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches);
   const [firing, setFiring] = useState(false);
-  const [result, setResult] = useState<{ won: boolean; coins: number; broke: boolean } | null>(null);
+  const [result, setResult] = useState<{ won: boolean; coins: number; broke: boolean; stars: number } | null>(null);
 
   const pausedRef = useRef(false);
   pausedRef.current = userPaused || portrait;
 
   const handleEnd = useCallback(
-    (r: { won: boolean; coins: number }) => {
+    (r: { won: boolean; coins: number; hpFrac: number }) => {
       // Défaite : tu gardes la moitié des pièces ramassées
       const reward = r.won ? r.coins : Math.floor(r.coins / 2);
-      setResult({ won: r.won, coins: reward, broke: !r.won && (ship?.price ?? 0) > 0 });
+      const stars = r.won ? starsFor(r.hpFrac) : 0;
+      if (stars) saveStars(chapter, level, stars);
+      setResult({ won: r.won, coins: reward, broke: !r.won && (ship?.price ?? 0) > 0, stars });
       void finishLevel(chapter, level, reward, r.won);
     },
     [chapter, level, finishLevel, ship]
@@ -73,6 +77,10 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         if (hpText.current) hpText.current.textContent = `${h.hp}`;
         if (waveText.current) waveText.current.textContent = h.boss ? 'Bats le boss !' : h.portalOpen ? 'Portail ouvert ⬆' : `Portail ${h.progress} %`;
         if (coinText.current) coinText.current.textContent = `${h.coins}`;
+        if (buffText.current) {
+          buffText.current.textContent = h.buff;
+          buffText.current.style.display = h.buff ? 'block' : 'none';
+        }
         if (bossBar.current) bossBar.current.style.display = h.boss ? 'block' : 'none';
         if (bossFill.current && h.boss) bossFill.current.style.width = `${(h.boss.hp / h.boss.max) * 100}%`;
       },
@@ -235,6 +243,7 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
           </span>
         </div>
         <div className="hud-center">
+          <span className="hud-buff" ref={buffText} style={{ display: 'none' }} />
           <span className="hud-level">{def.isBoss ? 'BOSS' : `Niveau ${level}`}</span>
           <span className="hud-wave" ref={waveText}>
             Portail 0 %
@@ -323,6 +332,13 @@ export function LevelScreen({ chapter, level, onExit, onRetry, onNext, onNextCha
         <div className="modal-overlay">
           <div className="modal result">
             <h2 className={`title ${result.won ? 'win' : 'lose'}`}>{result.won ? 'VICTOIRE !' : 'DÉFAITE…'}</h2>
+            {result.won && (
+              <div className="rate big" aria-label={`${result.stars} étoiles sur 3`}>
+                {[1, 2, 3].map((i) => (
+                  <span key={i} className={i <= result.stars ? 'on' : ''}>★</span>
+                ))}
+              </div>
+            )}
             <p className="reward">
               +{result.coins} <span><Icon n="coin" /></span>
             </p>
