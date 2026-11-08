@@ -16,6 +16,21 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
   const buy = useBuyFlow();
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState<{ kind: Kind; id: string } | null>(null);
+  const [code, setCode] = useState('');
+  const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [codeBusy, setCodeBusy] = useState(false);
+
+  async function submitCode() {
+    if (!code.trim() || codeBusy) return;
+    setCodeBusy(true);
+    const r = await g.redeemCode(code);
+    setCodeBusy(false);
+    setCodeMsg({ ok: r.ok, text: r.message });
+    if (r.ok) {
+      setCode('');
+      sfx('win');
+    }
+  }
 
   const gems = g.profile?.gems ?? 0;
   const lockedChars = byRarity(g.characters.filter((c) => !g.ownedCharacters.has(c.id)));
@@ -313,6 +328,36 @@ export function ShopScreen({ onBack }: { onBack: () => void }) {
             ))}
           </div>
           <p className="legend">Les achats avec de l'argent réel arriveront à la sortie sur le Play Store.</p>
+        </section>
+
+        <section className="chapter code-box">
+          <h2 className="chapter-title">Code secret</h2>
+          <form
+            className="code-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submitCode();
+            }}
+          >
+            <input
+              className="code-input"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setCodeMsg(null);
+              }}
+              placeholder="Entre un code"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={40}
+              aria-label="Code secret"
+            />
+            <button className="btn btn-green btn-small" type="submit" disabled={codeBusy || !code.trim()}>
+              Valider
+            </button>
+          </form>
+          {codeMsg && <p className={`code-msg ${codeMsg.ok ? 'ok' : 'ko'}`}>{codeMsg.text}</p>}
         </section>
       </div>
 

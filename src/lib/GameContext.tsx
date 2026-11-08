@@ -50,6 +50,7 @@ interface GameState {
   repairShip: (id: string) => Promise<string | null>;
   openChest: (kind: 'bronze' | 'argent' | 'or') => Promise<{ error: string | null; loot: ChestLoot | null }>;
   exchangeGems: (gems: number) => Promise<string | null>;
+  redeemCode: (code: string) => Promise<{ ok: boolean; message: string }>;
   // Skins
   skins: Skin[];
   ownedSkins: Set<string>;
@@ -350,6 +351,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [session, loadData]
   );
 
+  const redeemCode = useCallback(
+    async (code: string) => {
+      if (!session) return { ok: false, message: 'Connexion requise' };
+      const { data, error } = await supabase.rpc('redeem_code', { p_code: code });
+      if (error) return { ok: false, message: frenchError(error.message) };
+      await loadData(session.user.id);
+      return { ok: true, message: String(data ?? 'Code accepté !') };
+    },
+    [session, loadData]
+  );
+
   const clearedLevel = useCallback(
     (chapter: number) => progress.find((p) => p.chapter === chapter)?.cleared_level ?? 0,
     [progress]
@@ -436,6 +448,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     missions,
     claimMission,
     exchangeGems,
+    redeemCode,
     brokenShips,
     trophyClaims,
     claimTrophy,

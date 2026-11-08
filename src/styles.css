@@ -1837,3 +1837,11 @@ button.player-pill:active { transform: scale(0.97); }
 .rate.big span:nth-child(2) { animation-delay: 0.15s; }
 .rate.big span:nth-child(3) { animation-delay: 0.3s; }
 @keyframes starpop { from { transform: scale(0) rotate(-90deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+
+/* Code secret (boutique) */
+.code-box { text-align: center; }
+.code-form { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 6px; }
+.code-input { flex: 1; max-width: 320px; min-width: 0; padding: 10px 12px; border-radius: 14px; border: 3px solid #0b1030; background: #141a4a; color: #fff; font: inherit; font-size: 16px; text-align: center; }
+.code-msg { margin: 8px 0 0; font-family: 'Lilita One', sans-serif; }
+.code-msg.ok { color: #7dff9a; }
+.code-msg.ko { color: #ff6b81; }

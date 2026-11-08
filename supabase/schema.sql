@@ -1104,3 +1104,6 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 -- vérifie l'objectif côté base : niveaux réussis, chapitres terminés, personnages, soucoupes, skins, trophées ; ajoute pièces/gemmes)
 
 -- Optimisations (migration "optimisations_securite_performance") : search_path sur ship_repair_cost, (select auth.uid()) dans les 8 politiques de lecture, 4 index sur clés étrangères
+
+-- Codes secrets (migration "codes_secrets") : tables redeem_codes / code_redemptions (aucun accès direct), colonne profiles.unlimited,
+-- trigger keep_unlimited (solde remis au maximum), RPC redeem_code(p_code). Les codes eux-mêmes ne sont PAS dans ce fichier : ils vivent dans la table redeem_codes.
