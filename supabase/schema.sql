@@ -1102,3 +1102,5 @@ insert into public.ships (name, rarity, hp, strength, resistance, speed, color, 
 
 -- Succès (migration "succes_recompenses") : table achievement_claims (lecture de ses propres lignes) + claim_achievement(p_step) (1 à 21,
 -- vérifie l'objectif côté base : niveaux réussis, chapitres terminés, personnages, soucoupes, skins, trophées ; ajoute pièces/gemmes)
+
+-- Optimisations (migration "optimisations_securite_performance") : search_path sur ship_repair_cost, (select auth.uid()) dans les 8 politiques de lecture, 4 index sur clés étrangères
